@@ -1,0 +1,76 @@
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+}
+
+.pg-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  box-sizing: border-box;
+  background: #f2f2f0;
+}
+
+.pg-page[data-pg-mode="dark"] {
+  background: #161615;
+  color: #eee;
+}
+
+.pg-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.pg-controls label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  gap: 4px;
+}
+
+.pg-controls button {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  padding: 8px 12px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.pg-frame {
+  width: 390px;
+  max-width: 100%;
+  height: 780px;
+  max-height: 85vh;
+  border-radius: 32px;
+  border: 8px solid #1c1c1c;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  background: white;
+}
+
+.pg-frame > * {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.pg-debug {
+  max-width: 390px;
+  width: 100%;
+  background: #111;
+  color: #6f6;
+  font-size: 11px;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+}
