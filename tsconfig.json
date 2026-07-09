@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@flowkit/core": ["packages/core/src/index.ts"],
+      "@flowkit/themes": ["packages/themes/src/index.ts"],
+      "@flowkit/react": ["packages/react/src/index.tsx"],
+      "@flowkit/adapters": ["packages/adapters/src/index.ts"],
+      "@flowkit/presets": ["packages/presets/src/index.ts"]
+    }
+  },
+  "include": ["packages/*/src", "apps/*/src"]
+}
