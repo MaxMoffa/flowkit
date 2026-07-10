@@ -72,8 +72,8 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     ? (partialTokensToCssVars(themeOverride) as CSSProperties)
     : undefined
 
-  const headerOrder = resolvedTokens.layout?.headerPosition === "bottom" ? 2 : 0
-  const footerOrder = resolvedTokens.layout?.footerPosition === "top" ? 0 : 2
+  const headerOrder = resolvedTokens.layout?.headerPosition === "bottom" ? 3 : 1
+  const footerOrder = resolvedTokens.layout?.footerPosition === "top" ? 0 : 4
   const progressVariant = resolvedTokens.layout?.progressVariant ?? "bar"
   const ProgressComponent =
     progressVariant === "hidden" ? null : (getProgressComponent(progressVariant) ?? BarProgress)
@@ -139,7 +139,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
             </span>
           </div>
         )}
-        <div className="fk-body" style={{ order: 1 }}>
+        <div className="fk-body" style={{ order: 2 }}>
           <div className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}`}>
             <div key={step.id} className={`fk-step-theme-scope${animationClass}`} style={scopeStyle}>
               <StepView

@@ -44,8 +44,8 @@ describe("themeToCssVars", () => {
     const vars = themeToCssVars(theme, "light")
     expect(vars["--fk-font-heading"]).toBe("'Fraunces', serif")
     expect(vars["--fk-font-body"]).toBe("'Inter', sans-serif")
-    expect(vars["--fk-image-background"]).toBe("url(/bg.jpg)")
-    expect(vars["--fk-image-logo"]).toBe("url(/logo.svg)")
+    expect(vars["--fk-image-background"]).toBe('url("/bg.jpg")')
+    expect(vars["--fk-image-logo"]).toBe('url("/logo.svg")')
   })
 })
 

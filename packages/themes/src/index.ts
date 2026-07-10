@@ -112,8 +112,8 @@ function tokensToCssVars(tokens: ThemeTokens): Record<string, string> {
   if (tokens.fonts?.body) vars["--fk-font-body"] = tokens.fonts.body
   if (tokens.fonts?.headingSize) vars["--fk-font-heading-size"] = tokens.fonts.headingSize
   if (tokens.fonts?.bodySize) vars["--fk-font-body-size"] = tokens.fonts.bodySize
-  if (tokens.images?.background) vars["--fk-image-background"] = `url(${tokens.images.background})`
-  if (tokens.images?.logo) vars["--fk-image-logo"] = `url(${tokens.images.logo})`
+  if (tokens.images?.background) vars["--fk-image-background"] = `url("${tokens.images.background}")`
+  if (tokens.images?.logo) vars["--fk-image-logo"] = `url("${tokens.images.logo}")`
 
   return vars
 }
@@ -130,8 +130,8 @@ export function partialTokensToCssVars(partial: Partial<ThemeTokens>): Record<st
     const value = partial[key]
     if (typeof value === "string") vars[cssVar] = value
   }
-  if (partial.images?.background) vars["--fk-image-background"] = `url(${partial.images.background})`
-  if (partial.images?.logo) vars["--fk-image-logo"] = `url(${partial.images.logo})`
+  if (partial.images?.background) vars["--fk-image-background"] = `url("${partial.images.background}")`
+  if (partial.images?.logo) vars["--fk-image-logo"] = `url("${partial.images.logo}")`
   return vars
 }
 
