@@ -11,134 +11,135 @@
 
 # Flowkit
 
-Libreria open source per comporre **flow guidati, mobile-first e themeable** a partire
-da un config dichiarativo validato con [zod](https://zod.dev). Pensata per wizard "una
-domanda per schermata" come segnalazioni, sondaggi, onboarding e form multi-step: tu
-scrivi un oggetto `Flow`, Flowkit lo renderizza, gestisce navigazione e validazione, e
-applica il tema.
+Open source library for composing **guided, mobile-first, themeable flows** from a
+declarative config validated with [zod](https://zod.dev). Built for "one question per
+screen" wizards such as reports, surveys, onboarding and multi-step forms: you write a
+`Flow` object, Flowkit renders it, handles navigation and validation, and applies the
+theme.
 
-**Stato multi-framework**: il core (`@flowkit/core`), i temi (`@flowkit/themes`) e gli
-adapter (`@flowkit/adapters`) sono framework-agnostic per design. Il renderer
-**React** (`@flowkit/react`) è completo e coperto da test automatici (unità + Playwright
-end-to-end). I renderer **Vue, Svelte e vanilla JS sono pianificati ma non ancora
-implementati** in questa versione — la CLI e questa documentazione trattano oggi solo
-React; le sezioni relative agli altri framework torneranno quando i pacchetti
-corrispondenti esisteranno.
+**Multi-framework status**: the core (`@flowkit/core`), themes (`@flowkit/themes`) and
+adapters (`@flowkit/adapters`) are framework-agnostic by design. The **React** renderer
+(`@flowkit/react`) is complete and covered by automated tests (unit + Playwright
+end-to-end). **Vue, Svelte and vanilla JS renderers are planned but not yet
+implemented** in this version — the CLI and this documentation cover React only for
+now; sections for the other frameworks will return once the corresponding packages
+exist.
 
-Monorepo npm (workspaces) composto da:
+npm monorepo (workspaces) made up of:
 
 ```
-packages/core            # schema Flow/Step (zod), registry step aperto, macchina a stati, oauth, geocoding, i18n
-packages/react            # <FlowRunner>, <ThemeProvider>, componenti per ogni tipo di step (incl. oauth, mappa reale)
-packages/themes            # temi notion-clean, mint-fresh, midnight-ink (token + CSS vars, light/dark, font/immagini)
-packages/adapters           # persistenza risposte: local, rest, supabase (stub), notion
-packages/presets              # flow pronti all'uso: "odori" e "feedback"
-packages/create-flowkit         # CLI: `create-flowkit` (scaffold) e `flowkit-init` (installer)
-apps/playground                   # app Vite di showcase: preset/tema/dark-mode, cornice mobile
-e2e/                                 # test Playwright end-to-end (solo target React per ora)
+packages/core            # Flow/Step schema (zod), open step registry, state machine, oauth, geocoding, i18n
+packages/react            # <FlowRunner>, <ThemeProvider>, components for every step type (incl. oauth, real map)
+packages/themes            # notion-clean, mint-fresh, midnight-ink themes (tokens + CSS vars, light/dark, custom fonts/images)
+packages/adapters           # answer persistence: local, rest, supabase (stub), notion
+packages/presets              # ready-to-use flows: "odori", "feedback", "restaurant"
+packages/create-flowkit         # CLI: `create-flowkit` (scaffold) and `flowkit-init` (installer)
+apps/playground                   # Vite showcase app: preset/theme/dark-mode picker, mobile frame
+e2e/                                 # Playwright end-to-end tests (React target only for now)
 ```
 
-Nessuna dipendenza da un framework di stato esterno: il core è headless (nessun DOM),
-il rendering vive solo nel pacchetto del framework scelto (oggi: `@flowkit/react`).
+No dependency on an external state framework: the core is headless (no DOM), rendering
+lives only in the chosen framework package (today: `@flowkit/react`).
 
 ---
 
-## Indice
+## Table of contents
 
-- [Installazione](#installazione)
-- [CLI: `create-flowkit` e `flowkit-init`](#cli-create-flowkit-e-flowkit-init)
+- [Installation](#installation)
+- [CLI: `create-flowkit` and `flowkit-init`](#cli-create-flowkit-and-flowkit-init)
 - [Quickstart: playground](#quickstart-playground)
-- [Concetti base](#concetti-base)
-- [Usare Flowkit in un'app](#usare-flowkit-in-unapp)
-- [Step personalizzati](#step-personalizzati)
-- [Configurare un tema](#configurare-un-tema)
-- [Definire un flow](#definire-un-flow)
-  - [Campi comuni a ogni step](#campi-comuni-a-ogni-step)
-  - [Riferimento per tipo di step](#riferimento-per-tipo-di-step)
-- [Step OAuth](#step-oauth)
-- [Step Mappa (maplibre-gl / Leaflet)](#step-mappa-maplibre-gl--leaflet)
-- [Invio delle risposte via email](#invio-delle-risposte-via-email)
-- [Persistenza delle risposte (adapter)](#persistenza-delle-risposte-adapter)
+- [Core concepts](#core-concepts)
+- [Using Flowkit in an app](#using-flowkit-in-an-app)
+- [Custom steps](#custom-steps)
+- [Configuring a theme](#configuring-a-theme)
+- [Defining a flow](#defining-a-flow)
+  - [Fields common to every step](#fields-common-to-every-step)
+  - [Reference by step type](#reference-by-step-type)
+- [OAuth step](#oauth-step)
+- [Map step (maplibre-gl / Leaflet)](#map-step-maplibre-gl--leaflet)
+- [Sending answers via email](#sending-answers-via-email)
+- [Persisting answers (adapters)](#persisting-answers-adapters)
 - [i18n](#i18n)
-- [Preset inclusi](#preset-inclusi)
-- [Script del monorepo](#script-del-monorepo)
-- [Test end-to-end (Playwright)](#test-end-to-end-playwright)
-- [Estendere Flowkit](#estendere-flowkit)
+- [Included presets](#included-presets)
+- [Monorepo scripts](#monorepo-scripts)
+- [End-to-end tests (Playwright)](#end-to-end-tests-playwright)
+- [Extending Flowkit](#extending-flowkit)
 
 ---
 
-## Installazione
+## Installation
 
-Requisiti: Node 18+ e npm (usato dal monorepo per i workspace).
+Requirements: Node 18+ and npm (used by the monorepo for workspaces).
 
 ```bash
 npm install
 ```
 
-Se consumi Flowkit da un altro progetto (non da questo monorepo), installa i pacchetti
-che ti servono dal registry dove li hai pubblicati:
+If you consume Flowkit from another project (not from this monorepo), install the
+packages you need from wherever you've published them:
 
 ```bash
 npm install @flowkit/core @flowkit/react @flowkit/themes @flowkit/adapters
 ```
 
-> **Nota**: i pacchetti `@flowkit/*` non sono ancora pubblicati su un registry pubblico
-> in questa fase del progetto (tutti `"private": true`). Gli esempi di installazione
-> sopra e la CLI sotto sono scritti per il momento in cui verranno pubblicati; nel
-> frattempo, per usarli da un altro progetto locale, punta alle cartelle dei pacchetti
-> con il protocollo `file:` (es. `"@flowkit/core": "file:../flowkit/packages/core"`).
+> **Note**: the `@flowkit/*` packages aren't published to a public registry yet at
+> this stage of the project (all `"private": true`). The install examples above and
+> the CLI below are written for once they are published; in the meantime, to use them
+> from another local project, point at the package folders with the `file:` protocol
+> (e.g. `"@flowkit/core": "file:../flowkit/packages/core"`).
 
-`@flowkit/presets` è opzionale: contiene solo esempi pronti, non è richiesto per usare
-la libreria con un tuo config.
+`@flowkit/presets` is optional: it only contains ready-made examples, it isn't
+required to use the library with your own config.
 
-## CLI: `create-flowkit` e `flowkit-init`
+## CLI: `create-flowkit` and `flowkit-init`
 
-Il pacchetto `packages/create-flowkit` espone due comandi (solo target **React** in
-questa versione; gli altri framework verranno accettati dal prompt ma ricondotti a
-React con un avviso, in attesa dei rispettivi pacchetti renderer):
+The `packages/create-flowkit` package exposes two commands (**React** only in this
+version; other frameworks are accepted by the prompt but fall back to React with a
+warning, pending their renderer packages):
 
-### `create-flowkit` — scaffold di una mini-app
+### `create-flowkit` — scaffold a mini-app
 
-Crea un progetto Vite+React standalone, già wired con `@flowkit/presets` (preset
-`feedback`), tema di default e adapter `local` — nessun backend richiesto per partire.
+Creates a standalone Vite+React project, already wired with `@flowkit/presets` (the
+`feedback` preset), the default theme and the `local` adapter — no backend required to
+get started.
 
 ```bash
 npx create-flowkit
-# oppure, non interattivo (utile in CI/script):
+# or, non-interactive (useful in CI/scripts):
 npx create-flowkit --name my-app --framework react --yes
 ```
 
-Prompt: nome progetto, framework. Poi: copia il template, rinomina `package.json`,
-installa le dipendenze (a meno di `--no-install`), stampa i comandi per partire
+Prompts: project name, framework. Then: copies the template, renames `package.json`,
+installs dependencies (unless `--no-install`), prints the commands to get started
 (`cd my-app && npm run dev`).
 
-### `flowkit-init` — aggiungi Flowkit a un progetto esistente
+### `flowkit-init` — add Flowkit to an existing project
 
 ```bash
 npx flowkit-init
-# oppure, non interattivo:
+# or, non-interactive:
 npx flowkit-init --framework react --yes
 ```
 
-Rileva il package manager del progetto (pnpm/yarn/npm dal lockfile presente),
-installa `@flowkit/core` + `@flowkit/themes` + `@flowkit/adapters` + il pacchetto del
-framework scelto, e scrive un file `src/flowkit-setup.tsx` con il wiring minimo
-(`FlowRunner` vuoto pronto da riempire) — non un preset intero.
+Detects the project's package manager (pnpm/yarn/npm from the lockfile present),
+installs `@flowkit/core` + `@flowkit/themes` + `@flowkit/adapters` + the chosen
+framework package, and writes a `src/flowkit-setup.tsx` file with the minimal wiring
+(an empty `FlowRunner` ready to fill in) — not a whole preset.
 
-`flowkit-init` chiede anche quali **step opzionali con dipendenze pesanti** (le due
-varianti mappa) vuoi includere: solo quelli scelti vengono installati (`maplibre-gl`
-e/o `leaflet`) e importati (`@flowkit/react/map-maplibre`/`map-leaflet`) nel file
-generato — un progetto che non usa mappe non installa né l'una né l'altra libreria.
+`flowkit-init` also asks which **optional steps with heavy dependencies** (the two map
+variants) you want to include: only the ones you choose get installed (`maplibre-gl`
+and/or `leaflet`) and imported (`@flowkit/react/map-maplibre`/`map-leaflet`) in the
+generated file — a project that doesn't use maps installs neither library.
 
 ```bash
 npx flowkit-init --framework react --steps=map-maplibre,map-leaflet --yes
-# --steps= (vuoto) o l'omissione di un gruppo lo esclude
+# --steps= (empty) or omitting a group excludes it
 ```
 
-Entrambi i comandi accettano `--no-install` (salta l'installazione, stampa il comando
-da eseguire a mano) e sono scriptabili end-to-end con `--framework`/`--name`/`--yes`/
-`--steps`, perché i prompt interattivi (`@clack/prompts`) richiedono un vero terminale
-e non funzionano pipando stdin.
+Both commands accept `--no-install` (skips installation, prints the command to run by
+hand) and are scriptable end-to-end with `--framework`/`--name`/`--yes`/`--steps`,
+because the interactive prompts (`@clack/prompts`) require a real terminal and don't
+work when piping stdin.
 
 ## Quickstart: playground
 
@@ -146,43 +147,44 @@ e non funzionano pipando stdin.
 npm run dev --workspace=@flowkit/playground
 ```
 
-Apri l'URL stampato da Vite. La pagina mostra:
+Open the URL printed by Vite. The page shows:
 
-- un **selettore Preset** (`odori`, `feedback`, più due demo: step personalizzati e
-  OAuth+Mappa);
-- un **selettore Tema** (`notion-clean`, `mint-fresh`, `midnight-ink`);
-- un **toggle chiaro/scuro**;
-- il flow renderizzato dentro una **cornice telefono** con notch e statusbar, i cui
-  colori seguono il tema attivo;
-- una **strip di swatch** per confrontare i temi a colpo d'occhio;
-- un pannello di debug con il JSON delle risposte inviate (`onSubmit`).
+- a **Preset selector** (`odori`, `feedback`, `restaurant`, plus a few demos: custom
+  steps, OAuth+Map, result actions);
+- a **Theme selector** (`notion-clean`, `mint-fresh`, `midnight-ink`);
+- a **light/dark toggle**;
+- the rendered flow inside a **phone frame** with notch and status bar, whose colors
+  follow the active theme;
+- a **swatch strip** to compare themes at a glance;
+- a debug panel with the JSON of submitted answers (`onSubmit`).
 
-Usalo come riferimento visivo prima di scrivere il tuo config: è il modo più veloce
-per capire come i vari tipi di step si comportano.
+Use it as a visual reference before writing your own config: it's the fastest way to
+understand how the various step types behave.
 
-## Concetti base
+## Core concepts
 
-| Concetto | Dove vive | Cos'è |
+| Concept | Lives in | What it is |
 |---|---|---|
-| `Flow` | `@flowkit/core` | Oggetto validato da zod: `{ id, title, locale, steps[] }` |
-| `Step` | `@flowkit/core` | Una "schermata" del flow; il `type` è risolto a runtime da un **registry** (vedi [Step personalizzati](#step-personalizzati)), non da una union chiusa |
-| `Answers` | `@flowkit/core` | `Record<stepId, valore>`, lo stato compilato dall'utente |
-| `Theme` | `@flowkit/themes` | `{ name, label, light, dark }`, ogni variante è un set di token (colori, spaziature, font, immagini) |
-| `FlowRunner` | `@flowkit/react` | Componente React che monta un `Flow`, gestisce stato/navigazione/render |
-| `FlowAdapter` | `@flowkit/adapters` | Interfaccia `{ submit, loadDraft, saveDraft }` per persistere le risposte (local/rest/supabase/notion) |
+| `Flow` | `@flowkit/core` | zod-validated object: `{ id, title, locale, steps[] }` |
+| `Step` | `@flowkit/core` | A "screen" of the flow; its `type` is resolved at runtime from a **registry** (see [Custom steps](#custom-steps)), not a closed union |
+| `Answers` | `@flowkit/core` | `Record<stepId, value>`, the state filled in by the user |
+| `Theme` | `@flowkit/themes` | `{ name, label, light, dark }`, each variant is a set of tokens (colors, spacing, fonts, images) |
+| `FlowRunner` | `@flowkit/react` | React component that mounts a `Flow`, manages state/navigation/rendering |
+| `FlowAdapter` | `@flowkit/adapters` | `{ submit, loadDraft, saveDraft }` interface for persisting answers (local/rest/supabase/notion) |
 
-Il flusso tipico: scrivi un `Flow` con `parseFlow(...)`, lo passi a `<FlowRunner>` insieme
-a un `Theme` e a un `onSubmit`, e quando l'utente arriva allo step `review` e conferma,
-ricevi `Answers` già validate secondo le regole `required` di ogni step.
+The typical flow: write a `Flow` with `parseFlow(...)`, pass it to `<FlowRunner>`
+along with a `Theme` and an `onSubmit`, and once the user reaches the `review` step
+and confirms, you receive `Answers` already validated according to each step's
+`required` rules.
 
-## Usare Flowkit in un'app
+## Using Flowkit in an app
 
 ```tsx
 import { FlowRunner } from "@flowkit/react"
 import { notionClean } from "@flowkit/themes"
 import { createLocalAdapter } from "@flowkit/adapters"
 import { feedbackFlow } from "@flowkit/presets"
-import "@flowkit/react/style.css" // stili base dei componenti (fk-*), obbligatorio
+import "@flowkit/react/style.css" // base component styles (fk-*), required
 
 const adapter = createLocalAdapter()
 
@@ -199,47 +201,46 @@ function App() {
 }
 ```
 
-Props di `FlowRunner` (`packages/react/src/FlowRunner.tsx`):
+`FlowRunner` props (`packages/react/src/FlowRunner.tsx`):
 
-| Prop | Tipo | Obbligatoria | Descrizione |
+| Prop | Type | Required | Description |
 |---|---|---|---|
-| `flow` | `Flow` | sì | Il config del flow, tipicamente il risultato di `parseFlow(...)` |
-| `theme` | `Theme` | no (default `notionClean`) | Tema da applicare, vedi sezione temi |
-| `mode` | `"light" \| "dark"` | no (default `"light"`) | Variante del tema da usare |
-| `onSubmit` | `(answers) => void \| Promise<void>` | no | Chiamata quando l'utente conferma lo step `review` (prima di passare alla `confirmation`) |
-| `onChange` | `(answers) => void` | no | Chiamata a ogni risposta modificata — utile per autosave/bozze |
+| `flow` | `Flow` | yes | The flow config, typically the result of `parseFlow(...)` |
+| `theme` | `Theme` | no (default `notionClean`) | Theme to apply, see the themes section |
+| `mode` | `"light" \| "dark"` | no (default `"light"`) | Theme variant to use |
+| `onSubmit` | `(answers) => void \| Promise<void>` | no | Called when the user confirms the `review` step (before moving to `confirmation`) |
+| `onChange` | `(answers) => void` | no | Called on every changed answer — useful for autosave/drafts |
 
-`FlowRunner` non renderizza header/progress bar/bottone Continua sugli step `intro` e
-`confirmation` (comportamento "hero", niente chrome), mentre per tutti gli altri step
-mostra automaticamente: bottone indietro, barra di progresso, contatore `n/m` e footer
-con il bottone primario (abilitato solo quando lo step corrente è valido secondo le sue
-regole). Ogni step viene montato con `key={step.id}`: due step consecutivi dello stesso
-`type` (es. due step `location`) restano istanze React indipendenti, non condividono
-stato interno né side-effect DOM (es. istanze mappa).
+`FlowRunner` doesn't render the header/progress bar/Continue button on the `intro` and
+`confirmation` steps ("hero" behavior, no chrome), while for every other step it
+automatically shows: a back button, a progress bar, an `n/m` counter, and a footer with
+the primary button (enabled only when the current step is valid per its rules). Every
+step is mounted with `key={step.id}`: two consecutive steps of the same `type` (e.g.
+two `location` steps) stay independent React instances, sharing no internal state or
+DOM side effects (e.g. map instances).
 
-`<FlowRunner>` avvolge tutto in un `<ThemeProvider>` interno: se ti serve applicare il
-tema a un layout più ampio (es. per stilizzare anche elementi tuoi attorno al flow),
-puoi usare `<ThemeProvider>` direttamente:
+`<FlowRunner>` wraps everything in an internal `<ThemeProvider>`: if you need to apply
+the theme to a wider layout (e.g. to also style your own elements around the flow),
+you can use `<ThemeProvider>` directly:
 
 ```tsx
 import { ThemeProvider } from "@flowkit/react"
 import { midnightInk } from "@flowkit/themes"
 
 <ThemeProvider theme={midnightInk} mode="dark">
-  {/* qualunque markup con classi fk-* erediterà le variabili CSS del tema */}
+  {/* any markup with fk-* classes will inherit the theme's CSS variables */}
 </ThemeProvider>
 ```
 
-## Step personalizzati
+## Custom steps
 
-Il `type` di uno step non è più una union chiusa: `@flowkit/core` espone un **registry
-runtime** (`registerStepType`) e `@flowkit/react` il corrispondente registry di
-componenti (`registerStepComponent`). I 12 step built-in si registrano da soli
-all'import del pacchetto — aggiungerne uno nuovo non richiede toccare `schema.ts` né
-`registry.tsx`.
+A step's `type` is no longer a closed union: `@flowkit/core` exposes a **runtime
+registry** (`registerStepType`) and `@flowkit/react` the matching component registry
+(`registerStepComponent`). The built-in steps register themselves on package import —
+adding a new one doesn't require touching `schema.ts` or `registry.tsx`.
 
 ```ts
-// 1. Schema + validazione (agnostico da framework, in un file qualsiasi della tua app)
+// 1. Schema + validation (framework-agnostic, in any file of your app)
 import { z } from "zod"
 import { registerStepType } from "@flowkit/core"
 
@@ -249,7 +250,7 @@ const ratingStarsStepSchema = z.object({
   title: z.string().optional(),
   subtitle: z.string().optional(),
   required: z.boolean().default(true),
-  icon: z.string().optional(), // convenzione: includi i campi base come i built-in
+  icon: z.string().optional(), // convention: include the base fields like the built-ins
   maxStars: z.number().default(5),
 })
 export type RatingStarsStep = z.infer<typeof ratingStarsStepSchema>
@@ -262,7 +263,7 @@ registerStepType({
 ```
 
 ```tsx
-// 2. Componente React
+// 2. React component
 import { registerStepComponent, type StepComponentProps } from "@flowkit/react"
 
 function RatingStarsView({ step, value, onChange }: StepComponentProps<RatingStarsStep>) {
@@ -283,13 +284,13 @@ registerStepComponent("rating-stars", RatingStarsView)
 ```
 
 ```ts
-// 3. Lo step compare nel flow config come un tipo qualunque
-{ id: "rating", type: "rating-stars", title: "Quante stelle dai?", maxStars: 5 }
+// 3. The step appears in the flow config like any other type
+{ id: "rating", type: "rating-stars", title: "How many stars?", maxStars: 5 }
 ```
 
-**Type-safety opzionale**: `Step` è calcolato da un'interfaccia `StepTypeMap`
-aumentabile via TypeScript module augmentation. Se vuoi che `Step` includa il tuo tipo
-custom a livello di tipi (narrowing completo, niente cast), aumenta la mappa:
+**Optional type-safety**: `Step` is computed from a `StepTypeMap` interface that can be
+augmented via TypeScript module augmentation. If you want `Step` to include your custom
+type at the type level (full narrowing, no cast), augment the map:
 
 ```ts
 declare module "@flowkit/core" {
@@ -299,101 +300,104 @@ declare module "@flowkit/core" {
 }
 ```
 
-Senza questa dichiarazione lo step funziona comunque a runtime (validato dal registry),
-ma va castato a `Step` quando lo inserisci in un array `steps[]` tipizzato. Vedi un
-esempio completo funzionante in `apps/playground/src/custom-step-demo.tsx` (preset
-"Step custom (demo)" nel playground).
+Without this declaration the step still works at runtime (validated by the registry),
+but needs to be cast to `Step` when you put it in a typed `steps[]` array. See a full
+working example in `apps/playground/src/custom-step-demo.tsx` (the "Custom step (demo)"
+preset in the playground).
 
-### Intro/conferma personalizzate (`role`)
+### Custom intro/confirmation (`role`)
 
-Gli step `intro` e `confirmation` sono "step di ruolo": `FlowRunner` nasconde per loro
-header/progress bar e guida il footer sticky (CTA in basso, o i due bottoni finali della
-conferma) leggendo genericamente i campi `cta`/`primaryCta`/`secondaryCta` dallo step
-corrente — non serve che sia letteralmente di `type: "intro"`/`"confirmation"`.
+The `intro` and `confirmation` steps are "role steps": `FlowRunner` hides the
+header/progress bar for them and drives the sticky footer (bottom CTA, or the two final
+confirmation buttons) by generically reading the `cta`/`primaryCta`/`secondaryCta`
+fields from the current step — it doesn't need to literally be `type: "intro"`/
+`"confirmation"`.
 
-Se vuoi sostituire *tutto* il contenuto sopra il CTA (utile per farne una mini landing
-page, o per una schermata finale con condivisione social/testimonial custom), registra
-un tuo step type con lo stesso meccanismo di uno step personalizzato, aggiungendo
-`role: "intro"` oppure `role: "confirmation"` alla registrazione:
+If you want to replace *all* the content above the CTA (useful to turn it into a mini
+landing page, or a final screen with custom social sharing/testimonials), register your
+own step type with the same mechanism as a custom step, adding `role: "intro"` or
+`role: "confirmation"` to the registration:
 
 ```ts
 registerStepType({
   type: "intro-hero",
-  schema: introHeroStepSchema, // include un campo "cta" come l'intro standard
+  schema: introHeroStepSchema, // includes a "cta" field like the standard intro
   validate: () => true,
-  role: "intro", // FlowRunner nasconde l'header e legge "cta" da questo step
+  role: "intro", // FlowRunner hides the header and reads "cta" from this step
 })
 ```
 
-Il componente React registrato per `"intro-hero"` può renderizzare qualsiasi JSX: il
-footer sticky con il CTA resta quello standard di `FlowRunner`, generato in automatico.
-Lo stesso vale per `role: "confirmation"` (il footer standard legge `primaryCta`/
-`secondaryCta` dallo step). Gli step built-in `intro`/`confirmation` restano invariati e
-pienamente retrocompatibili — `role` è opzionale e serve solo a chi vuole sostituirli.
+The React component registered for `"intro-hero"` can render any JSX: the sticky
+footer with the CTA stays the standard `FlowRunner` one, generated automatically. The
+same applies to `role: "confirmation"` (the standard footer reads `primaryCta`/
+`secondaryCta` from the step). The built-in `intro`/`confirmation` steps remain
+unchanged and fully backward-compatible — `role` is optional and only matters to those
+who want to replace them.
 
-Esempio completo (`intro-hero` + `confirmation-hero`) in
-`apps/playground/src/custom-intro-demo.tsx` (preset "Intro & conferma custom (demo)").
+Full example (`intro-hero` + `confirmation-hero`) in
+`apps/playground/src/custom-intro-demo.tsx` (the "Custom intro & confirmation (demo)"
+preset).
 
-## Configurare un tema
+## Configuring a theme
 
-Un tema (`packages/themes/src/index.ts`) ha questa forma:
+A theme (`packages/themes/src/index.ts`) has this shape:
 
 ```ts
 export interface Theme {
-  name: string   // slug univoco, es. "notion-clean"
-  label: string  // etichetta leggibile per UI di selezione, es. "Notion Clean"
+  name: string   // unique slug, e.g. "notion-clean"
+  label: string  // human-readable label for a selector UI, e.g. "Notion Clean"
   light: ThemeTokens
   dark: ThemeTokens
 }
 ```
 
-`ThemeTokens` (`packages/themes/src/notion-clean.ts`) è l'unico posto dove vivono i
-colori, le misure di base e (opzionalmente) font/immagini:
+`ThemeTokens` (`packages/themes/src/notion-clean.ts`) is the single place where
+colors, base measurements and (optionally) fonts/images live:
 
 ```ts
 export interface ThemeTokens {
-  text: string        // colore testo primario
-  text2: string       // colore testo secondario (sottotitoli, label)
-  canvas: string      // sfondo principale (bianco/nero a seconda del mode)
-  soft: string        // sfondo "soft" per card/input non enfatizzati
-  surface: string     // sfondo per superfici leggermente più marcate (track progress)
-  border: string      // colore bordi
-  accent: string       // colore di accento (bottoni primari, selezioni)
-  accentSoft: string   // tinta chiara dell'accento (badge, card selezionate)
-  success: string      // verde semantico
+  text: string        // primary text color
+  text2: string       // secondary text color (subtitles, labels)
+  canvas: string      // main background (white/black depending on mode)
+  soft: string        // "soft" background for de-emphasized cards/inputs
+  surface: string     // background for slightly more marked surfaces (progress track)
+  border: string      // border color
+  accent: string       // accent color (primary buttons, selections)
+  accentSoft: string   // light tint of the accent (badges, selected cards)
+  success: string      // semantic green
   successSoft: string
-  warning: string      // arancio semantico
+  warning: string      // semantic orange
   warningSoft: string
-  danger: string       // rosso semantico
+  danger: string       // semantic red
   dangerSoft: string
-  radiusSm: string     // raggio bordi piccolo (es. bottone back, pill numeriche)
-  radiusMd: string     // raggio bordi medio (card, bottoni, input)
-  radiusLg: string     // raggio bordi grande (mappa, review box)
-  radiusXl: string     // raggio bordi extra (badge landing)
+  radiusSm: string     // small border radius (e.g. back button, numeric pills)
+  radiusMd: string     // medium border radius (cards, buttons, inputs)
+  radiusLg: string     // large border radius (map, review box)
+  radiusXl: string     // extra border radius (landing badge)
   spacing: Record<"xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "xxxl", string>
-  fonts?: {              // opzionale: personalizzazione tipografica
+  fonts?: {              // optional: typography customization
     heading?: string
     body?: string
     headingSize?: string
     bodySize?: string
-    headingFontUrl?: string  // URL di un font-face/stylesheet da iniettare
+    headingFontUrl?: string  // URL of a font-face/stylesheet to inject
     bodyFontUrl?: string
   }
-  images?: {             // opzionale: personalizzazione immagini
-    background?: string          // sfondo globale del flow
-    stepBackground?: Record<string, string> // sfondo per id/type di step specifico
+  images?: {             // optional: image customization
+    background?: string          // global flow background
+    stepBackground?: Record<string, string> // background for a specific step id/type
     logo?: string
   }
 }
 ```
 
-Questi token vengono tradotti in variabili CSS (`--fk-*`) da `themeToCssVars` e iniettati
-inline sul contenitore `<ThemeProvider>` — nessun CSS-in-JS, nessuna classe generata a
-runtime: tutto il resto del CSS (`packages/react/src/style.css`) legge solo `var(--fk-*)`.
-`fonts`/`images` sono additivi: se assenti, il comportamento CSS è identico a prima
-della loro introduzione.
+These tokens are translated into CSS variables (`--fk-*`) by `themeToCssVars` and
+injected inline on the `<ThemeProvider>` container — no CSS-in-JS, no classes
+generated at runtime: all the rest of the CSS (`packages/react/src/style.css`) only
+reads `var(--fk-*)`. `fonts`/`images` are additive: if absent, the CSS behavior is
+identical to before they were introduced.
 
-### Font e immagini custom
+### Custom fonts and images
 
 ```ts
 const myTheme: Theme = {
@@ -413,12 +417,12 @@ const myTheme: Theme = {
 }
 ```
 
-`@flowkit/themes` espone `injectThemeFontLinks(theme, mode)` (ritorna gli URL dei font
-da caricare): il pacchetto themes resta framework-agnostic, quindi l'iniezione del vero
-`<link rel="stylesheet">` nel DOM è responsabilità dell'app host (o di un renderer come
-`@flowkit/react`, in una versione futura con supporto integrato).
+`@flowkit/themes` exposes `injectThemeFontLinks(theme, mode)` (returns the font URLs to
+load): the themes package stays framework-agnostic, so actually injecting the
+`<link rel="stylesheet">` into the DOM is the host app's responsibility (or a renderer
+like `@flowkit/react`, in a future version with built-in support).
 
-### Sfondo pagina/step, posizione header/footer, barra di progresso, animazioni
+### Page/step background, header/footer position, progress bar, animations
 
 ```ts
 const myTheme: Theme = {
@@ -427,16 +431,16 @@ const myTheme: Theme = {
   light: {
     ...notionClean.light,
     images: {
-      background: "/brand-bg.jpg",        // sfondo globale di tutte le pagine
-      stepBackground: { intro: "/brand-hero.jpg" }, // override per id o type di step
+      background: "/brand-bg.jpg",        // global background for all pages
+      stepBackground: { intro: "/brand-hero.jpg" }, // override for a specific step id or type
     },
     layout: {
       headerPosition: "top",    // "top" (default) | "bottom"
       footerPosition: "bottom", // "top" | "bottom" (default)
-      progressVariant: "dots",  // "bar" (default) | "dots" | "hidden" | chiave custom
+      progressVariant: "dots",  // "bar" (default) | "dots" | "hidden" | custom key
     },
     animation: {
-      name: "slide", // "none" (default) | "fade" | "slide" | nome custom
+      name: "slide", // "none" (default) | "fade" | "slide" | custom name
       duration: 250,  // ms
     },
   },
@@ -444,39 +448,39 @@ const myTheme: Theme = {
 }
 ```
 
-Tutti opzionali: un tema che non li imposta si comporta esattamente come oggi. Lo
-sfondo (immagine o SVG, anche come data-URI) si applica dietro alle card, che restano
-opache. `progressVariant: "hidden"` nasconde solo la barra, non il bottone indietro.
-Una variante custom si registra come i componenti degli step:
+All optional: a theme that doesn't set them behaves exactly like today. The background
+(image or SVG, even as a data-URI) applies behind the cards, which stay opaque.
+`progressVariant: "hidden"` only hides the bar, not the back button. A custom variant
+registers like step components:
 
 ```ts
 import { registerProgressComponent } from "@flowkit/react"
 
-registerProgressComponent("mio-stile", ({ pct, currentIndex, total }) => (
-  <div>{currentIndex + 1} di {total} ({pct}%)</div>
+registerProgressComponent("my-style", ({ pct, currentIndex, total }) => (
+  <div>{currentIndex + 1} of {total} ({pct}%)</div>
 ))
-// poi: theme.layout.progressVariant = "mio-stile"
+// then: theme.layout.progressVariant = "my-style"
 ```
 
-Le animazioni `"fade"`/`"slide"` sono pronte all'uso; un nome diverso applica solo le
-classi `fk-anim-${name}-enter`/`fk-anim-${name}-dir-next|prev` al wrapper dello step,
-CSS/keyframes da fornire nell'app host — stesso approccio "porta il tuo CSS" dei temi
-custom.
+The `"fade"`/`"slide"` animations are ready to use; a different name only applies the
+`fk-anim-${name}-enter`/`fk-anim-${name}-dir-next|prev` classes to the step wrapper,
+CSS/keyframes to be provided by the host app — same "bring your own CSS" approach as
+custom themes.
 
-Il tema **"showcase"** (`themes.showcase` / selezionabile nel playground) mostra tutte
-queste feature insieme, a scopo dimostrativo.
+The **"showcase"** theme (`themes.showcase` / selectable in the playground) shows all
+of these features together, for demonstration purposes.
 
-Anche un singolo step può sovrascrivere una parte del tema mentre è mostrato, col campo
-comune `themeOverride` (vedi [Campi comuni a ogni step](#campi-comuni-a-ogni-step)):
+Even a single step can override part of the theme while it's shown, via the common
+`themeOverride` field (see [Fields common to every step](#fields-common-to-every-step)):
 
 ```ts
-{ id: "quiz-finale", type: "scale", themeOverride: { accent: "#E56458" }, /* ... */ }
+{ id: "final-quiz", type: "scale", themeOverride: { accent: "#E56458" }, /* ... */ }
 ```
 
-### Creare un tema custom
+### Creating a custom theme
 
-Non serve modificare `@flowkit/themes`: basta costruire un oggetto `Theme` compatibile
-e passarlo a `FlowRunner`.
+No need to modify `@flowkit/themes`: just build a compatible `Theme` object and pass
+it to `FlowRunner`.
 
 ```ts
 import type { Theme } from "@flowkit/themes"
@@ -506,7 +510,7 @@ export const brandTheme: Theme = {
     spacing: { xs: "4px", sm: "8px", md: "12px", lg: "16px", xl: "24px", xxl: "32px", xxxl: "48px" },
   },
   dark: {
-    /* stessa forma, valori per la modalità scura */
+    /* same shape, dark-mode values */
     text: "#F2F2F0", text2: "#A0A0A0", canvas: "#141414", soft: "#1C1C1C",
     surface: "#242424", border: "#333333", accent: "#FF7A5C", accentSoft: "#3A2018",
     success: "#4CCB86", successSoft: "#16301F", warning: "#E4AC5C", warningSoft: "#332815",
@@ -521,8 +525,8 @@ export const brandTheme: Theme = {
 <FlowRunner flow={myFlow} theme={brandTheme} mode="light" />
 ```
 
-Se vuoi solo **override puntuali** senza creare un intero tema, puoi anche impostare le
-variabili CSS a mano su un contenitore attorno a `FlowRunner`:
+If you just want **targeted overrides** without creating a whole theme, you can also
+set CSS variables by hand on a container around `FlowRunner`:
 
 ```css
 .my-wrapper {
@@ -537,21 +541,21 @@ variabili CSS a mano su un contenitore attorno a `FlowRunner`:
 </div>
 ```
 
-### Helper disponibili in `@flowkit/themes`
+### Helpers available in `@flowkit/themes`
 
 ```ts
-themeToCssVars(theme, mode)      // -> Record<"--fk-...", string>, utile per style inline
-themeToCssString(theme, mode)    // -> stringa "chiave: valore;\n..." per <style> statico
-injectThemeFontLinks(theme, mode) // -> string[] di URL font da iniettare (vedi sopra)
+themeToCssVars(theme, mode)      // -> Record<"--fk-...", string>, useful for inline style
+themeToCssString(theme, mode)    // -> "key: value;\n..." string for a static <style>
+injectThemeFontLinks(theme, mode) // -> string[] of font URLs to inject (see above)
 ```
 
-### Temi inclusi
+### Included themes
 
 | `name` | `label` | Palette |
 |---|---|---|
-| `notion-clean` | Notion Clean | Neutro caldo, accento blu `#2783DE` (default) |
-| `mint-fresh` | Mint Fresh | Neutro verde, accento verde smeraldo `#16A87E` |
-| `midnight-ink` | Midnight Ink | Neutro violaceo, accento indaco `#6753E0` |
+| `notion-clean` | Notion Clean | Warm neutral, blue accent `#2783DE` (default) |
+| `mint-fresh` | Mint Fresh | Green neutral, emerald green accent `#16A87E` |
+| `midnight-ink` | Midnight Ink | Purple-ish neutral, indigo accent `#6753E0` |
 
 ```ts
 import { themes, notionClean, mintFresh, midnightInk } from "@flowkit/themes"
@@ -559,176 +563,176 @@ import { themes, notionClean, mintFresh, midnightInk } from "@flowkit/themes"
 Object.entries(themes) // [["notion-clean", notionClean], ["mint-fresh", mintFresh], ["midnight-ink", midnightInk]]
 ```
 
-## Definire un flow
+## Defining a flow
 
-Un `Flow` si costruisce con `parseFlow` (valida con zod e applica i default):
+A `Flow` is built with `parseFlow` (validates with zod and applies defaults):
 
 ```ts
 import { parseFlow, type Flow } from "@flowkit/core"
 
 export const myFlow: Flow = parseFlow({
-  id: "my-flow",       // id univoco, usato dagli adapter per raggruppare le risposte
-  title: "Il mio flow", // titolo, mostrato ad es. nella statusbar del playground
-  locale: "it",          // opzionale, default "it"
+  id: "my-flow",       // unique id, used by adapters to group answers
+  title: "My flow", // title, e.g. shown in the playground's status bar
+  locale: "it",          // optional, default "it"
   steps: [
     /* ... */
   ],
 })
 ```
 
-`parseFlow` lancia un errore descrittivo se un `type` non è registrato, o un `ZodError`
-se il config non rispetta lo schema del tipo: usalo sempre in fase di build/definizione
-del flow (non su input arbitrario a runtime non fidato).
+`parseFlow` throws a descriptive error if a `type` isn't registered, or a `ZodError` if
+the config doesn't match the type's schema: always use it at build/flow-definition time
+(not on arbitrary untrusted runtime input).
 
-### Campi comuni a ogni step
+### Fields common to every step
 
-Ogni oggetto in `steps[]` — qualunque `type` abbia — accetta questi campi base:
+Every object in `steps[]` — whatever its `type` — accepts these base fields:
 
-| Campo | Tipo | Default | Descrizione |
+| Field | Type | Default | Description |
 |---|---|---|---|
-| `id` | `string` | — (obbligatorio) | Identificativo univoco dello step nel flow; chiave in `Answers` |
-| `type` | `string` | — (obbligatorio) | Determina schema aggiuntivo e componente usato, risolti a runtime dal registry |
-| `title` | `string` | — | Titolo (`<h1>`/`<h2>` a seconda dello step) |
-| `subtitle` | `string` | — | Sottotitolo/descrizione sotto il titolo |
-| `required` | `boolean` | `true` | Se `false`, lo step è sempre considerato valido: il bottone "Continua" non si blocca in attesa di una risposta |
-| `icon` | `string` (emoji) | — | Icona mostrata nella riga di riepilogo dello step `review` (se assente, viene usata un'icona di default in base al `type`) |
-| `themeOverride` | oggetto (sottoinsieme di token tema) | — | Sovrascrive alcuni token del tema (colori, radii, immagini) solo mentre questo step è mostrato, es. `{ accent: "#E56458" }`. Vedi [Configurare un tema](#configurare-un-tema) |
+| `id` | `string` | — (required) | Unique step identifier within the flow; key in `Answers` |
+| `type` | `string` | — (required) | Determines the extra schema and component used, resolved at runtime by the registry |
+| `title` | `string` | — | Title (`<h1>`/`<h2>` depending on the step) |
+| `subtitle` | `string` | — | Subtitle/description under the title |
+| `required` | `boolean` | `true` | If `false`, the step is always considered valid: the "Continue" button doesn't block waiting for an answer |
+| `icon` | `string` (emoji) | — | Icon shown in the `review` step's summary row (if absent, a default icon is used based on `type`) |
+| `themeOverride` | object (subset of theme tokens) | — | Overrides some theme tokens (colors, radii, images) only while this step is shown, e.g. `{ accent: "#E56458" }`. See [Configuring a theme](#configuring-a-theme) |
 
-L'ordine di `steps[]` è l'ordine di navigazione. Non esiste un concetto di step
-condizionale/ramificazione: se ti serve, componi flow diversi e scegli quale montare
-a runtime (come fa il playground con il selettore Preset).
+The order of `steps[]` is the navigation order. There's no concept of a
+conditional/branching step: if you need that, compose different flows and choose which
+one to mount at runtime (as the playground does with its Preset selector).
 
-### Riferimento per tipo di step
+### Reference by step type
 
 #### `intro`
 
-Schermata "hero" iniziale, senza header/progress bar. Componente: `IntroStepView`.
+Initial "hero" screen, no header/progress bar. Component: `IntroStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `emoji` | `string` | — | Emoji mostrata in un badge arrotondato sopra il titolo |
-| `cta` | `string` | `"Inizia"` | Testo del bottone primario in footer |
-| `livePill` | `string` | — | Se presente, mostra una pillola con pallino verde animato sopra il badge (es. "34 segnalazioni oggi in zona") |
+| `emoji` | `string` | — | Emoji shown in a rounded badge above the title |
+| `cta` | `string` | `"Start"` | Primary button text in the footer |
+| `livePill` | `string` | — | If present, shows a pill with an animated green dot above the badge (e.g. "34 reports today nearby") |
 
 ```ts
-{ id: "intro", type: "intro", title: "Che aria tira?", subtitle: "Segnalalo in 30 secondi.",
-  emoji: "👃", cta: "Segnala un odore →", livePill: "34 segnalazioni oggi in zona" }
+{ id: "intro", type: "intro", title: "What's in the air?", subtitle: "Report it in 30 seconds.",
+  emoji: "👃", cta: "Report a smell →", livePill: "34 reports today nearby" }
 ```
 
 #### `location`
 
-Cattura una posizione geografica su una **mappa reale** (maplibre-gl). Valore risposta:
-`{ lat, lng, address?, regionId?, pointId? }` (o `string`, per retro-compatibilità con
-flow scritti prima della v2.8). Componente: `LocationStepView`. Vedi la sezione dedicata
-[Step Mappa](#step-mappa-maplibre-gl--leaflet) per la config completa (`selectionMode`, stile
-mappa, geocoding).
+Captures a geographic position on a **real map** (maplibre-gl). Answer value:
+`{ lat, lng, address?, regionId?, pointId? }` (or `string`, for backward compatibility
+with flows written before v2.8). Component: `LocationStepView`. See the dedicated
+[Map step](#map-step-maplibre-gl--leaflet) section for the full config (`selectionMode`,
+map style, geocoding).
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `placeholder` | `string` | `"Cerca un indirizzo"` | Placeholder della barra di ricerca indirizzo |
-| `showMap` | `boolean` | `true` | Mostra/nasconde la mappa. Se `false`, la posizione si imposta solo via ricerca e/o GPS (`selectionMode` viene ignorato) |
-| `showSearch` | `boolean` | `true` | Mostra/nasconde la barra di ricerca indirizzo |
-| `enableGps` | `boolean` | `true` | Mostra/nasconde il bottone "usa la mia posizione", renderizzato sotto la mappa con stile neutro (non colore accento) |
-| `gpsButtonLabel` | `string` | `"Usa la mia posizione"` | Testo del bottone GPS |
-| `gpsGuideTitle`/`gpsGuideText` | `string` | testo di default | Titolo/testo del popup guida mostrato quando il permesso di geolocalizzazione è negato/bloccato |
-| `enableReverseGeocode` | `boolean` | `true` | Dopo GPS/click/drag sulla mappa, risolve automaticamente le coordinate in un indirizzo leggibile (Nominatim `/reverse` o endpoint custom); se `false` o la richiesta fallisce, resta il fallback "lat, lng" |
-| `reverseGeocodingEndpoint` | `string` | endpoint pubblico Nominatim `/reverse` | Endpoint di reverse geocoding, sostituibile |
-| `detectedSubLabel` | `string` | — | Riga secondaria sotto l'indirizzo/coordinate selezionate |
-| `styleUrl` | `string` | stile demo pubblico maplibre | URL dello stile mappa, sostituibile |
-| `geocodingEndpoint` | `string` | endpoint pubblico Nominatim `/search` | Endpoint di ricerca luoghi (forward), sostituibile (es. server self-hosted) |
-| `selectionMode` | vedi [Step Mappa](#step-mappa-maplibre-gl--leaflet) | `{ kind: "point" }` | Cosa significa "selezionare" sulla mappa (ignorato se `showMap: false`) |
-| `initialCenter` | `{ lat, lng, zoom? }` | Roma, zoom 11 | Centro/zoom iniziali della mappa |
-| `extraMarkers` | `{ lat, lng, label? }[]` | — | Marker decorativi aggiuntivi, non selezionabili |
+| `placeholder` | `string` | `"Search an address"` | Address search bar placeholder |
+| `showMap` | `boolean` | `true` | Shows/hides the map. If `false`, the position can only be set via search and/or GPS (`selectionMode` is ignored) |
+| `showSearch` | `boolean` | `true` | Shows/hides the address search bar |
+| `enableGps` | `boolean` | `true` | Shows/hides the "use my location" button, rendered below the map with neutral (non-accent) styling |
+| `gpsButtonLabel` | `string` | `"Use my location"` | GPS button text |
+| `gpsGuideTitle`/`gpsGuideText` | `string` | default text | Title/text of the help popup shown when the geolocation permission is denied/blocked |
+| `enableReverseGeocode` | `boolean` | `true` | After GPS/click/drag on the map, automatically resolves the coordinates into a human-readable address (Nominatim `/reverse` or a custom endpoint); if `false` or the request fails, falls back to "lat, lng" |
+| `reverseGeocodingEndpoint` | `string` | public Nominatim `/reverse` endpoint | Reverse geocoding endpoint, replaceable |
+| `detectedSubLabel` | `string` | — | Secondary line under the selected address/coordinates |
+| `styleUrl` | `string` | public maplibre demo style | Map style URL, replaceable |
+| `geocodingEndpoint` | `string` | public Nominatim `/search` endpoint | Place (forward) search endpoint, replaceable (e.g. self-hosted server) |
+| `selectionMode` | see [Map step](#map-step-maplibre-gl--leaflet) | `{ kind: "point" }` | What "selecting" means on the map (ignored if `showMap: false`) |
+| `initialCenter` | `{ lat, lng, zoom? }` | Rome, zoom 11 | Initial map center/zoom |
+| `extraMarkers` | `{ lat, lng, label? }[]` | — | Additional decorative, non-selectable markers |
 
-`showMap`, `showSearch` ed `enableGps` sono indipendenti: puoi combinarli a piacere (solo
-ricerca, solo mappa, solo GPS, o qualunque combinazione) per adattare lo step a casi
-diversi senza dover scegliere fra più tipi di step.
+`showMap`, `showSearch` and `enableGps` are independent: combine them however you like
+(search-only, map-only, GPS-only, or any combination) to adapt the step to different
+cases without having to choose among several step types.
 
 ```ts
-{ id: "location", type: "location", title: "Dove lo senti?",
-  subtitle: "Cerca un indirizzo o clicca direttamente sulla mappa." }
+{ id: "location", type: "location", title: "Where do you smell it?",
+  subtitle: "Search an address or click directly on the map." }
 
-// Solo GPS, niente mappa né ricerca:
+// GPS-only, no map or search:
 { id: "location-gps-only", type: "location", showMap: false, showSearch: false }
 ```
 
 #### `select-cards`
 
-Griglia 2 colonne di card selezionabili (con emoji + label + descrizione opzionale).
-Valore risposta: `string` (singola) o `string[]` (`multiple: true`). Componente:
+2-column grid of selectable cards (with emoji + label + optional description). Answer
+value: `string` (single) or `string[]` (`multiple: true`). Component:
 `SelectCardsStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `multiple` | `boolean` | `false` | Selezione singola o multipla |
-| `options` | `{ value, label, emoji?, description? }[]` | — (min 1) | Opzioni della griglia |
+| `multiple` | `boolean` | `false` | Single or multiple selection |
+| `options` | `{ value, label, emoji?, description? }[]` | — (min 1) | Grid options |
 
-Validazione: se `multiple`, richiede almeno un elemento; altrimenti una stringa non vuota.
+Validation: if `multiple`, requires at least one item; otherwise a non-empty string.
 
 ```ts
-{ id: "smell-type", type: "select-cards", title: "Che tipo di odore?", multiple: false,
+{ id: "smell-type", type: "select-cards", title: "What type of smell?", multiple: false,
   options: [
-    { value: "sewage", label: "Fognario", emoji: "🥚", description: "Uova marce, zolfo" },
-    { value: "chemical", label: "Chimico", emoji: "🧪", description: "Solventi, vernici" },
+    { value: "sewage", label: "Sewage", emoji: "🥚", description: "Rotten eggs, sulfur" },
+    { value: "chemical", label: "Chemical", emoji: "🧪", description: "Solvents, paint" },
   ] }
 ```
 
 #### `scale`
 
-Valutazione numerica su un range. Valore risposta: `number`. Componente: `ScaleStepView`.
-Due varianti visive:
+Numeric rating over a range. Answer value: `number`. Component: `ScaleStepView`. Two
+visual variants:
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `min` / `max` | `number` | `1` / `5` | Estremi del range (inclusivi) |
-| `minLabel` / `maxLabel` | `string` | — | Etichette agli estremi (sotto ai pill o allo slider) |
-| `variant` | `"pills" \| "slider"` | `"pills"` | `"pills"`: una fila di bottoni numerati, uno per valore. `"slider"`: `input[type=range]` con numero grande ed etichetta colorata sopra (auto-inizializzato al valore centrale `(min+max)/2` al mount) |
-| `valueLabels` | `string[]` | — | (solo `slider`) etichetta testuale per ciascun valore, indicizzata da `0` a `max-min` |
-| `valueColors` | `string[]` | — | (solo `slider`) colore CSS per ciascun valore, stessa indicizzazione di `valueLabels`; se assente usa una palette verde→arancio→rosso di default |
+| `min` / `max` | `number` | `1` / `5` | Range bounds (inclusive) |
+| `minLabel` / `maxLabel` | `string` | — | Labels at the extremes (below the pills or the slider) |
+| `variant` | `"pills" \| "slider"` | `"pills"` | `"pills"`: a row of numbered buttons, one per value. `"slider"`: `input[type=range]` with a large number and colored label above (auto-initialized to the middle value `(min+max)/2` on mount) |
+| `valueLabels` | `string[]` | — | (`slider` only) text label for each value, indexed from `0` to `max-min` |
+| `valueColors` | `string[]` | — | (`slider` only) CSS color for each value, same indexing as `valueLabels`; if absent uses a default green→orange→red palette |
 
 ```ts
-// variante slider (es. intensità di un odore, 0-6)
-{ id: "intensity", type: "scale", title: "Quanto è forte?", variant: "slider",
-  min: 0, max: 6, minLabel: "0 · Assente", maxLabel: "6 · Estremo",
-  valueLabels: ["Assente", "Molto debole", "Debole", "Distinto", "Forte", "Molto forte", "Estremo"],
+// slider variant (e.g. smell intensity, 0-6)
+{ id: "intensity", type: "scale", title: "How strong is it?", variant: "slider",
+  min: 0, max: 6, minLabel: "0 · None", maxLabel: "6 · Extreme",
+  valueLabels: ["None", "Very faint", "Faint", "Noticeable", "Strong", "Very strong", "Extreme"],
   valueColors: ["#7D7A75", "#46A171", "#46A171", "#D5803B", "#D5803B", "#E56458", "#E56458"] }
 
-// variante pills (es. valutazione 1-5)
-{ id: "rating", type: "scale", title: "Voto complessivo", min: 1, max: 5,
-  minLabel: "Scarso", maxLabel: "Ottimo" }
+// pills variant (e.g. overall rating 1-5)
+{ id: "rating", type: "scale", title: "Overall rating", min: 1, max: 5,
+  minLabel: "Poor", maxLabel: "Excellent" }
 ```
 
 #### `chips`
 
-Fila di pillole selezionabili (wrap su più righe). Valore risposta: `string` o
-`string[]` (`multiple: true`). Componente: `ChipsStepView`.
+Row of selectable pills (wraps onto multiple lines). Answer value: `string` or
+`string[]` (`multiple: true`). Component: `ChipsStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `multiple` | `boolean` | `true` | Selezione singola o multipla |
-| `options` | `{ value, label }[]` | — (min 1) | Opzioni |
+| `multiple` | `boolean` | `true` | Single or multiple selection |
+| `options` | `{ value, label }[]` | — (min 1) | Options |
 
 ```ts
-{ id: "duration", type: "chips", title: "Da quanto lo senti?", multiple: false,
+{ id: "duration", type: "chips", title: "How long have you noticed it?", multiple: false,
   options: [
     { value: "lt5", label: "< 5 min" }, { value: "5-30", label: "5–30 min" },
-    { value: "gt30", label: "> 30 min" }, { value: "persistent", label: "Persistente" },
+    { value: "gt30", label: "> 30 min" }, { value: "persistent", label: "Persistent" },
   ] }
 ```
 
 #### `faces`
 
-Fila di emoji-faccine selezionabili (scala edonica). Valore risposta: `string`.
-Componente: `FacesStepView`.
+Row of selectable emoji faces (hedonic scale). Answer value: `string`. Component:
+`FacesStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `faces` | `{ value, emoji, label? }[]` | 5 faccine standard (😞🙁😐🙂😄) | Se `label` è assente, viene mostrata solo l'emoji |
+| `faces` | `{ value, emoji, label? }[]` | 5 standard faces (😞🙁😐🙂😄) | If `label` is absent, only the emoji is shown |
 
-Comportamento: al mount si autoseleziona la faccina centrale dell'array.
+Behavior: on mount, the middle face in the array is auto-selected.
 
 ```ts
-{ id: "hedonic", type: "faces", title: "Quanto è fastidioso?", required: false,
+{ id: "hedonic", type: "faces", title: "How annoying is it?", required: false,
   faces: [
     { value: "1", emoji: "😊" }, { value: "2", emoji: "😐" }, { value: "3", emoji: "😕" },
     { value: "4", emoji: "🤢" }, { value: "5", emoji: "🤮" },
@@ -737,35 +741,35 @@ Comportamento: al mount si autoseleziona la faccina centrale dell'array.
 
 #### `notes`
 
-Textarea libera. Valore risposta: `string`. Componente: `NotesStepView`.
+Free-form textarea. Answer value: `string`. Component: `NotesStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `placeholder` | `string` | `"Scrivi qui..."` | Placeholder della textarea |
+| `placeholder` | `string` | `"Write here..."` | Textarea placeholder |
 
 ```ts
-{ id: "notes", type: "notes", title: "Vuoi aggiungere altro?", required: false,
-  placeholder: "Es. l'odore aumenta quando tira vento da nord…" }
+{ id: "notes", type: "notes", title: "Anything to add?", required: false,
+  placeholder: "E.g. the smell gets stronger with a north wind…" }
 ```
 
 #### `photo`
 
-Upload di una foto. Valore risposta: `string | null` (data-URL letta via `FileReader`,
-tutto client-side). Componente: `PhotoStepView`.
+Photo upload. Answer value: `string | null` (a data-URL read via `FileReader`, fully
+client-side). Component: `PhotoStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `placeholder` | `string` | `"Aggiungi una foto"` | Testo mostrato nel box vuoto |
+| `placeholder` | `string` | `"Add a photo"` | Text shown in the empty box |
 
 ```ts
-{ id: "photo", type: "photo", title: "Aggiungi una foto", required: false }
+{ id: "photo", type: "photo", title: "Add a photo", required: false }
 ```
 
-Per combinare i due step in un'unica pagina (come faceva il vecchio `notes-photo`), usa
+To combine the two steps into a single page (like the old `notes-photo` used to), use
 [`group`](#group):
 
 ```ts
-{ id: "notes-photo-group", type: "group", title: "Vuoi aggiungere altro?", required: false,
+{ id: "notes-photo-group", type: "group", title: "Anything to add?", required: false,
   steps: [
     { id: "notes", type: "notes", required: false },
     { id: "photo", type: "photo", required: false },
@@ -774,350 +778,352 @@ Per combinare i due step in un'unica pagina (come faceva il vecchio `notes-photo
 
 #### `date-time`
 
-Input data/ora nativo del browser. Valore risposta: `string` nel formato dell'`<input>`
-corrispondente (`YYYY-MM-DD`, `HH:mm` o `YYYY-MM-DDTHH:mm`). Componente:
-`DateTimeStepView`.
+Native browser date/time input. Answer value: `string` in the matching `<input>`'s
+format (`YYYY-MM-DD`, `HH:mm` or `YYYY-MM-DDTHH:mm`). Component: `DateTimeStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `mode` | `"date" \| "time" \| "datetime"` | `"date"` | Seleziona il tipo di `<input>` nativo (`date`, `time`, `datetime-local`) |
-| `min` / `max` | `string` | — | Limiti, stesso formato del valore |
-| `step` | `number` | — | Attributo `step` dell'input |
-| `disablePast` | `boolean` | `false` | Se `true` e `min` non specificato, calcola un `min` pari al momento corrente |
-| `defaultValue` | `string` | — | Valore iniziale se non ancora risposto |
+| `mode` | `"date" \| "time" \| "datetime"` | `"date"` | Selects the native `<input>` type (`date`, `time`, `datetime-local`) |
+| `min` / `max` | `string` | — | Bounds, same format as the value |
+| `step` | `number` | — | The input's `step` attribute |
+| `disablePast` | `boolean` | `false` | If `true` and `min` isn't specified, computes a `min` equal to the current moment |
+| `defaultValue` | `string` | — | Initial value if not yet answered |
 
 ```ts
-{ id: "date-time", type: "date-time", title: "Quando?", mode: "datetime", disablePast: true }
+{ id: "date-time", type: "date-time", title: "When?", mode: "datetime", disablePast: true }
 ```
 
 #### `nps`
 
-Net Promoter Score, 0–10. Valore risposta: `number`. Componente: `NpsStepView`.
+Net Promoter Score, 0–10. Answer value: `number`. Component: `NpsStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `question` | `string` | — | Testo domanda esteso |
+| `question` | `string` | — | Extended question text |
 
 ```ts
-{ id: "nps", type: "nps", title: "Ci consiglieresti?",
-  question: "Quanto è probabile che ci consiglieresti a un amico o collega?" }
+{ id: "nps", type: "nps", title: "Would you recommend us?",
+  question: "How likely are you to recommend us to a friend or colleague?" }
 ```
 
 #### `multi-select`
 
-Selezione multipla generica (checklist), con vincoli min/max. Valore risposta:
-`string[]`. Componente: `MultiSelectStepView`.
+Generic multi-selection (checklist), with min/max constraints. Answer value:
+`string[]`. Component: `MultiSelectStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `options` | `{ value, label }[]` | — (min 1) | Opzioni |
-| `min` | `number` | `0` | Numero minimo di selezioni richieste |
-| `max` | `number` | — | Numero massimo di selezioni consentite |
+| `options` | `{ value, label }[]` | — (min 1) | Options |
+| `min` | `number` | `0` | Minimum number of selections required |
+| `max` | `number` | — | Maximum number of selections allowed |
 
 ```ts
-{ id: "highlights", type: "multi-select", title: "Cosa ti è piaciuto di più?", min: 0,
+{ id: "highlights", type: "multi-select", title: "What did you like most?", min: 0,
   options: [
-    { value: "speed", label: "Velocità" }, { value: "support", label: "Assistenza" },
+    { value: "speed", label: "Speed" }, { value: "support", label: "Support" },
   ] }
 ```
 
 #### `text`
 
-Input libero testo/numero/email. Valore risposta: `string`. Componente: `TextStepView`.
+Free text/number/email input. Answer value: `string`. Component: `TextStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `variant` | `"text" \| "number" \| "email"` | `"text"` | Cambia validazione: `"email"` richiede un formato email valido, `"number"` richiede che il valore sia convertibile con `Number(...)` |
-| `placeholder` | `string` | — | Placeholder dell'input |
-| `multiline` | `boolean` | `false` | (riservato per usi futuri con textarea) |
+| `variant` | `"text" \| "number" \| "email"` | `"text"` | Changes validation: `"email"` requires a valid email format, `"number"` requires the value to be convertible with `Number(...)` |
+| `placeholder` | `string` | — | Input placeholder |
+| `multiline` | `boolean` | `false` | (reserved for future textarea use) |
 
 ```ts
-{ id: "email", type: "text", title: "Vuoi essere ricontattato?", required: false,
-  variant: "email", placeholder: "nome@esempio.com" }
+{ id: "email", type: "text", title: "Want us to follow up?", required: false,
+  variant: "email", placeholder: "name@example.com" }
 ```
 
 #### `oauth`
 
-Step di autenticazione via redirect OAuth. Vedi la sezione dedicata
-[Step OAuth](#step-oauth).
+OAuth redirect authentication step. See the dedicated [OAuth step](#oauth-step)
+section.
 
 #### `review`
 
-Riepilogo automatico di tutte le risposte date finora (esclude `intro`, `review` e
-`confirmation`). Il suo bottone diventa "Invia segnalazione ✓" (invoca `onSubmit` di
-`FlowRunner`). Componente: `ReviewStepView`.
+Automatic summary of all answers given so far (excludes `intro`, `review` and
+`confirmation`). Its button becomes "Submit report ✓" (invokes `FlowRunner`'s
+`onSubmit`). Component: `ReviewStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `meta` | `string` | — | Banner informativo sopra il riepilogo |
+| `meta` | `string` | — | Info banner above the summary |
 
 ```ts
-{ id: "review", type: "review", title: "Tutto pronto?", subtitle: "Controlla e invia la tua segnalazione.",
-  meta: "🌬️ Aggiungeremo automaticamente meteo e direzione del vento" }
+{ id: "review", type: "review", title: "Ready to go?", subtitle: "Check and submit your report.",
+  meta: "🌬️ We'll automatically add the weather and wind direction" }
 ```
 
 #### `confirmation`
 
-Schermata finale, senza header/progress bar; footer con due bottoni. Componente:
+Final screen, no header/progress bar; footer with two buttons. Component:
 `ConfirmationStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `title` | `string` | `"Grazie!"` | — |
-| `message` | `string` | — | Sottotitolo |
-| `emoji` | `string` | — | Se presente sostituisce l'icona di spunta di default |
-| `stats` | `{ value, label }[]` | — | Righe di statistiche in box affiancati |
-| `primaryCta` / `secondaryCta` | `string` | `"Torna alla home"` / `"Nuova segnalazione"` | Testi dei due bottoni footer |
-| `emailShare` | oggetto, vedi sotto | — | Abilita il bottone "invia le risposte via email" (`mailto:`) |
-| `resultActions` | oggetto, vedi [Invio delle risposte via email](#invio-delle-risposte-via-email) | — | Azioni opzionali aggiuntive sul risultato: `pdfExport`, `resultLink`, `nativeShare`, `emailApi` |
+| `title` | `string` | `"Thank you!"` | — |
+| `message` | `string` | — | Subtitle |
+| `emoji` | `string` | — | If present, replaces the default checkmark icon |
+| `stats` | `{ value, label }[]` | — | Rows of statistics in side-by-side boxes |
+| `primaryCta` / `secondaryCta` | `string` | `"Back to home"` / `"New report"` | Text of the two footer buttons |
+| `emailShare` | object, see below | — | Enables the "send answers via email" (`mailto:`) button |
+| `resultActions` | object, see [Sending answers via email](#sending-answers-via-email) | — | Additional optional result actions: `pdfExport`, `resultLink`, `nativeShare`, `emailApi` |
 
 ```ts
-{ id: "confirmation", type: "confirmation", title: "Grazie!",
-  message: "La tua segnalazione è stata registrata.",
-  stats: [{ value: "35", label: "segnalazioni oggi in zona" }, { value: "#12", label: "la tua di oggi" }] }
+{ id: "confirmation", type: "confirmation", title: "Thank you!",
+  message: "Your report has been recorded.",
+  stats: [{ value: "35", label: "reports today nearby" }, { value: "#12", label: "yours today" }] }
 ```
 
 #### `group`
 
-Compone più step in un'unica pagina, senza navigazione propria: conta come un normale
-step del flow. Il valore risposta è un oggetto aggregato `{ [childId]: valore }` — le
-risposte dei figli restano annidate sotto l'id del gruppo, non flat nelle `Answers` di
-primo livello. Il bottone "Continua" resta disabilitato finché tutti i figli
-`required` (default `true`) non hanno una risposta valida. Componente: `GroupStepView`.
+Composes multiple steps into a single page, with no navigation of its own: it counts
+as a normal flow step. The answer value is an aggregated object `{ [childId]: value }`
+— children's answers stay nested under the group's id, not flattened into the
+top-level `Answers`. The "Continue" button stays disabled until every `required`
+(default `true`) child has a valid answer. Component: `GroupStepView`.
 
-| Campo | Tipo | Default | Note |
+| Field | Type | Default | Notes |
 |---|---|---|---|
-| `layout` | `"stack" \| "columns"` | `"stack"` | `"stack"`: figli impilati verticalmente. `"columns"`: figli affiancati, a capo su schermi stretti |
-| `steps` | `Step[]` | — (min 1) | Step figli, stessa sintassi di `steps[]` a livello di flow (qualunque tipo registrato, incluso `group` stesso, non testato/consigliato) |
+| `layout` | `"stack" \| "columns"` | `"stack"` | `"stack"`: children stacked vertically. `"columns"`: children side by side, wrapping on narrow screens |
+| `steps` | `Step[]` | — (min 1) | Child steps, same syntax as flow-level `steps[]` (any registered type, including `group` itself — untested/not recommended) |
 
 ```ts
-{ id: "quick-group", type: "group", title: "Un paio di domande veloci", layout: "stack",
+{ id: "quick-group", type: "group", title: "A couple of quick questions", layout: "stack",
   steps: [
-    { id: "satisfaction", type: "scale", title: "Quanto sei soddisfatto?", min: 1, max: 5 },
-    { id: "liked", type: "chips", title: "Cosa ti è piaciuto?", multiple: true,
-      options: [{ value: "velocita", label: "Velocità" }, { value: "facilita", label: "Facilità" }] },
+    { id: "satisfaction", type: "scale", title: "How satisfied are you?", min: 1, max: 5 },
+    { id: "liked", type: "chips", title: "What did you like?", multiple: true,
+      options: [{ value: "speed", label: "Speed" }, { value: "ease", label: "Ease of use" }] },
   ] }
 ```
 
-## Step OAuth
+## OAuth step
 
-Step di tipo `oauth`: mostra un bottone per ciascun provider abilitato, che al click fa
-un **redirect completo** verso l'authorize URL del provider (PKCE incluso dove
-richiesto). La libreria **non esegue mai lo scambio codice→token**: costruisce solo
-l'URL di redirect; il completamento del flow OAuth (parsing della redirect URI,
-chiamata al token endpoint) è responsabilità dell'app host.
+Step of type `oauth`: shows a button for each enabled provider, which on click does a
+**full redirect** to the provider's authorize URL (PKCE included where required). The
+library **never performs the code→token exchange**: it only builds the redirect URL;
+completing the OAuth flow (parsing the redirect URI, calling the token endpoint) is the
+host app's responsibility.
 
 ```ts
 {
   id: "login",
   type: "oauth",
-  title: "Accedi per continuare",
+  title: "Sign in to continue",
   required: false,
   providers: [
     {
-      id: "google",              // "google" | "github" | "facebook" | id custom
-      clientId: "IL_TUO_CLIENT_ID",
-      redirectUri: "https://tuo-dominio.it/oauth/callback",
+      id: "google",              // "google" | "github" | "facebook" | custom id
+      clientId: "YOUR_CLIENT_ID",
+      redirectUri: "https://your-domain.com/oauth/callback",
       scopes: ["profile", "email"],
-      usePkce: true,              // default true, genera code_verifier/code_challenge via Web Crypto
-      icon: "🔵",                  // opzionale: sovrascrive l'emoji di default del provider
+      usePkce: true,              // default true, generates code_verifier/code_challenge via Web Crypto
+      icon: "🔵",                  // optional: overrides the provider's default emoji
     },
     {
-      id: "generic",               // provider non noto: authorizeUrl obbligatorio
+      id: "generic",               // unknown provider: authorizeUrl required
       clientId: "...",
-      authorizeUrl: "https://provider-custom.example.com/oauth/authorize",
-      redirectUri: "https://tuo-dominio.it/oauth/callback",
+      authorizeUrl: "https://custom-provider.example.com/oauth/authorize",
+      redirectUri: "https://your-domain.com/oauth/callback",
     },
   ],
-  allowAnonymous: true,           // mostra un bottone per procedere senza autenticarsi
-  anonymousLabel: "Continua senza account",
+  allowAnonymous: true,           // shows a button to proceed without authenticating
+  anonymousLabel: "Continue without an account",
 }
 ```
 
-Provider noti con authorize URL preimpostato: `google`, `github`, `facebook` (solo URL
-pubblici, nessun segreto). Per un provider non elencato, usa `id: "generic"` (o un id
-a tua scelta) con `authorizeUrl` esplicito. Ogni provider può avere un `icon` (emoji)
-custom: se assente si usa quella nota di default, poi il lucchetto generico 🔐.
+Known providers with a preset authorize URL: `google`, `github`, `facebook` (public
+URLs only, no secrets). For a provider not listed, use `id: "generic"` (or an id of
+your choice) with an explicit `authorizeUrl`. Every provider can have a custom `icon`
+(emoji): if absent, the known default is used, then the generic lock emoji 🔐.
 
-Se `allowAnonymous: true`, un bottone aggiuntivo permette all'utente di procedere senza
-autenticarsi: il value dello step diventa `{ providerId: "", anonymous: true }`, uno
-stato distinto sia da "non risposto" (`null`) sia da una connessione reale.
+If `allowAnonymous: true`, an extra button lets the user proceed without
+authenticating: the step's value becomes `{ providerId: "", anonymous: true }`, a state
+distinct both from "not answered" (`null`) and from a real connection.
 
-**Completare il login** dopo il redirect, lato app host:
+**Completing the login** after the redirect, on the host app side:
 
 ```ts
 import { completeOAuthCallback } from "@flowkit/core"
 
-// nella pagina di ritorno (redirectUri), leggendo query string o hash:
+// on the return page (redirectUri), reading the query string or hash:
 const result = completeOAuthCallback("google", window.location.search)
 // result: { providerId, code?, token?, state? }
 
-// poi, a scelta:
-// 1) scambia `code` per un token lato tuo backend (mai nel browser: richiederebbe il client secret)
-// 2) passa `result` come value dello step oauth (es. tramite onChange di FlowRunner,
-//    riprendendo lo stato del flow dove l'avevi lasciato prima del redirect)
+// then, your choice:
+// 1) exchange `code` for a token on your backend (never in the browser: would require the client secret)
+// 2) pass `result` as the oauth step's value (e.g. via FlowRunner's onChange,
+//    resuming the flow state where you left it before the redirect)
 ```
 
-`generatePkcePair()`/`buildAuthorizeUrl(provider, pkce?)` sono esportati da
-`@flowkit/core` se ti serve costruire l'URL manualmente al di fuori dello step.
+`generatePkcePair()`/`buildAuthorizeUrl(provider, pkce?)` are exported from
+`@flowkit/core` if you need to build the URL manually outside the step.
 
-## Step Mappa (maplibre-gl / Leaflet)
+## Map step (maplibre-gl / Leaflet)
 
-Step di tipo `location`: mappa reale renderizzata con
-[maplibre-gl](https://maplibre.org/), ricerca luoghi (geocoding, default
-[Nominatim/OSM](https://nominatim.org)), selezione configurabile.
+Step of type `location`: real map rendered with [maplibre-gl](https://maplibre.org/),
+place search (geocoding, default [Nominatim/OSM](https://nominatim.org)), configurable
+selection.
 
 ```ts
 {
   id: "pick-spot",
   type: "location",
-  title: "Scegli un punto sulla mappa",
-  styleUrl: "https://demotiles.maplibre.org/style.json",  // sostituibile con un tuo stile
-  geocodingEndpoint: "https://nominatim.openstreetmap.org/search", // sostituibile (server self-hosted, altro provider)
+  title: "Pick a spot on the map",
+  styleUrl: "https://demotiles.maplibre.org/style.json",  // replaceable with your own style
+  geocodingEndpoint: "https://nominatim.openstreetmap.org/search", // replaceable (self-hosted server, other provider)
   selectionMode: { kind: "point" },  // default
   initialCenter: { lat: 41.9, lng: 12.5, zoom: 11 },
 }
 ```
 
-### `selectionMode`: cosa significa "selezionare"
+### `selectionMode`: what "selecting" means
 
 ```ts
 type SelectionMode =
-  | { kind: "point" }                                              // default: pin libero, draggable
-  | { kind: "region"; regions: GeoJSONFeature[] }                    // click dentro un poligono → regionId
-  | { kind: "preset-points"; points: { id, label, lat, lng }[] }     // click su un punto fisso → pointId
+  | { kind: "point" }                                              // default: free draggable pin
+  | { kind: "region"; regions: GeoJSONFeature[] }                    // click inside a polygon → regionId
+  | { kind: "preset-points"; points: { id, label, lat, lng }[] }     // click on a fixed point → pointId
 ```
 
-- **`point`** (default): click/drag sulla mappa posiziona un marker draggable, `value`
-  diventa `{ lat, lng }`.
-- **`preset-points`**: mostra un marker per ciascun punto della lista; click su un
-  marker imposta `value: { lat, lng, pointId }`.
-- **`region`**: click dentro uno dei poligoni GeoJSON forniti imposta
-  `value: { regionId }` (point-in-polygon calcolato client-side, nessuna dipendenza
-  esterna tipo turf).
+- **`point`** (default): click/drag on the map places a draggable marker, `value`
+  becomes `{ lat, lng }`.
+- **`preset-points`**: shows a marker for each point in the list; clicking a marker
+  sets `value: { lat, lng, pointId }`.
+- **`region`**: clicking inside one of the provided GeoJSON polygons sets
+  `value: { regionId }` (point-in-polygon computed client-side, no external dependency
+  like turf).
 
-### Personalizzazione del rendering
+### Customizing the rendering
 
-- **Dichiarativa** (resta nel config, serializzabile): `extraMarkers` aggiunge marker
-  decorativi non selezionabili.
-- **Override totale** (marker custom con logica, hook a funzione): non passa dal
-  config JSON (che deve restare serializzabile), ma dal pattern "wrap del componente
-  registrato di default" — registra un tuo componente per `"location"` che internamente
-  usa `LocationStepView` e gli passa prop dirette:
+- **Declarative** (stays in the config, serializable): `extraMarkers` adds decorative,
+  non-selectable markers.
+- **Full override** (custom markers with logic, function hooks): doesn't go through
+  the JSON config (which must stay serializable), but through the "wrap the default
+  registered component" pattern — register your own component for `"location"` that
+  internally uses `LocationStepView` and passes it direct props:
 
 ```tsx
 import { registerStepComponent, LocationStepView } from "@flowkit/react"
 
 function CustomLocationView(props) {
-  // aggiungi qui logica/hook non serializzabili, poi delega al default:
+  // add non-serializable logic/hooks here, then delegate to the default:
   return <LocationStepView {...props} />
 }
 
 registerStepComponent("location", CustomLocationView)
 ```
 
-### Variante Leaflet (`location-leaflet`)
+### Leaflet variant (`location-leaflet`)
 
-Stessa identica config di `location` (`selectionMode`, geocoding, GPS, ricerca...), ma
-con [Leaflet](https://leafletjs.com/) come motore di rendering invece di maplibre-gl
-(tile OpenStreetMap di default). Usa questa variante se preferisci Leaflet o vuoi
-evitare la dipendenza da maplibre-gl.
-
-```ts
-{ id: "pick-spot-leaflet", type: "location-leaflet", title: "Scegli un punto sulla mappa" }
-```
-
-**Entrambe le varianti mappa sono opt-in**: `@flowkit/react` non registra né `location`
-né `location-leaflet` di default. Importa solo l'entry point di cui hai bisogno:
+The exact same config as `location` (`selectionMode`, geocoding, GPS, search...), but
+with [Leaflet](https://leafletjs.com/) as the rendering engine instead of maplibre-gl
+(default OpenStreetMap tiles). Use this variant if you prefer Leaflet or want to avoid
+the maplibre-gl dependency.
 
 ```ts
-import "@flowkit/react/map-maplibre"  // registra "location" (+ dipendenza peer maplibre-gl)
-import "@flowkit/react/map-leaflet"   // registra "location-leaflet" (+ dipendenza peer leaflet)
+{ id: "pick-spot-leaflet", type: "location-leaflet", title: "Pick a spot on the map" }
 ```
 
-Questo evita di scaricare entrambe le librerie mappa nei progetti che non usano step
-mappa. La CLI `flowkit-init --steps=map-maplibre,map-leaflet` scrive questi import (e le
-relative dipendenze npm) solo per gli step che scegli — vedi [CLI](#cli-create-flowkit-e-flowkit-init).
+**Both map variants are opt-in**: `@flowkit/react` registers neither `location` nor
+`location-leaflet` by default. Import only the entry point you need:
 
-## Invio delle risposte via email
+```ts
+import "@flowkit/react/map-maplibre"  // registers "location" (+ maplibre-gl peer dependency)
+import "@flowkit/react/map-leaflet"   // registers "location-leaflet" (+ leaflet peer dependency)
+```
 
-Lo step `confirmation` accetta un campo opzionale:
+This avoids downloading both map libraries in projects that don't use a map step. The
+`flowkit-init --steps=map-maplibre,map-leaflet` CLI writes these imports (and the
+matching npm dependencies) only for the steps you choose — see
+[CLI](#cli-create-flowkit-and-flowkit-init).
+
+## Sending answers via email
+
+The `confirmation` step accepts an optional field:
 
 ```ts
 emailShare?: {
-  enabled: boolean          // default false — nessun bottone se assente/false
-  subject?: string          // oggetto della mail, default il title della confirmation
-  buttonLabel?: string      // default "Invia via email"
-  helpText?: string         // riga descrittiva sopra il campo email
+  enabled: boolean          // default false — no button if absent/false
+  subject?: string          // email subject, defaults to the confirmation's title
+  buttonLabel?: string      // default "Send via email"
+  helpText?: string         // descriptive line above the email field
 }
 ```
 
-Se `enabled: true`, la schermata di conferma mostra un campo email + bottone: al click,
-il componente costruisce un link `mailto:<email>?subject=...&body=...` con il corpo
-generato a partire da **tutte le risposte del flow** (`answers`) e apre il client di
-posta predefinito dell'utente.
+If `enabled: true`, the confirmation screen shows an email field + button: on click,
+the component builds a `mailto:<email>?subject=...&body=...` link with the body
+generated from **all the flow's answers** (`answers`) and opens the user's default
+mail client.
 
-Non c'è invio server-side: è l'utente finale a scegliere se e come completare l'invio
-dal proprio client.
+There's no server-side sending: it's up to the end user to choose whether and how to
+complete the send from their own client.
 
 ```ts
 {
   id: "confirmation",
   type: "confirmation",
-  title: "Grazie!",
+  title: "Thank you!",
   emailShare: {
     enabled: true,
-    subject: "La mia segnalazione odore",
-    buttonLabel: "Invia via email",
-    helpText: "Vuoi salvare una copia della tua segnalazione? Ricevila via email.",
+    subject: "My smell report",
+    buttonLabel: "Send via email",
+    helpText: "Want to keep a copy of your report? Get it via email.",
   },
 }
 ```
 
-### Altre azioni sul risultato (`resultActions`)
+### Other result actions (`resultActions`)
 
-Oltre a `emailShare` (mailto), lo step `confirmation` accetta un campo opzionale
-`resultActions` con quattro azioni indipendenti, abilitabili singolarmente e in
-coesistenza tra loro:
+Besides `emailShare` (mailto), the `confirmation` step accepts an optional
+`resultActions` field with four independent actions, each enabled separately and
+coexisting with one another:
 
 ```ts
 resultActions?: {
   pdfExport?: {
     enabled: boolean
-    buttonLabel?: string       // default "Scarica PDF"
-    documentTitle?: string     // titolo mostrato nel documento stampato
+    buttonLabel?: string       // default "Download PDF"
+    documentTitle?: string     // title shown in the printed document
   }
   resultLink?: {
     enabled: boolean
-    buttonLabel?: string       // default "Copia link"
+    buttonLabel?: string       // default "Copy link"
     helpText?: string
     createLink: (answers) => Promise<{ url: string }>
   }
   nativeShare?: {
     enabled: boolean
-    buttonLabel?: string       // default "Condividi"
+    buttonLabel?: string       // default "Share"
     shareTitle?: string
   }
   emailApi?: {
     enabled: boolean
-    buttonLabel?: string       // default "Invia via email (server)"
+    buttonLabel?: string       // default "Send via email (server)"
     helpText?: string
     sendEmail: (email, answers) => Promise<void>
   }
 }
 ```
 
-- **`pdfExport`**: nessuna dipendenza aggiuntiva. Il bottone chiama `window.print()` su
-  un riepilogo dedicato (`.fk-print-recap`), stilizzato con un foglio `@media print` —
-  l'utente sceglie "Salva come PDF" dalla finestra di stampa del browser.
-- **`nativeShare`**: usa la [Web Share API](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share)
-  del browser (`navigator.share`); il bottone è mostrato solo se l'API è disponibile
-  (feature-detect), nessun fallback custom.
-- **`resultLink`** ed **`emailApi`** richiedono una funzione iniettata nella config
-  (`createLink`/`sendEmail`): questo mantiene `@flowkit/react` disaccoppiato da
-  `@flowkit/adapters` (stesso pattern del callback `mapAnswersToProperties` dell'adapter
-  Notion). **Limite**: essendo funzioni, questi due campi non sono JSON-serializzabili —
-  un flow che li usa va costruito come oggetto TS/JS, non caricato da JSON puro.
+- **`pdfExport`**: no extra dependency. The button calls `window.print()` on a
+  dedicated summary (`.fk-print-recap`), styled with a `@media print` sheet — the user
+  chooses "Save as PDF" from the browser's print dialog.
+- **`nativeShare`**: uses the browser's
+  [Web Share API](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share)
+  (`navigator.share`); the button is only shown if the API is available
+  (feature-detected), no custom fallback.
+- **`resultLink`** and **`emailApi`** require a function injected into the config
+  (`createLink`/`sendEmail`): this keeps `@flowkit/react` decoupled from
+  `@flowkit/adapters` (same pattern as the Notion adapter's `mapAnswersToProperties`
+  callback). **Limitation**: being functions, these two fields aren't
+  JSON-serializable — a flow using them must be built as a TS/JS object, not loaded
+  from plain JSON.
 
 ```ts
 import { createLocalAdapter, createReceiptEmailAdapter } from "@flowkit/adapters"
@@ -1125,7 +1131,7 @@ import { createLocalAdapter, createReceiptEmailAdapter } from "@flowkit/adapters
 const adapter = createLocalAdapter({ namespace: "my-app" })
 const receiptEmailAdapter = createReceiptEmailAdapter({ baseUrl: "/api" })
 
-// nella config dello step confirmation:
+// in the confirmation step's config:
 resultActions: {
   pdfExport: { enabled: true },
   nativeShare: { enabled: true },
@@ -1140,23 +1146,27 @@ resultActions: {
 }
 ```
 
-`createReceiptEmailAdapter` chiama `POST {baseUrl}/flows/{flowId}/receipt-email` con
-body `{ email, answers }`: è il tuo backend a inviare davvero l'email. Per uno starting
-point dell'HTML da inviare, `@flowkit/react` esporta `renderReceiptEmailHtml({ title,
-message?, answers })`, un template con stili inline in stile notion-clean — funzione di
-riferimento per il backend del consumer, non chiamata da nessun codice client-side di
-questo repo.
+`createReceiptEmailAdapter` calls `POST {baseUrl}/flows/{flowId}/receipt-email` with
+body `{ email, answers }`: your backend is the one that actually sends the email. As a
+starting point for the HTML to send, `@flowkit/react` exports
+`renderReceiptEmailHtml({ title, message?, answers })`, a template with inline styles
+matching the notion-clean look — a reference function for the consumer's backend, not
+called from any client-side code in this repo.
 
-## Persistenza delle risposte (adapter)
+## Persisting answers (adapters)
 
-`@flowkit/adapters` espone la stessa interfaccia (`FlowAdapter`) per quattro backend
-diversi:
+`@flowkit/adapters` exposes the same interface (`FlowAdapter`) for four different
+backends:
 
 ```ts
 export interface FlowAdapter {
   submit(flowId: string, answers: Answers): Promise<void>
   loadDraft(flowId: string): Promise<Answers | null>
   saveDraft(flowId: string, answers: Answers): Promise<void>
+  /** Optional: persists the answers with a unique id and returns a shareable link.
+   *  Implemented by createLocalAdapter and createRestAdapter; used by
+   *  confirmation's resultActions.resultLink. */
+  createResultLink?(flowId: string, answers: Answers): Promise<{ id: string; url: string }>
 }
 ```
 
@@ -1166,27 +1176,29 @@ export interface FlowAdapter {
 import { createLocalAdapter } from "@flowkit/adapters"
 
 const adapter = createLocalAdapter({
-  namespace: "flowkit-playground", // prefisso delle chiavi in storage, default "flowkit"
-  storage: window.localStorage,     // opzionale, per iniettare uno Storage compatibile (es. in test)
+  namespace: "flowkit-playground", // storage key prefix, default "flowkit"
+  storage: window.localStorage,     // optional, to inject a compatible Storage (e.g. in tests)
 })
 ```
 
-### `createRestAdapter` — endpoint HTTP
+### `createRestAdapter` — HTTP endpoint
 
 ```ts
 import { createRestAdapter } from "@flowkit/adapters"
 
 const adapter = createRestAdapter({
-  baseUrl: "https://api.tuodominio.it",
-  headers: { Authorization: "Bearer ..." }, // opzionale
-  fetchImpl: myFetch,                        // opzionale, default fetch globale
+  baseUrl: "https://api.your-domain.com",
+  headers: { Authorization: "Bearer ..." }, // optional
+  fetchImpl: myFetch,                        // optional, default global fetch
 })
 ```
 
-`submit` fa `POST ${baseUrl}/flows/${flowId}/submissions`. Le bozze restano solo in
-memoria (non persistite lato server).
+`submit` does `POST ${baseUrl}/flows/${flowId}/submissions`. Drafts stay in memory only
+(not persisted server-side). `createResultLink` does
+`POST ${baseUrl}/flows/${flowId}/results`, expecting a JSON `{ id, url }` response from
+your backend.
 
-### `createSupabaseAdapter` — stub Supabase
+### `createSupabaseAdapter` — Supabase stub
 
 ```ts
 import { createSupabaseAdapter } from "@flowkit/adapters"
@@ -1196,32 +1208,32 @@ const client = createClient(url, key)
 const adapter = createSupabaseAdapter({ client, table: "flow_submissions" /* default */ })
 ```
 
-Il pacchetto **non dipende** da `@supabase/supabase-js`: passi tu un client già
-inizializzato che rispetti l'interfaccia minima `SupabaseClientLike`.
+The package **does not depend on** `@supabase/supabase-js`: you pass in an already
+initialized client that satisfies the minimal `SupabaseClientLike` interface.
 
-### `createNotionAdapter` — pagine in un database Notion
+### `createNotionAdapter` — pages in a Notion database
 
 ```ts
 import { createNotionAdapter } from "@flowkit/adapters"
 
 const adapter = createNotionAdapter({
-  token: process.env.NOTION_TOKEN!,   // integration token, mai hardcoded
-  databaseId: "il-tuo-database-id",
-  mapAnswersToProperties: (answers, flowId) => ({ /* mapping custom, opzionale */ }),
+  token: process.env.NOTION_TOKEN!,   // integration token, never hardcoded
+  databaseId: "your-database-id",
+  mapAnswersToProperties: (answers, flowId) => ({ /* custom mapping, optional */ }),
 })
 ```
 
-`submit` crea (o aggiorna, se esiste una bozza) una pagina nel database Notion
-configurato, via chiamate REST dirette (nessuna dipendenza da `@notionhq/client`).
-Mapping di default: stringa → `rich_text`, numero → `number`, array → `multi_select`,
-altro → JSON in `rich_text`. Notion non ha un concetto nativo di bozza: `loadDraft`/
-`saveDraft` operano su una pagina con property booleana `draft`, filtrata per property
-`flowId` (rich_text) — nessuno storage locale, ogni lettura/scrittura passa dall'API
-Notion. Il database Notion di destinazione deve avere (almeno) le property `flowId`
-(testo) e `draft` (checkbox), oltre a una property per ciascuna risposta che vuoi
-mappare (o un `mapAnswersToProperties` custom).
+`submit` creates (or updates, if a draft exists) a page in the configured Notion
+database, via direct REST calls (no dependency on `@notionhq/client`). Default
+mapping: string → `rich_text`, number → `number`, array → `multi_select`, anything
+else → JSON in `rich_text`. Notion has no native concept of a draft: `loadDraft`/
+`saveDraft` operate on a page with a boolean `draft` property, filtered by a `flowId`
+(rich_text) property — no local storage, every read/write goes through the Notion API.
+The target Notion database must have (at least) the `flowId` (text) and `draft`
+(checkbox) properties, plus a property for each answer you want to map (or a custom
+`mapAnswersToProperties`).
 
-### Scrivere un adapter custom
+### Writing a custom adapter
 
 ```ts
 import type { FlowAdapter } from "@flowkit/adapters"
@@ -1237,7 +1249,7 @@ export function createMyAdapter(): FlowAdapter {
 
 ## i18n
 
-`@flowkit/core` espone un piccolo dizionario per le stringhe di navigazione generiche:
+`@flowkit/core` exposes a small dictionary for generic navigation strings:
 
 ```ts
 import { t } from "@flowkit/core"
@@ -1246,117 +1258,127 @@ t("it", "next")     // "Avanti"
 t("en", "back")     // "Back"
 ```
 
-Copre solo `next`, `back`, `submit`, `required` (locale `it`/`en`, fallback su `it`).
-I testi di dominio (titoli, sottotitoli, label delle opzioni...) restano parte del tuo
-`Flow`: se ti serve un flow multilingua, definisci config paralleli per locale.
+Covers only `next`, `back`, `submit`, `required` (locale `it`/`en`, falling back to
+`it`). Domain-specific text (titles, subtitles, option labels...) stays part of your
+`Flow`: if you need a multilingual flow, define parallel configs per locale.
 
-## Preset inclusi
+## Included presets
 
-`@flowkit/presets` contiene tre flow pronti, utili sia come demo sia come esempio di
-come comporre tutti i tipi di step:
+`@flowkit/presets` contains three ready-made flows, useful both as demos and as an
+example of how to compose every step type:
 
-- **`odoriFlow`** (`packages/presets/src/odori.ts`) — segnalazione di un odore molesto:
-  `intro` → `location` (mappa reale) → `select-cards` (tipo, 6 categorie a icone) →
-  `scale` slider (intensità 0–6, colorata) → `chips` (durata) → `faces` (fastidio,
-  opzionale) → `group` (`notes` + `photo`, opzionale) → `review` (con banner meteo) →
-  `confirmation` (con statistiche e bottone email).
-- **`feedbackFlow`** (`packages/presets/src/feedback.ts`) — raccolta feedback:
-  `intro` → `faces` (umore) → `nps` → `multi-select` (aspetti positivi) → `text` email
-  (opzionale) → `review` → `confirmation`.
-- **`restaurantFlow`** (`packages/presets/src/restaurant.ts`) — prenotazione di un
-  tavolo: `intro` → `select-cards` (sede) → `text` numero (coperti) → `date-time` →
-  `chips` (posto a sedere) → `select-cards` (occasione, opzionale) → `notes`
-  (allergie/richieste, opzionale) → `text` × 3 (nome, email, telefono) → `review` →
-  `confirmation` (con `resultActions.pdfExport`/`nativeShare`).
+- **`odoriFlow`** (`packages/presets/src/odori.ts`) — reporting a bad smell:
+  `intro` → `location` (real map) → `select-cards` (type, 6 categories with icons) →
+  `scale` slider (intensity 0–6, colored) → `chips` (duration) → `faces` (annoyance,
+  optional) → `group` (`notes` + `photo`, optional) → `review` (with a weather banner)
+  → `confirmation` (with stats and an email button).
+- **`feedbackFlow`** (`packages/presets/src/feedback.ts`) — feedback collection:
+  `intro` → `faces` (mood) → `nps` → `multi-select` (positive aspects) → `text` email
+  (optional) → `review` → `confirmation`.
+- **`restaurantFlow`** (`packages/presets/src/restaurant.ts`) — table reservation:
+  `intro` → `select-cards` (branch) → `text` number (party size) → `date-time` →
+  `chips` (seating) → `select-cards` (occasion, optional) → `notes`
+  (allergies/requests, optional) → `text` × 3 (name, email, phone) → `review` →
+  `confirmation` (with `resultActions.pdfExport`/`nativeShare`).
 
 ```ts
 import { odoriFlow, feedbackFlow, restaurantFlow } from "@flowkit/presets"
 ```
 
-Il playground include anche demo aggiuntive (non pacchetti a sé, solo esempi in
-`apps/playground/src`): **"Step custom (demo)"** (`custom-step-demo.tsx`, vedi
-[Step personalizzati](#step-personalizzati)), **"OAuth + Mappa (demo)"**
-(`features-demo.tsx`, step `oauth` con icona custom/anonimo + varianti `location` e
-`location-leaflet`) e **"Azioni sul risultato (demo)"** (`result-actions-demo.tsx`,
-tutte e quattro le `resultActions` della confirmation collegate ad adapter reali).
+The playground also includes additional demos (not standalone packages, just examples
+in `apps/playground/src`): **"Custom step (demo)"** (`custom-step-demo.tsx`, see
+[Custom steps](#custom-steps)), **"OAuth + Map (demo)"** (`features-demo.tsx`, `oauth`
+step with custom icon/anonymous skip + `location` and `location-leaflet` variants) and
+**"Result actions (demo)"** (`result-actions-demo.tsx`, all four confirmation
+`resultActions` wired to real adapters).
 
-## Script del monorepo
+## Monorepo scripts
 
 ```bash
-npm run lint        # eslint su tutto il monorepo
-npm run typecheck   # tsc --noEmit (usa i sorgenti dei pacchetti via `paths`, non i dist)
-npm run test        # vitest (unit test: core, themes, adapters, react registry, CLI)
-npm run build       # build di tutti i pacchetti (tsup) + playground (vite build)
+npm run lint        # eslint across the whole monorepo
+npm run typecheck   # tsc --noEmit (uses package sources via `paths`, not the dist output)
+npm run test        # vitest (unit tests: core, themes, adapters, react registry, CLI)
+npm run build       # builds every package (tsup) + the playground (vite build)
 npm run verify      # lint + typecheck + test + build + scripts/spec-check.mjs
-npm run test:e2e    # Playwright, non incluso in `verify` (più lento, richiede browser)
+npm run test:e2e    # Playwright, not included in `verify` (slower, requires a browser)
 ```
 
-`npm run verify` è il gate di "definizione di fatto" del progetto (vedi `CLAUDE.md`):
-deve passare prima di considerare un task completo. `npm run test:e2e` gira separatamente
-(anche in CI, workflow dedicato) perché comporta build+preview del playground e
-avvio di un browser: più lento, non pensato per il ciclo rapido di `verify`.
+`npm run verify` is the project's "definition of done" gate (see `CLAUDE.md`): it must
+pass before considering a task complete. `npm run test:e2e` runs separately (also in
+CI, in a dedicated workflow) because it involves building+previewing the playground
+and launching a browser: slower, not meant for `verify`'s fast cycle.
 
-**Nota per chi sviluppa dentro questo monorepo**: `apps/playground` importa i pacchetti
-`@flowkit/*` dai rispettivi `dist/` (non dai sorgenti via HMR). Se modifichi
-`packages/react`, `packages/core`, `packages/themes` ecc. e vuoi vederne l'effetto nel
-playground in dev, devi ribuildare il pacchetto toccato prima di ricaricare la pagina:
+**Note for anyone developing inside this monorepo**: `apps/playground` imports the
+`@flowkit/*` packages from their respective `dist/` output (not from sources via HMR).
+If you change `packages/react`, `packages/core`, `packages/themes` etc. and want to see
+the effect in the playground in dev, you need to rebuild the touched package before
+reloading the page:
 
 ```bash
 npm run build --workspace=@flowkit/react --workspace=@flowkit/core
 ```
 
-(`packages/react/src/style.css` fa eccezione: è importato per path diretto, quindi le
-modifiche CSS sono live senza rebuild.)
+(`packages/react/src/style.css` is an exception: it's imported by direct path, so CSS
+changes are live without a rebuild.)
 
-## Test end-to-end (Playwright)
+## End-to-end tests (Playwright)
 
-`e2e/` (root, non dentro un pacchetto) contiene la suite Playwright, target React per
-ora:
+`e2e/` (at the repo root, not inside a package) contains the Playwright suite, React
+target for now:
 
-- `flow-parity.spec.ts` — naviga i preset `odori`/`feedback` end-to-end fino alla
+- `flow-parity.spec.ts` — walks the `odori`/`feedback` presets end-to-end up to
   `confirmation`.
-- `theme-visual.spec.ts` — screenshot baseline della schermata intro per i 3 temi
-  (`--update-snapshots` per rigenerarle dopo una modifica intenzionale allo stile).
-- `oauth-step.spec.ts` — intercetta il redirect OAuth e verifica i parametri
-  dell'authorize URL (`client_id`, `redirect_uri`, PKCE).
-- `map-step.spec.ts` — mappa reale: selezione `point` via click, `preset-points` via
-  marker, ricerca geocoding reale (Nominatim), combinazioni `showMap`/`showSearch`/
-  `enableGps`, posizione/stile del bottone GPS, reverse geocoding (mockato, successo
-  e fallback su errore).
-- `group-step.spec.ts` — step `group`: rendering dei figli inline, validazione
-  aggregata (bottone "Continua" bloccato finché tutti i figli richiesti non hanno
-  risposta).
-- `cli-scaffold.spec.ts` — lancia `flowkit-init`/`create-flowkit` in una cartella
-  temporanea, in modalità non interattiva (`--framework react --no-install`), e
-  ispeziona i file generati.
-
-`theme-visual.spec.ts` copre anche il tema `showcase`: sfondo pagina, barra di
-progresso a pallini, footer sopra l'header, animazione di transizione, e l'override
-tema per singolo step (`themeOverride`).
+- `theme-visual.spec.ts` — baseline screenshots of the intro screen for the 3 themes
+  (`--update-snapshots` to regenerate them after an intentional style change), plus
+  the `showcase` theme's background/dots-progress/footer-on-top/animation/per-step
+  `themeOverride` features.
+- `oauth-step.spec.ts` — intercepts the OAuth redirect and checks the authorize URL's
+  parameters (`client_id`, `redirect_uri`, PKCE).
+- `oauth-anonymous.spec.ts` — custom provider icon and the `allowAnonymous` skip
+  button/state.
+- `map-step.spec.ts` — real map (maplibre-gl): `point` selection via click,
+  `preset-points` via marker, real geocoding search (Nominatim), `showMap`/
+  `showSearch`/`enableGps` combinations, GPS button position/style, reverse geocoding
+  (mocked, success and error fallback).
+- `map-leaflet-step.spec.ts` — `location-leaflet` step: map renders and a click sets a
+  value.
+- `date-time-step.spec.ts` — `date-time` step: `datetime-local` input, `disablePast`
+  min, validation gating.
+- `group-step.spec.ts` — `group` step: inline rendering of children, aggregated
+  validation ("Continue" blocked until every required child has an answer).
+- `notes-photo-split.spec.ts` — `notes`/`photo` group: both optional, independently
+  skippable.
+- `restaurant-preset.spec.ts` — walks the `restaurant` preset end-to-end up to
+  `confirmation`.
+- `confirmation-result-actions.spec.ts` — the four `resultActions`: `pdfExport` recap
+  content, `nativeShare` feature-detection, `resultLink` generation/copy, `emailApi`
+  success/error states.
+- `cli-scaffold.spec.ts` — launches `flowkit-init`/`create-flowkit` in a temporary
+  folder, non-interactively (`--framework react --no-install`, plus `--steps=...`
+  variants), and inspects the generated files.
 
 ```bash
-npm run build --workspace=@flowkit/create-flowkit   # necessario prima di cli-scaffold.spec.ts
-npx playwright install chromium                     # una tantum
+npm run build --workspace=@flowkit/create-flowkit   # required before cli-scaffold.spec.ts
+npx playwright install chromium                     # one-time
 npm run test:e2e
 ```
 
-Gira anche in CI (`.github/workflows/e2e.yml`), separato dal gate di `verify`
+Also runs in CI (`.github/workflows/e2e.yml`), separate from the `verify` gate
 (`.github/workflows/ci.yml`).
 
-## Estendere Flowkit
+## Extending Flowkit
 
-- **Nuovo tipo di step**: vedi [Step personalizzati](#step-personalizzati) —
-  `registerStepType` (core) + `registerStepComponent` (react), nessuna modifica ai
-  file del pacchetto richiesta.
-- **Nuovo tema**: crea un file in `packages/themes/src/` con `light`/`dark`
-  `ThemeTokens` (vedi [Configurare un tema](#configurare-un-tema)) e aggiungilo alla
-  mappa `themes` in `packages/themes/src/index.ts` — oppure, se non ti serve
-  contribuirlo al pacchetto, costruisci l'oggetto `Theme` direttamente nella tua app e
-  passalo a `FlowRunner` senza toccare questo repo.
-- **Nuovo adapter**: implementa `FlowAdapter` (vedi sopra), nessuna modifica al core o
-  al renderer richiesta.
-- **Nuovo framework renderer** (Vue/Svelte/vanilla, pianificati): riusa
-  `@flowkit/core`/`@flowkit/themes`/`@flowkit/adapters` invariati; replica il contratto
-  `StepComponentProps` (`step`/`value`/`onChange` o equivalente/`flow`/`answers`) e il
-  pattern registry (`registerStepComponent`/`getStepComponent`) visto in
+- **New step type**: see [Custom steps](#custom-steps) — `registerStepType` (core) +
+  `registerStepComponent` (react), no changes to package files required.
+- **New theme**: create a file in `packages/themes/src/` with `light`/`dark`
+  `ThemeTokens` (see [Configuring a theme](#configuring-a-theme)) and add it to the
+  `themes` map in `packages/themes/src/index.ts` — or, if you don't need to contribute
+  it to the package, build the `Theme` object directly in your app and pass it to
+  `FlowRunner` without touching this repo.
+- **New adapter**: implement `FlowAdapter` (see above), no changes to the core or
+  renderer required.
+- **New framework renderer** (Vue/Svelte/vanilla, planned): reuse `@flowkit/core`/
+  `@flowkit/themes`/`@flowkit/adapters` unchanged; replicate the `StepComponentProps`
+  contract (`step`/`value`/`onChange` or equivalent/`flow`/`answers`) and the registry
+  pattern (`registerStepComponent`/`getStepComponent`) seen in
   `packages/react/src/registry.tsx`.
