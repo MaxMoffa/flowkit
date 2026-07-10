@@ -35,6 +35,7 @@ export interface FlowRunnerProps {
 
 export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunnerProps) {
   const [state, setState] = useState(createFlowState)
+  const [direction, setDirection] = useState<"next" | "prev">("next")
   const step = getCurrentStep(flow, state)
   const StepView = getStepComponent(step.type)
   if (!StepView) {
@@ -77,6 +78,15 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const ProgressComponent =
     progressVariant === "hidden" ? null : (getProgressComponent(progressVariant) ?? BarProgress)
 
+  const animationName = resolvedTokens.animation?.name ?? "none"
+  const animationClass = animationName === "none" ? "" : ` fk-anim-${animationName} fk-anim-dir-${direction}`
+  const animationVars: CSSProperties | undefined =
+    animationName === "none"
+      ? undefined
+      : ({ "--fk-anim-duration": `${resolvedTokens.animation?.duration ?? 250}ms` } as CSSProperties)
+  const scopeStyle: CSSProperties | undefined =
+    stepThemeVars || animationVars ? { ...stepThemeVars, ...animationVars } : undefined
+
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
     const nextAnswers = setAnswer(state, step.id, value)
     setState(nextAnswers)
@@ -87,10 +97,12 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     if (step.type === "review") {
       await onSubmit?.(state.answers)
     }
+    setDirection("next")
     setState((s) => nextState(flow, s))
   }
 
   function handlePrev() {
+    setDirection("prev")
     setState((s) => prevState(flow, s))
   }
 
@@ -129,9 +141,8 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
         )}
         <div className="fk-body" style={{ order: 1 }}>
           <div className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}`}>
-            <div className="fk-step-theme-scope" style={stepThemeVars}>
+            <div key={step.id} className={`fk-step-theme-scope${animationClass}`} style={scopeStyle}>
               <StepView
-                key={step.id}
                 step={step}
                 value={state.answers[step.id] ?? null}
                 onChange={handleChange}
