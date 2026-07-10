@@ -21,8 +21,8 @@ success #46A171, warning #D5803B, danger #E56458. Spacing 4/8/12/16/24/32/48/64.
 Radius 8/12/20.
 
 ## Step da supportare (registry)
-intro, location, select-cards, scale, chips, faces, notes-photo, nps, multi-select,
-text/number/email, review, confirmation.
+intro, location, location-leaflet, select-cards, scale, chips, faces, notes, photo,
+date-time, nps, multi-select, text/number/email, review, confirmation, oauth, group.
 
 ## Regole di lavoro
 - Lavora un task alla volta, dal primo non spuntato in TASKS.md.

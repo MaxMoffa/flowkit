@@ -56,7 +56,7 @@ il rendering vive solo nel pacchetto del framework scelto (oggi: `@flowkit/react
   - [Campi comuni a ogni step](#campi-comuni-a-ogni-step)
   - [Riferimento per tipo di step](#riferimento-per-tipo-di-step)
 - [Step OAuth](#step-oauth)
-- [Step Mappa (maplibre-gl)](#step-mappa-maplibre-gl)
+- [Step Mappa (maplibre-gl / Leaflet)](#step-mappa-maplibre-gl--leaflet)
 - [Invio delle risposte via email](#invio-delle-risposte-via-email)
 - [Persistenza delle risposte (adapter)](#persistenza-delle-risposte-adapter)
 - [i18n](#i18n)
@@ -125,10 +125,20 @@ installa `@flowkit/core` + `@flowkit/themes` + `@flowkit/adapters` + il pacchett
 framework scelto, e scrive un file `src/flowkit-setup.tsx` con il wiring minimo
 (`FlowRunner` vuoto pronto da riempire) — non un preset intero.
 
+`flowkit-init` chiede anche quali **step opzionali con dipendenze pesanti** (le due
+varianti mappa) vuoi includere: solo quelli scelti vengono installati (`maplibre-gl`
+e/o `leaflet`) e importati (`@flowkit/react/map-maplibre`/`map-leaflet`) nel file
+generato — un progetto che non usa mappe non installa né l'una né l'altra libreria.
+
+```bash
+npx flowkit-init --framework react --steps=map-maplibre,map-leaflet --yes
+# --steps= (vuoto) o l'omissione di un gruppo lo esclude
+```
+
 Entrambi i comandi accettano `--no-install` (salta l'installazione, stampa il comando
-da eseguire a mano) e sono scriptabili end-to-end con `--framework`/`--name`/`--yes`,
-perché i prompt interattivi (`@clack/prompts`) richiedono un vero terminale e non
-funzionano pipando stdin.
+da eseguire a mano) e sono scriptabili end-to-end con `--framework`/`--name`/`--yes`/
+`--steps`, perché i prompt interattivi (`@clack/prompts`) richiedono un vero terminale
+e non funzionano pipando stdin.
 
 ## Quickstart: playground
 
@@ -610,7 +620,7 @@ Schermata "hero" iniziale, senza header/progress bar. Componente: `IntroStepView
 Cattura una posizione geografica su una **mappa reale** (maplibre-gl). Valore risposta:
 `{ lat, lng, address?, regionId?, pointId? }` (o `string`, per retro-compatibilità con
 flow scritti prima della v2.8). Componente: `LocationStepView`. Vedi la sezione dedicata
-[Step Mappa](#step-mappa-maplibre-gl) per la config completa (`selectionMode`, stile
+[Step Mappa](#step-mappa-maplibre-gl--leaflet) per la config completa (`selectionMode`, stile
 mappa, geocoding).
 
 | Campo | Tipo | Default | Note |
@@ -626,7 +636,7 @@ mappa, geocoding).
 | `detectedSubLabel` | `string` | — | Riga secondaria sotto l'indirizzo/coordinate selezionate |
 | `styleUrl` | `string` | stile demo pubblico maplibre | URL dello stile mappa, sostituibile |
 | `geocodingEndpoint` | `string` | endpoint pubblico Nominatim `/search` | Endpoint di ricerca luoghi (forward), sostituibile (es. server self-hosted) |
-| `selectionMode` | vedi [Step Mappa](#step-mappa-maplibre-gl) | `{ kind: "point" }` | Cosa significa "selezionare" sulla mappa (ignorato se `showMap: false`) |
+| `selectionMode` | vedi [Step Mappa](#step-mappa-maplibre-gl--leaflet) | `{ kind: "point" }` | Cosa significa "selezionare" sulla mappa (ignorato se `showMap: false`) |
 | `initialCenter` | `{ lat, lng, zoom? }` | Roma, zoom 11 | Centro/zoom iniziali della mappa |
 | `extraMarkers` | `{ lat, lng, label? }[]` | — | Marker decorativi aggiuntivi, non selezionabili |
 
@@ -725,20 +735,59 @@ Comportamento: al mount si autoseleziona la faccina centrale dell'array.
   ] }
 ```
 
-#### `notes-photo`
+#### `notes`
 
-Textarea opzionale + upload foto. Valore risposta: `{ text?: string, photo?: string }`
-(il campo `photo` è una data-URL letta via `FileReader`, tutto client-side). Componente:
-`NotesPhotoStepView`.
+Textarea libera. Valore risposta: `string`. Componente: `NotesStepView`.
 
 | Campo | Tipo | Default | Note |
 |---|---|---|---|
-| `allowPhoto` | `boolean` | `true` | Mostra o nasconde il box di upload foto |
 | `placeholder` | `string` | `"Scrivi qui..."` | Placeholder della textarea |
 
 ```ts
-{ id: "notes", type: "notes-photo", title: "Vuoi aggiungere altro?", required: false,
-  allowPhoto: true, placeholder: "Es. l'odore aumenta quando tira vento da nord…" }
+{ id: "notes", type: "notes", title: "Vuoi aggiungere altro?", required: false,
+  placeholder: "Es. l'odore aumenta quando tira vento da nord…" }
+```
+
+#### `photo`
+
+Upload di una foto. Valore risposta: `string | null` (data-URL letta via `FileReader`,
+tutto client-side). Componente: `PhotoStepView`.
+
+| Campo | Tipo | Default | Note |
+|---|---|---|---|
+| `placeholder` | `string` | `"Aggiungi una foto"` | Testo mostrato nel box vuoto |
+
+```ts
+{ id: "photo", type: "photo", title: "Aggiungi una foto", required: false }
+```
+
+Per combinare i due step in un'unica pagina (come faceva il vecchio `notes-photo`), usa
+[`group`](#group):
+
+```ts
+{ id: "notes-photo-group", type: "group", title: "Vuoi aggiungere altro?", required: false,
+  steps: [
+    { id: "notes", type: "notes", required: false },
+    { id: "photo", type: "photo", required: false },
+  ] }
+```
+
+#### `date-time`
+
+Input data/ora nativo del browser. Valore risposta: `string` nel formato dell'`<input>`
+corrispondente (`YYYY-MM-DD`, `HH:mm` o `YYYY-MM-DDTHH:mm`). Componente:
+`DateTimeStepView`.
+
+| Campo | Tipo | Default | Note |
+|---|---|---|---|
+| `mode` | `"date" \| "time" \| "datetime"` | `"date"` | Seleziona il tipo di `<input>` nativo (`date`, `time`, `datetime-local`) |
+| `min` / `max` | `string` | — | Limiti, stesso formato del valore |
+| `step` | `number` | — | Attributo `step` dell'input |
+| `disablePast` | `boolean` | `false` | Se `true` e `min` non specificato, calcola un `min` pari al momento corrente |
+| `defaultValue` | `string` | — | Valore iniziale se non ancora risposto |
+
+```ts
+{ id: "date-time", type: "date-time", title: "Quando?", mode: "datetime", disablePast: true }
 ```
 
 #### `nps`
@@ -819,7 +868,8 @@ Schermata finale, senza header/progress bar; footer con due bottoni. Componente:
 | `emoji` | `string` | — | Se presente sostituisce l'icona di spunta di default |
 | `stats` | `{ value, label }[]` | — | Righe di statistiche in box affiancati |
 | `primaryCta` / `secondaryCta` | `string` | `"Torna alla home"` / `"Nuova segnalazione"` | Testi dei due bottoni footer |
-| `emailShare` | oggetto, vedi sotto | — | Abilita il bottone "invia le risposte via email" |
+| `emailShare` | oggetto, vedi sotto | — | Abilita il bottone "invia le risposte via email" (`mailto:`) |
+| `resultActions` | oggetto, vedi [Invio delle risposte via email](#invio-delle-risposte-via-email) | — | Azioni opzionali aggiuntive sul risultato: `pdfExport`, `resultLink`, `nativeShare`, `emailApi` |
 
 ```ts
 { id: "confirmation", type: "confirmation", title: "Grazie!",
@@ -870,6 +920,7 @@ chiamata al token endpoint) è responsabilità dell'app host.
       redirectUri: "https://tuo-dominio.it/oauth/callback",
       scopes: ["profile", "email"],
       usePkce: true,              // default true, genera code_verifier/code_challenge via Web Crypto
+      icon: "🔵",                  // opzionale: sovrascrive l'emoji di default del provider
     },
     {
       id: "generic",               // provider non noto: authorizeUrl obbligatorio
@@ -878,12 +929,19 @@ chiamata al token endpoint) è responsabilità dell'app host.
       redirectUri: "https://tuo-dominio.it/oauth/callback",
     },
   ],
+  allowAnonymous: true,           // mostra un bottone per procedere senza autenticarsi
+  anonymousLabel: "Continua senza account",
 }
 ```
 
 Provider noti con authorize URL preimpostato: `google`, `github`, `facebook` (solo URL
 pubblici, nessun segreto). Per un provider non elencato, usa `id: "generic"` (o un id
-a tua scelta) con `authorizeUrl` esplicito.
+a tua scelta) con `authorizeUrl` esplicito. Ogni provider può avere un `icon` (emoji)
+custom: se assente si usa quella nota di default, poi il lucchetto generico 🔐.
+
+Se `allowAnonymous: true`, un bottone aggiuntivo permette all'utente di procedere senza
+autenticarsi: il value dello step diventa `{ providerId: "", anonymous: true }`, uno
+stato distinto sia da "non risposto" (`null`) sia da una connessione reale.
 
 **Completare il login** dopo il redirect, lato app host:
 
@@ -903,7 +961,7 @@ const result = completeOAuthCallback("google", window.location.search)
 `generatePkcePair()`/`buildAuthorizeUrl(provider, pkce?)` sono esportati da
 `@flowkit/core` se ti serve costruire l'URL manualmente al di fuori dello step.
 
-## Step Mappa (maplibre-gl)
+## Step Mappa (maplibre-gl / Leaflet)
 
 Step di tipo `location`: mappa reale renderizzata con
 [maplibre-gl](https://maplibre.org/), ricerca luoghi (geocoding, default
@@ -958,6 +1016,29 @@ function CustomLocationView(props) {
 registerStepComponent("location", CustomLocationView)
 ```
 
+### Variante Leaflet (`location-leaflet`)
+
+Stessa identica config di `location` (`selectionMode`, geocoding, GPS, ricerca...), ma
+con [Leaflet](https://leafletjs.com/) come motore di rendering invece di maplibre-gl
+(tile OpenStreetMap di default). Usa questa variante se preferisci Leaflet o vuoi
+evitare la dipendenza da maplibre-gl.
+
+```ts
+{ id: "pick-spot-leaflet", type: "location-leaflet", title: "Scegli un punto sulla mappa" }
+```
+
+**Entrambe le varianti mappa sono opt-in**: `@flowkit/react` non registra né `location`
+né `location-leaflet` di default. Importa solo l'entry point di cui hai bisogno:
+
+```ts
+import "@flowkit/react/map-maplibre"  // registra "location" (+ dipendenza peer maplibre-gl)
+import "@flowkit/react/map-leaflet"   // registra "location-leaflet" (+ dipendenza peer leaflet)
+```
+
+Questo evita di scaricare entrambe le librerie mappa nei progetti che non usano step
+mappa. La CLI `flowkit-init --steps=map-maplibre,map-leaflet` scrive questi import (e le
+relative dipendenze npm) solo per gli step che scegli — vedi [CLI](#cli-create-flowkit-e-flowkit-init).
+
 ## Invio delle risposte via email
 
 Lo step `confirmation` accetta un campo opzionale:
@@ -992,6 +1073,79 @@ dal proprio client.
   },
 }
 ```
+
+### Altre azioni sul risultato (`resultActions`)
+
+Oltre a `emailShare` (mailto), lo step `confirmation` accetta un campo opzionale
+`resultActions` con quattro azioni indipendenti, abilitabili singolarmente e in
+coesistenza tra loro:
+
+```ts
+resultActions?: {
+  pdfExport?: {
+    enabled: boolean
+    buttonLabel?: string       // default "Scarica PDF"
+    documentTitle?: string     // titolo mostrato nel documento stampato
+  }
+  resultLink?: {
+    enabled: boolean
+    buttonLabel?: string       // default "Copia link"
+    helpText?: string
+    createLink: (answers) => Promise<{ url: string }>
+  }
+  nativeShare?: {
+    enabled: boolean
+    buttonLabel?: string       // default "Condividi"
+    shareTitle?: string
+  }
+  emailApi?: {
+    enabled: boolean
+    buttonLabel?: string       // default "Invia via email (server)"
+    helpText?: string
+    sendEmail: (email, answers) => Promise<void>
+  }
+}
+```
+
+- **`pdfExport`**: nessuna dipendenza aggiuntiva. Il bottone chiama `window.print()` su
+  un riepilogo dedicato (`.fk-print-recap`), stilizzato con un foglio `@media print` —
+  l'utente sceglie "Salva come PDF" dalla finestra di stampa del browser.
+- **`nativeShare`**: usa la [Web Share API](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share)
+  del browser (`navigator.share`); il bottone è mostrato solo se l'API è disponibile
+  (feature-detect), nessun fallback custom.
+- **`resultLink`** ed **`emailApi`** richiedono una funzione iniettata nella config
+  (`createLink`/`sendEmail`): questo mantiene `@flowkit/react` disaccoppiato da
+  `@flowkit/adapters` (stesso pattern del callback `mapAnswersToProperties` dell'adapter
+  Notion). **Limite**: essendo funzioni, questi due campi non sono JSON-serializzabili —
+  un flow che li usa va costruito come oggetto TS/JS, non caricato da JSON puro.
+
+```ts
+import { createLocalAdapter, createReceiptEmailAdapter } from "@flowkit/adapters"
+
+const adapter = createLocalAdapter({ namespace: "my-app" })
+const receiptEmailAdapter = createReceiptEmailAdapter({ baseUrl: "/api" })
+
+// nella config dello step confirmation:
+resultActions: {
+  pdfExport: { enabled: true },
+  nativeShare: { enabled: true },
+  resultLink: {
+    enabled: true,
+    createLink: (answers) => adapter.createResultLink!("my-flow", answers),
+  },
+  emailApi: {
+    enabled: true,
+    sendEmail: (email, answers) => receiptEmailAdapter.sendReceiptEmail("my-flow", email, answers),
+  },
+}
+```
+
+`createReceiptEmailAdapter` chiama `POST {baseUrl}/flows/{flowId}/receipt-email` con
+body `{ email, answers }`: è il tuo backend a inviare davvero l'email. Per uno starting
+point dell'HTML da inviare, `@flowkit/react` esporta `renderReceiptEmailHtml({ title,
+message?, answers })`, un template con stili inline in stile notion-clean — funzione di
+riferimento per il backend del consumer, non chiamata da nessun codice client-side di
+questo repo.
 
 ## Persistenza delle risposte (adapter)
 
@@ -1098,26 +1252,33 @@ I testi di dominio (titoli, sottotitoli, label delle opzioni...) restano parte d
 
 ## Preset inclusi
 
-`@flowkit/presets` contiene due flow pronti, utili sia come demo sia come esempio di
+`@flowkit/presets` contiene tre flow pronti, utili sia come demo sia come esempio di
 come comporre tutti i tipi di step:
 
 - **`odoriFlow`** (`packages/presets/src/odori.ts`) — segnalazione di un odore molesto:
   `intro` → `location` (mappa reale) → `select-cards` (tipo, 6 categorie a icone) →
   `scale` slider (intensità 0–6, colorata) → `chips` (durata) → `faces` (fastidio,
-  opzionale) → `notes-photo` (note/foto, opzionale) → `review` (con banner meteo) →
+  opzionale) → `group` (`notes` + `photo`, opzionale) → `review` (con banner meteo) →
   `confirmation` (con statistiche e bottone email).
 - **`feedbackFlow`** (`packages/presets/src/feedback.ts`) — raccolta feedback:
   `intro` → `faces` (umore) → `nps` → `multi-select` (aspetti positivi) → `text` email
   (opzionale) → `review` → `confirmation`.
+- **`restaurantFlow`** (`packages/presets/src/restaurant.ts`) — prenotazione di un
+  tavolo: `intro` → `select-cards` (sede) → `text` numero (coperti) → `date-time` →
+  `chips` (posto a sedere) → `select-cards` (occasione, opzionale) → `notes`
+  (allergie/richieste, opzionale) → `text` × 3 (nome, email, telefono) → `review` →
+  `confirmation` (con `resultActions.pdfExport`/`nativeShare`).
 
 ```ts
-import { odoriFlow, feedbackFlow } from "@flowkit/presets"
+import { odoriFlow, feedbackFlow, restaurantFlow } from "@flowkit/presets"
 ```
 
-Il playground include anche due demo aggiuntive (non pacchetti a sé, solo esempi in
+Il playground include anche demo aggiuntive (non pacchetti a sé, solo esempi in
 `apps/playground/src`): **"Step custom (demo)"** (`custom-step-demo.tsx`, vedi
-[Step personalizzati](#step-personalizzati)) e **"OAuth + Mappa (demo)"**
-(`features-demo.tsx`, step `oauth` + due varianti di step `location`).
+[Step personalizzati](#step-personalizzati)), **"OAuth + Mappa (demo)"**
+(`features-demo.tsx`, step `oauth` con icona custom/anonimo + varianti `location` e
+`location-leaflet`) e **"Azioni sul risultato (demo)"** (`result-actions-demo.tsx`,
+tutte e quattro le `resultActions` della confirmation collegate ad adapter reali).
 
 ## Script del monorepo
 

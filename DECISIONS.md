@@ -188,3 +188,49 @@ Note delle scelte prese in autonomia (lavoro headless, nessuna domanda all'utent
   Fallback silenzioso su qualunque errore di rete/HTTP. Il demo step
   `pick-preset-point` in `features-demo.tsx` lo disabilita esplicitamente perché il suo
   test e2e verifica le coordinate raw esatte, che il reverse geocode sovrascriverebbe.
+
+## v2.23 (from here on, new entries are in English)
+
+- **`notes-photo` removed without a back-compat alias**: split into separate `notes`
+  (string value) and `photo` (string|null data-URL value) step types. Package is
+  `private`/unpublished (v0.1.0), so no external consumer can depend on the old type.
+  odori's preset now composes both via the existing `group` step instead, which also
+  doubles as a live demonstration of `group`.
+- **`resultActions.resultLink.createLink` / `resultActions.emailApi.sendEmail` are
+  injected functions in the step config**, not a new `adapter` prop threaded through
+  `FlowRunner`. Mirrors the `mapAnswersToProperties` custom-callback pattern already
+  accepted in `notion.ts`, and keeps `@flowkit/react` free of any dependency on
+  `@flowkit/adapters`. Consequence: a flow using these two actions must be built as a
+  JS/TS object (not loaded from plain JSON), same constraint already implied by every
+  existing preset in this repo.
+- **`pdfExport` uses `window.print()` + a `@media print` stylesheet**, no new
+  dependency (no html2canvas/jsPDF). Matches the project's existing preference for
+  zero/light adapter dependencies (see the "niente dipendenza da `@notionhq/client`"
+  decision above).
+- **`renderReceiptEmailHtml` (packages/react/src/email-templates) is a reference
+  template for the consumer's backend**, not called from any client-side code path
+  here — the actual email send always happens server-side via `emailApi.sendEmail`.
+  Colors are the notion-clean light tokens inlined as literal hex values, since email
+  clients don't support CSS custom properties.
+- **Map steps split into opt-in entry points**: `@flowkit/react` no longer registers
+  `location`/`location-leaflet` by default; a consumer imports
+  `@flowkit/react/map-maplibre` and/or `@flowkit/react/map-leaflet` only if they use
+  that step. `maplibre-gl`/`leaflet` moved from hard `dependencies` to optional
+  `peerDependencies`, so installing `@flowkit/react` no longer forces either map
+  library onto projects that don't need maps. This was the concrete fix for the
+  "installing only some steps should lighten dependencies" requirement — `flowkit-init
+  --steps=` only decides which of these entries get imported/installed for a new
+  project, the weight reduction itself comes from the peer-optional split.
+- **`date-time` is a single step type with a `mode` field** (`date`/`time`/`datetime`)
+  rather than three separate step types, mapped 1:1 to the matching native
+  `<input type="...">`. Zero new dependency; "classic options" are min/max/step/
+  disablePast/defaultValue on the schema.
+- **Restaurant preset uses `date-time` directly** for its date/time step (no more
+  text-input placeholder hack), and does not use `group` (unlike odori) — no natural
+  fit was found for pairing two steps in a reservation flow, `group` stays
+  demonstrated only in odori.
+- **`CLAUDE.md`/`DECISIONS.md`/`TASKS.md` untracked from git and added to
+  `.gitignore`** at the user's explicit request. They remain on disk as local-only
+  files. Trade-off accepted: a fresh clone of this repo will no longer have them, so
+  any future agent session bootstrapping from a clean checkout needs these files
+  restored manually or from a backup — this is intentional, not an oversight.

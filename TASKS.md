@@ -176,3 +176,18 @@
 - [x] CSS keyframes `fade`/`slide`, nessun cambiamento se `animation` assente/`"none"`
 - [x] Tema "showcase" per dimostrare tutte le feature v2.14-2.22 insieme
 - [x] Test e2e (classe applicata al cambio step)
+
+## v2.23 — Confirmation result actions, notes/photo split, date-time, Leaflet map, restaurant preset, oauth extras
+- [x] Split `notes-photo` into `notes` + `photo` step types; odori preset now groups them via `group`
+- [x] `confirmation` step: `resultActions` config (pdfExport, resultLink, nativeShare, emailApi) alongside `emailShare`
+- [x] `createResultLink` on `FlowAdapter` (local + rest implementations)
+- [x] `createReceiptEmailAdapter` (packages/adapters) + `renderReceiptEmailHtml` reference template (packages/react)
+- [x] New `date-time` step (mode date/time/datetime, native inputs, disablePast)
+- [x] New `location-leaflet` step; `@flowkit/react` map renderers split into opt-in entry points (`/map-maplibre`, `/map-leaflet`), maplibre-gl/leaflet moved to optional peerDependencies
+- [x] `flowkit-init` CLI: `selectSteps()`/`--steps` to install only the map step(s) actually used
+- [x] New `restaurant` preset (table reservation)
+- [x] `oauth` step: custom provider icons, `allowAnonymous` skip
+- [x] e2e coverage for all of the above
+- [ ] Translate README.md to English (in progress)
+- [ ] Translate code comments/JSDoc + error messages to English
+- [ ] Untrack CLAUDE.md/DECISIONS.md/TASKS.md from git, add to .gitignore
