@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { getStepTypeDefinition } from "./registry"
 import type { LocationStepConfig } from "./location-step"
+import type { LocationLeafletStepConfig } from "./location-leaflet-step"
 import type { OAuthStep } from "./oauth"
 
 const baseStepFields = {
@@ -248,6 +249,8 @@ export interface StepTypeMap {
   intro: IntroStep
   /** Config estesa (mappa reale maplibre-gl, v2.8), non lo schema base sopra. */
   location: LocationStepConfig
+  /** Variante con Leaflet come motore di rendering (v2.15), stessa config di "location". */
+  "location-leaflet": LocationLeafletStepConfig
   "select-cards": SelectCardsStep
   scale: ScaleStep
   chips: ChipsStep
@@ -267,6 +270,7 @@ export interface StepTypeMap {
 export type BuiltinStepType =
   | "intro"
   | "location"
+  | "location-leaflet"
   | "select-cards"
   | "scale"
   | "chips"

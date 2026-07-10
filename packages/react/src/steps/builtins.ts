@@ -1,6 +1,5 @@
 import { registerStepComponent } from "../registry"
 import { IntroStepView } from "./intro"
-import { LocationStepView } from "./location"
 import { SelectCardsStepView } from "./select-cards"
 import { ScaleStepView } from "./scale"
 import { ChipsStepView } from "./chips"
@@ -17,7 +16,6 @@ import { OAuthStepView } from "./oauth"
 import { GroupStepView } from "./group"
 
 registerStepComponent("intro", IntroStepView)
-registerStepComponent("location", LocationStepView)
 registerStepComponent("select-cards", SelectCardsStepView)
 registerStepComponent("scale", ScaleStepView)
 registerStepComponent("chips", ChipsStepView)

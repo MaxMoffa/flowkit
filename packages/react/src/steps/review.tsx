@@ -33,6 +33,7 @@ function defaultIcon(step: Step): string {
   if (step.icon) return step.icon
   switch (step.type as string) {
     case "location":
+    case "location-leaflet":
       return "📍"
     case "select-cards":
       return "🏷️"
