@@ -15,6 +15,8 @@ export const featuresDemoFlow: Flow = parseFlow({
       title: "Accedi per continuare",
       subtitle: "Provider demo (nessuna vera app OAuth registrata).",
       required: false,
+      allowAnonymous: true,
+      anonymousLabel: "Continua senza account",
       providers: [
         {
           id: "generic",
@@ -22,6 +24,7 @@ export const featuresDemoFlow: Flow = parseFlow({
           authorizeUrl: "https://example.com/oauth/authorize",
           redirectUri: "http://localhost:5173/oauth/callback",
           scopes: ["profile"],
+          icon: "🪪",
         },
       ],
     },
@@ -77,6 +80,13 @@ export const featuresDemoFlow: Flow = parseFlow({
       required: false,
       showMap: false,
       showSearch: false,
+    },
+    {
+      id: "pick-leaflet-spot",
+      type: "location-leaflet",
+      title: "Scegli un punto sulla mappa (Leaflet)",
+      subtitle: "Stessa config di 'location', motore di rendering Leaflet.",
+      required: false,
     },
     {
       id: "quick-group",
