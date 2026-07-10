@@ -107,6 +107,17 @@ export const photoStepSchema = z.object({
   placeholder: z.string().optional(),
 })
 
+export const dateTimeStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("date-time"),
+  mode: z.enum(["date", "time", "datetime"]).default("date"),
+  min: z.string().optional(),
+  max: z.string().optional(),
+  step: z.number().optional(),
+  disablePast: z.boolean().default(false),
+  defaultValue: z.string().optional(),
+})
+
 export const npsStepSchema = z.object({
   ...baseStepFields,
   type: z.literal("nps"),
@@ -211,6 +222,7 @@ export type ChipsStep = z.infer<typeof chipsStepSchema>
 export type FacesStep = z.infer<typeof facesStepSchema>
 export type NotesStep = z.infer<typeof notesStepSchema>
 export type PhotoStep = z.infer<typeof photoStepSchema>
+export type DateTimeStep = z.infer<typeof dateTimeStepSchema>
 export type NpsStep = z.infer<typeof npsStepSchema>
 export type MultiSelectStep = z.infer<typeof multiSelectStepSchema>
 export type TextStep = z.infer<typeof textStepSchema>
@@ -242,6 +254,7 @@ export interface StepTypeMap {
   faces: FacesStep
   notes: NotesStep
   photo: PhotoStep
+  "date-time": DateTimeStep
   nps: NpsStep
   "multi-select": MultiSelectStep
   text: TextStep
@@ -260,6 +273,7 @@ export type BuiltinStepType =
   | "faces"
   | "notes"
   | "photo"
+  | "date-time"
   | "nps"
   | "multi-select"
   | "text"

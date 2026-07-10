@@ -7,6 +7,7 @@ import { ChipsStepView } from "./chips"
 import { FacesStepView } from "./faces"
 import { NotesStepView } from "./notes"
 import { PhotoStepView } from "./photo"
+import { DateTimeStepView } from "./date-time"
 import { NpsStepView } from "./nps"
 import { MultiSelectStepView } from "./multi-select"
 import { TextStepView } from "./text"
@@ -23,6 +24,7 @@ registerStepComponent("chips", ChipsStepView)
 registerStepComponent("faces", FacesStepView)
 registerStepComponent("notes", NotesStepView)
 registerStepComponent("photo", PhotoStepView)
+registerStepComponent("date-time", DateTimeStepView)
 registerStepComponent("nps", NpsStepView)
 registerStepComponent("multi-select", MultiSelectStepView)
 registerStepComponent("text", TextStepView)

@@ -8,6 +8,7 @@ import {
   facesStepSchema,
   notesStepSchema,
   photoStepSchema,
+  dateTimeStepSchema,
   npsStepSchema,
   multiSelectStepSchema,
   textStepSchema,
@@ -73,6 +74,17 @@ registerStepType({
   type: "photo",
   schema: photoStepSchema,
   validate: (_step, value) => typeof value === "string" && value.length > 0,
+})
+
+registerStepType({
+  type: "date-time",
+  schema: dateTimeStepSchema,
+  validate: (step, value) => {
+    if (typeof value !== "string" || value.trim().length === 0) return false
+    if (step.min && value < step.min) return false
+    if (step.max && value > step.max) return false
+    return true
+  },
 })
 
 registerStepType({

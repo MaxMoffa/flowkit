@@ -46,6 +46,8 @@ function defaultIcon(step: Step): string {
     case "photo":
     case "group":
       return "📝"
+    case "date-time":
+      return "🗓️"
     default:
       return "•"
   }
