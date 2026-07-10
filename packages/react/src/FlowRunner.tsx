@@ -16,6 +16,8 @@ import {
 import type { Theme, ThemeMode, ThemeTokens } from "@flowkit/themes"
 import { notionClean, partialTokensToCssVars } from "@flowkit/themes"
 import { getStepComponent } from "./registry"
+import { getProgressComponent } from "./progress-registry"
+import { BarProgress } from "./progress/BarProgress"
 import { ThemeProvider } from "./ThemeProvider"
 import type { FlowSubmitHandler } from "./types"
 
@@ -71,6 +73,9 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
 
   const headerOrder = resolvedTokens.layout?.headerPosition === "bottom" ? 2 : 0
   const footerOrder = resolvedTokens.layout?.footerPosition === "top" ? 0 : 2
+  const progressVariant = resolvedTokens.layout?.progressVariant ?? "bar"
+  const ProgressComponent =
+    progressVariant === "hidden" ? null : (getProgressComponent(progressVariant) ?? BarProgress)
 
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
     const nextAnswers = setAnswer(state, step.id, value)
@@ -114,9 +119,9 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
             >
               ←
             </button>
-            <div className="fk-progress-track" role="progressbar" aria-valuenow={pct}>
-              <div className="fk-progress-fill" style={{ width: `${pct}%` }} />
-            </div>
+            {ProgressComponent && (
+              <ProgressComponent pct={pct} currentIndex={middleIndex} total={middleSteps.length} />
+            )}
             <span className="fk-stepno">
               {middleIndex + 1}/{middleSteps.length}
             </span>
