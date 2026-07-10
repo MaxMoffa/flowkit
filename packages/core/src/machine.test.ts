@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest"
-import { parseFlow, type Flow } from "./schema"
-import { canGoNext, createFlowState, isStepValid, next, prev, setAnswer } from "./machine"
+import {
+  parseFlow,
+  type Flow,
+  canGoNext,
+  createFlowState,
+  isStepValid,
+  next,
+  prev,
+  setAnswer,
+} from "./index"
 
 const rawFlow = {
   id: "demo",

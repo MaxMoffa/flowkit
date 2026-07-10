@@ -1,4 +1,7 @@
 import { z } from "zod"
+import { getStepTypeDefinition } from "./registry"
+import type { LocationStepConfig } from "./location-step"
+import type { OAuthStep } from "./oauth"
 
 const baseStepFields = {
   id: z.string().min(1),
@@ -143,24 +146,6 @@ export const confirmationStepSchema = z.object({
     .optional(),
 })
 
-export const stepSchema = z.discriminatedUnion("type", [
-  introStepSchema,
-  locationStepSchema,
-  selectCardsStepSchema,
-  scaleStepSchema,
-  chipsStepSchema,
-  facesStepSchema,
-  notesPhotoStepSchema,
-  npsStepSchema,
-  multiSelectStepSchema,
-  textStepSchema,
-  reviewStepSchema,
-  confirmationStepSchema,
-])
-
-export type Step = z.infer<typeof stepSchema>
-export type StepType = Step["type"]
-
 export type IntroStep = z.infer<typeof introStepSchema>
 export type LocationStep = z.infer<typeof locationStepSchema>
 export type SelectCardsStep = z.infer<typeof selectCardsStepSchema>
@@ -174,15 +159,88 @@ export type TextStep = z.infer<typeof textStepSchema>
 export type ReviewStep = z.infer<typeof reviewStepSchema>
 export type ConfirmationStep = z.infer<typeof confirmationStepSchema>
 
-export const flowSchema = z.object({
+/**
+ * Mappa type -> forma dello step. I 12 tipi built-in sono definiti qui; un
+ * consumer che registra un tipo custom con registerStepType può ottenere
+ * narrowing statico completo aumentando questa interfaccia via module
+ * augmentation:
+ *
+ *   declare module "@flowkit/core" {
+ *     interface StepTypeMap {
+ *       "rating-stars": RatingStarsStep
+ *     }
+ *   }
+ *
+ * Senza augmentation, uno step custom resta comunque valido a runtime
+ * (validato dal registry), ma richiede un cast a Step lato consumer.
+ */
+export interface StepTypeMap {
+  intro: IntroStep
+  /** Config estesa (mappa reale maplibre-gl, v2.8), non lo schema base sopra. */
+  location: LocationStepConfig
+  "select-cards": SelectCardsStep
+  scale: ScaleStep
+  chips: ChipsStep
+  faces: FacesStep
+  "notes-photo": NotesPhotoStep
+  nps: NpsStep
+  "multi-select": MultiSelectStep
+  text: TextStep
+  review: ReviewStep
+  confirmation: ConfirmationStep
+  oauth: OAuthStep
+}
+
+/** Tipi di step forniti da flowkit out-of-the-box (senza contare eventuali augmentation custom). */
+export type BuiltinStepType =
+  | "intro"
+  | "location"
+  | "select-cards"
+  | "scale"
+  | "chips"
+  | "faces"
+  | "notes-photo"
+  | "nps"
+  | "multi-select"
+  | "text"
+  | "review"
+  | "confirmation"
+
+export type Step = StepTypeMap[keyof StepTypeMap]
+export type StepType = keyof StepTypeMap
+
+const baseStepShape = z.object({
+  id: z.string().min(1),
+  type: z.string().min(1),
+})
+
+/** Valida un singolo step delegando allo schema registrato per il suo `type` (vedi registry.ts). */
+export function parseStep(input: unknown): Step {
+  const base = baseStepShape.passthrough().parse(input)
+  const def = getStepTypeDefinition(base.type)
+  if (!def) {
+    throw new Error(
+      `Tipo di step sconosciuto "${base.type}". Registralo con registerStepType() prima di chiamare parseFlow().`,
+    )
+  }
+  return def.schema.parse(input) as Step
+}
+
+export interface Flow {
+  id: string
+  title: string
+  locale: string
+  steps: Step[]
+}
+
+const flowShapeSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   locale: z.string().default("it"),
-  steps: z.array(stepSchema).min(1),
+  steps: z.array(z.unknown()).min(1),
 })
 
-export type Flow = z.infer<typeof flowSchema>
-
 export function parseFlow(input: unknown): Flow {
-  return flowSchema.parse(input)
+  const shape = flowShapeSchema.parse(input)
+  return { ...shape, steps: shape.steps.map(parseStep) }
 }

@@ -21,7 +21,8 @@
   },
   "dependencies": {
     "@flowkit/core": "workspace:*",
-    "@flowkit/themes": "workspace:*"
+    "@flowkit/themes": "workspace:*",
+    "maplibre-gl": "^4.7.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.17",

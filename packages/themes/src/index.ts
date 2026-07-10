@@ -45,7 +45,7 @@ export const themes: Record<string, Theme> = {
 }
 
 function tokensToCssVars(tokens: ThemeTokens): Record<string, string> {
-  return {
+  const vars: Record<string, string> = {
     "--fk-text": tokens.text,
     "--fk-text2": tokens.text2,
     "--fk-canvas": tokens.canvas,
@@ -72,6 +72,28 @@ function tokensToCssVars(tokens: ThemeTokens): Record<string, string> {
     "--fk-space-xxl": tokens.spacing.xxl,
     "--fk-space-xxxl": tokens.spacing.xxxl,
   }
+
+  if (tokens.fonts?.heading) vars["--fk-font-heading"] = tokens.fonts.heading
+  if (tokens.fonts?.body) vars["--fk-font-body"] = tokens.fonts.body
+  if (tokens.fonts?.headingSize) vars["--fk-font-heading-size"] = tokens.fonts.headingSize
+  if (tokens.fonts?.bodySize) vars["--fk-font-body-size"] = tokens.fonts.bodySize
+  if (tokens.images?.background) vars["--fk-image-background"] = `url(${tokens.images.background})`
+  if (tokens.images?.logo) vars["--fk-image-logo"] = `url(${tokens.images.logo})`
+
+  return vars
+}
+
+/**
+ * Ritorna gli URL dei font custom da caricare per il tema (Google Fonts
+ * self-hosted, CDN, ecc.). Framework-agnostic: restituisce solo i dati,
+ * l'iniezione nel DOM (<link rel="stylesheet">) è responsabilità di ciascun
+ * renderer (react/vue/svelte/vanilla).
+ */
+export function injectThemeFontLinks(theme: Theme, mode: ThemeMode = "light"): string[] {
+  const tokens = mode === "dark" ? theme.dark : theme.light
+  return [tokens.fonts?.headingFontUrl, tokens.fonts?.bodyFontUrl].filter(
+    (url): url is string => Boolean(url),
+  )
 }
 
 export function themeToCssVars(theme: Theme, mode: ThemeMode = "light"): Record<string, string> {

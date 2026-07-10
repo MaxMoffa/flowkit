@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import type { Answers, Flow } from "@flowkit/core"
+import type { Answers, ConfirmationStep, Flow, IntroStep, Step } from "@flowkit/core"
 import {
   canGoNext,
   createFlowState,
@@ -12,9 +12,17 @@ import {
   setAnswer,
 } from "@flowkit/core"
 import type { Theme, ThemeMode } from "@flowkit/themes"
-import { stepRegistry } from "./registry"
+import { getStepComponent } from "./registry"
 import { ThemeProvider } from "./ThemeProvider"
 import type { FlowSubmitHandler } from "./types"
+
+function isIntroStep(step: Step): step is IntroStep {
+  return step.type === "intro"
+}
+
+function isConfirmationStep(step: Step): step is ConfirmationStep {
+  return step.type === "confirmation"
+}
 
 export interface FlowRunnerProps {
   flow: Flow
@@ -27,7 +35,12 @@ export interface FlowRunnerProps {
 export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunnerProps) {
   const [state, setState] = useState(createFlowState)
   const step = getCurrentStep(flow, state)
-  const StepView = stepRegistry[step.type]
+  const StepView = getStepComponent(step.type)
+  if (!StepView) {
+    throw new Error(
+      `Nessun componente registrato per lo step di tipo "${step.type}". Usa registerStepComponent() prima di montare FlowRunner.`,
+    )
+  }
   const valid = canGoNext(flow, state)
   const first = isFirstStep(state)
   const last = isLastStep(flow, state)
@@ -62,7 +75,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   }
 
   const primaryLabel =
-    step.type === "review" ? "Invia segnalazione ✓" : step.type === "intro" ? step.cta : "Continua"
+    step.type === "review" ? "Invia segnalazione ✓" : isIntroStep(step) ? step.cta : "Continua"
 
   return (
     <ThemeProvider theme={theme} mode={mode}>
@@ -89,6 +102,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
         <div className="fk-body">
           <div className={showHeader ? "fk-scroll" : undefined}>
             <StepView
+              key={step.id}
               step={step}
               value={state.answers[step.id] ?? null}
               onChange={handleChange}
@@ -111,7 +125,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
             </div>
           </div>
         )}
-        {last && step.type === "confirmation" && (
+        {last && isConfirmationStep(step) && (
           <div className="fk-footer">
             <button type="button" className="fk-btn-secondary" onClick={handleRestart}>
               {step.secondaryCta ?? "Nuova segnalazione"}

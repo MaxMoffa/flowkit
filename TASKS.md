@@ -32,3 +32,93 @@
 - [x] Migliora playground/pagina GitHub Pages (showcase temi + preset)
 - [x] Test Playwright: naviga il flow renderizzato e verifica somiglianza visiva/funzionale col mock
 - [x] `pnpm verify` verde
+
+## v2.0 — Core: registry dei tipi di step
+- [x] `core/registry.ts`: `StepTypeDefinition`, `registerStepType`, `getStepTypeDefinition`, `listRegisteredStepTypes`
+- [x] `core/schema.ts`: schema aperto + validazione dinamica di `config` via registry
+- [x] `core/machine.ts`: `isStepValid` via registry lookup
+- [x] `core/builtins.ts`: registrazione dei 12 step con validazione portata dal vecchio switch
+- [x] `core/index.ts`: import side-effect di `builtins.ts` + export API registry
+- [x] Aggiornare test `packages/core` (stesse asserzioni pubbliche, nuovo meccanismo sotto)
+- [x] `scripts/spec-check.mjs`: da lista hardcoded 12 nomi a lettura di `listRegisteredStepTypes()`
+
+## v2.1 — React: registry dei componenti di step
+- [x] `react/registry.tsx`: `Map` + `registerStepComponent`/`getStepComponent`
+- [x] `react/steps/builtins.ts`: registrazione dei 12 componenti
+- [x] `react/index.ts`: import side-effect + export pubblico
+- [x] `FlowRunner.tsx`: uso di `getStepComponent`, verifica special-case intro/confirmation/review via test esistenti
+- [x] Test con un tipo di step custom registrato a runtime
+
+## v2.2 — API pubblica per step custom + doc
+- [x] Export registry API da `core/index.ts` e `react/index.ts`
+- [x] Esempio funzionante in `apps/playground` (preset di test con step custom, verificato con Playwright)
+- [x] Bozza README "Step personalizzati" (contenuto pieno in v2.12)
+
+## v2.3 — Temi: token font e immagine
+- [x] Estendere `ThemeTokens` con `fonts?`/`images?`
+- [x] Estendere `themeToCssVars`/`themeToCssString`
+- [x] Helper `injectThemeFontLinks`
+- [x] Test `packages/themes` per il nuovo mapping
+
+## v2.4/v2.5/v2.6 — `packages/vue`/`packages/svelte`/`packages/vanilla`
+- [ ] **Rimandato**: l'utente ha chiesto di implementare oauth/mappa/CLI/e2e solo per React in
+      questo giro; Vue/Svelte/vanilla restano pianificati (vedi piano `/home/maxmoffa/.claude/plans/prepara-un-piano-per-majestic-kite.md`) per un giro successivo.
+
+## v2.7 — Step OAuth (solo React in questo giro)
+- [x] `core/oauth-providers.ts` (preset google/github/facebook + generic)
+- [x] `core/pkce.ts` (`generatePkcePair`, `buildAuthorizeUrl`)
+- [x] Registrazione step type `oauth` con `validate`
+- [x] `core/oauth.ts`: `completeOAuthCallback`
+- [x] Step "oauth" in react
+- [ ] Step "oauth" in vue/svelte/vanilla — rimandato (vedi v2.4/v2.5/v2.6)
+- [x] Esempio in `apps/playground` con provider `generic` demo
+- [ ] README "Step OAuth" (in v2.12)
+
+## v2.8 — Step Mappa reale con maplibre-gl (solo React in questo giro)
+- [x] `core/geocoding.ts`: `geocode(query, config)`
+- [x] `LocationStepConfig`/`SelectionMode` + validazione
+- [x] Aggiornamento registrazione step type `location` nel registry
+- [x] Riscrittura reale in `packages/react/src/steps/location.tsx` (maplibre-gl + search)
+- [ ] Stessa riscrittura in vue/svelte/vanilla — rimandato (vedi v2.4/v2.5/v2.6)
+- [x] CSS wrapper mappa coerente coi token tema
+- [x] Aggiornare `odori.ts` se necessario (retro-compatibile)
+- [ ] README "Step mappa" (in v2.12)
+
+## v2.9 — CLI: installer in progetto esistente (`flowkit-init`, solo target React per ora)
+- [x] Scaffolding pacchetto `packages/create-flowkit`
+- [x] `src/detect-package-manager.ts`
+- [x] `src/prompts.ts` (framework: solo "react" selezionabile per ora, flag `--framework`/`--yes`/`--no-install` per uso non interattivo)
+- [x] `src/bin/flowkit-init.ts`
+- [x] Template wiring `templates/init/react/`
+- [x] Test: lancio bin in tmp dir (`--framework react --no-install`), ispezione file risultanti
+
+## v2.10 — CLI: scaffold da preset "feedback" (`create-flowkit`, solo React per ora)
+- [x] Esclusione template da `pnpm-workspace.yaml`
+- [x] Template `templates/feedback/react/*`
+- [x] `src/bin/create-flowkit.ts`: prompt + copy + placeholder + install
+- [x] `src/copy-template.ts`
+- [x] Verifica manuale: scaffold + `file:` link ai pacchetti locali + `npm install && npm run build` verde
+
+## v2.11 — Test Playwright (solo React per ora)
+- [x] `playwright.config.ts` root + webServer su build/preview del playground
+- [x] `e2e/flow-parity.spec.ts` (odori + feedback, flow completo end-to-end)
+- [x] `e2e/theme-visual.spec.ts` (screenshot baseline per i 3 temi)
+- [x] `e2e/oauth-step.spec.ts` (intercetta redirect, verifica query param/PKCE)
+- [x] `e2e/map-step.spec.ts` (point/preset-points/geocoding reale)
+- [x] `e2e/cli-scaffold.spec.ts` (flowkit-init + create-flowkit non interattivi)
+- [x] `test:e2e` in root `package.json`, non incluso nel gate `pnpm verify` (separato, come da piano)
+- [x] Workflow CI `.github/workflows/e2e.yml` + `ci.yml` (gate verify, mancante finora)
+- [ ] Mock dedicati per oauth/nominatim (`e2e/fixtures/*`) — non necessari nella pratica: intercettazione route inline nei test è bastata; nominatim usato realmente (endpoint pubblico, stabile per demo). Rivalutare se servono in CI meno affidabile in rete.
+
+## v2.13 — Adapter Notion
+- [x] `adapters/src/notion.ts`: `createNotionAdapter`, mapping default risposte→property
+- [x] Test `packages/adapters` per `notion.ts` (mock `fetch`)
+- [x] README: sezione adapter con riga Notion
+- [x] DECISIONS.md: nota REST diretto vs SDK, gestione draft
+
+## v2.12 — Documentazione finale, README, TASKS/DECISIONS, spec-check
+- [x] Banner ASCII art in README
+- [x] Ristrutturazione README (indice esteso: CLI, step personalizzati, oauth, mappa, e2e; nota multi-framework "solo React per ora")
+- [x] `DECISIONS.md`: log decisioni pendenti (registry/StepTypeMap, ordine side-effect import, key={step.id}, CLI, Notion, e2e)
+- [x] `scripts/spec-check.mjs`: generalizzazione (già in v2.0, verificata coerente coi nuovi tipi oauth/location estesa)
+- [x] `pnpm verify` verde su tutto il monorepo esteso

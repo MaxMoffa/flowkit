@@ -1,9 +1,16 @@
 import type { NotesPhotoStep } from "@flowkit/core"
 import type { StepComponentProps } from "../types"
 
+interface NotesPhotoValue {
+  text?: string
+  photo?: string
+}
+
 export function NotesPhotoStepView({ step, value, onChange }: StepComponentProps<NotesPhotoStep>) {
-  const current =
-    typeof value === "object" && value !== null && !Array.isArray(value) ? value : {}
+  const current: NotesPhotoValue =
+    typeof value === "object" && value !== null && !Array.isArray(value)
+      ? (value as NotesPhotoValue)
+      : {}
 
   function setText(text: string) {
     onChange({ ...current, text })

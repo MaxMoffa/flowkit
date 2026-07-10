@@ -1,3 +1,21 @@
+export interface ThemeFontTokens {
+  heading?: string
+  body?: string
+  headingSize?: string
+  bodySize?: string
+  /** URL di un font-face/stylesheet da iniettare (es. Google Fonts self-hosted o CDN). */
+  headingFontUrl?: string
+  bodyFontUrl?: string
+}
+
+export interface ThemeImageTokens {
+  /** Immagine di sfondo globale del flow. */
+  background?: string
+  /** Immagine di sfondo per id o type di step specifico. */
+  stepBackground?: Record<string, string>
+  logo?: string
+}
+
 export interface ThemeTokens {
   text: string
   text2: string
@@ -18,6 +36,10 @@ export interface ThemeTokens {
   radiusLg: string
   radiusXl: string
   spacing: Record<"xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "xxxl", string>
+  /** Personalizzazione font (v2.3), opzionale: nessun default = comportamento CSS invariato. */
+  fonts?: ThemeFontTokens
+  /** Personalizzazione immagini (v2.3), opzionale: nessun default = comportamento CSS invariato. */
+  images?: ThemeImageTokens
 }
 
 export const notionCleanLight: ThemeTokens = {

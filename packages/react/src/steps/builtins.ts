@@ -1,0 +1,28 @@
+import { registerStepComponent } from "../registry"
+import { IntroStepView } from "./intro"
+import { LocationStepView } from "./location"
+import { SelectCardsStepView } from "./select-cards"
+import { ScaleStepView } from "./scale"
+import { ChipsStepView } from "./chips"
+import { FacesStepView } from "./faces"
+import { NotesPhotoStepView } from "./notes-photo"
+import { NpsStepView } from "./nps"
+import { MultiSelectStepView } from "./multi-select"
+import { TextStepView } from "./text"
+import { ReviewStepView } from "./review"
+import { ConfirmationStepView } from "./confirmation"
+import { OAuthStepView } from "./oauth"
+
+registerStepComponent("intro", IntroStepView)
+registerStepComponent("location", LocationStepView)
+registerStepComponent("select-cards", SelectCardsStepView)
+registerStepComponent("scale", ScaleStepView)
+registerStepComponent("chips", ChipsStepView)
+registerStepComponent("faces", FacesStepView)
+registerStepComponent("notes-photo", NotesPhotoStepView)
+registerStepComponent("nps", NpsStepView)
+registerStepComponent("multi-select", MultiSelectStepView)
+registerStepComponent("text", TextStepView)
+registerStepComponent("review", ReviewStepView)
+registerStepComponent("confirmation", ConfirmationStepView)
+registerStepComponent("oauth", OAuthStepView)

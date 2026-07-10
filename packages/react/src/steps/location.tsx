@@ -1,60 +1,219 @@
-import { useEffect, useState } from "react"
-import type { LocationStep } from "@flowkit/core"
+import { useEffect, useRef, useState } from "react"
+import type maplibregl from "maplibre-gl"
+import { geocode, type GeocodingResult, type LocationStepConfig } from "@flowkit/core"
 import type { StepComponentProps } from "../types"
 
-export function LocationStepView({ step, value, onChange }: StepComponentProps<LocationStep>) {
-  const [manual, setManual] = useState(false)
-  const detected = step.detectedLabel ?? "Posizione rilevata"
+const DEFAULT_STYLE_URL = "https://demotiles.maplibre.org/style.json"
+
+interface LocationValue {
+  lat?: number
+  lng?: number
+  address?: string
+  regionId?: string
+  pointId?: string
+}
+
+/** Point-in-polygon minimale (ray casting) per selectionMode "region", niente dipendenza da turf. */
+function isPointInPolygon(point: [number, number], ring: [number, number][]): boolean {
+  let inside = false
+  const [x, y] = point
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i]!
+    const [xj, yj] = ring[j]!
+    const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
+    if (intersect) inside = !inside
+  }
+  return inside
+}
+
+export function LocationStepView({ step, value, onChange }: StepComponentProps<LocationStepConfig>) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<maplibregl.Map | null>(null)
+  const markerRef = useRef<maplibregl.Marker | null>(null)
+  const [query, setQuery] = useState("")
+  const [results, setResults] = useState<GeocodingResult[]>([])
+  const [searching, setSearching] = useState(false)
+
+  const current: LocationValue =
+    typeof value === "object" && value !== null && !Array.isArray(value)
+      ? (value as LocationValue)
+      : typeof value === "string"
+        ? { address: value }
+        : {}
+
+  const selectionMode = step.selectionMode ?? { kind: "point" as const }
 
   useEffect(() => {
-    if (step.showMap && !manual && (value === null || value === undefined || value === "")) {
-      onChange(detected)
+    if (!containerRef.current) return
+    let cancelled = false
+
+    // Import dinamico: maplibre-gl esegue side-effect legati al DOM (Blob/URL) al
+    // caricamento del modulo, incompatibili con ambienti non-browser (SSR, jsdom nei test).
+    import("maplibre-gl").then(({ default: maplibregl }) => {
+      if (cancelled || !containerRef.current) return
+
+      const initialCenter = step.initialCenter ?? { lat: 41.9, lng: 12.5, zoom: 11 }
+      const map = new maplibregl.Map({
+        container: containerRef.current,
+        style: step.styleUrl ?? DEFAULT_STYLE_URL,
+        center: [current.lng ?? initialCenter.lng, current.lat ?? initialCenter.lat],
+        zoom: initialCenter.zoom ?? 11,
+      })
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
+      mapRef.current = map
+
+      function placeDraggableMarker(lng: number, lat: number) {
+        if (!markerRef.current) {
+          markerRef.current = new maplibregl.Marker({ draggable: true, color: "#2783DE" })
+            .setLngLat([lng, lat])
+            .addTo(map)
+          markerRef.current.on("dragend", () => {
+            const pos = markerRef.current!.getLngLat()
+            onChange({ lat: pos.lat, lng: pos.lng })
+          })
+        } else {
+          markerRef.current.setLngLat([lng, lat])
+        }
+      }
+
+      if (selectionMode.kind === "point") {
+        if (typeof current.lat === "number" && typeof current.lng === "number") {
+          placeDraggableMarker(current.lng, current.lat)
+        }
+        map.on("click", (e) => {
+          placeDraggableMarker(e.lngLat.lng, e.lngLat.lat)
+          onChange({ lat: e.lngLat.lat, lng: e.lngLat.lng })
+        })
+      }
+
+      if (selectionMode.kind === "preset-points") {
+        for (const point of selectionMode.points) {
+          const el = document.createElement("button")
+          el.type = "button"
+          el.className = "fk-map-preset-pin"
+          el.textContent = "📍"
+          el.setAttribute("aria-label", point.label)
+          el.onclick = () => onChange({ lat: point.lat, lng: point.lng, pointId: point.id })
+          new maplibregl.Marker({ element: el }).setLngLat([point.lng, point.lat]).addTo(map)
+        }
+      }
+
+      if (selectionMode.kind === "region") {
+        map.on("click", (e) => {
+          const clicked: [number, number] = [e.lngLat.lng, e.lngLat.lat]
+          for (const region of selectionMode.regions) {
+            const geometry = (region as { geometry?: { type?: string; coordinates?: unknown } })
+              .geometry
+            if (geometry?.type !== "Polygon") continue
+            const ring = (geometry.coordinates as [number, number][][])[0]
+            if (ring && isPointInPolygon(clicked, ring)) {
+              const regionId = (region as { properties?: { id?: string } }).properties?.id
+              if (regionId) onChange({ regionId })
+              return
+            }
+          }
+        })
+      }
+
+      for (const extra of step.extraMarkers ?? []) {
+        const el = document.createElement("div")
+        el.className = "fk-map-extra-marker"
+        el.textContent = "📌"
+        if (extra.label) el.title = extra.label
+        new maplibregl.Marker({ element: el }).setLngLat([extra.lng, extra.lat]).addTo(map)
+      }
+    })
+
+    return () => {
+      cancelled = true
+      mapRef.current?.remove()
+      mapRef.current = null
+      markerRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  async function runSearch(q: string) {
+    setQuery(q)
+    if (q.trim().length < 3) {
+      setResults([])
+      return
+    }
+    setSearching(true)
+    try {
+      const found = await geocode(q, {
+        endpoint: step.geocodingEndpoint,
+        provider: step.geocodingProvider,
+      })
+      setResults(found)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  function selectResult(result: GeocodingResult) {
+    onChange({ lat: result.lat, lng: result.lng, address: result.label })
+    setResults([])
+    setQuery(result.label)
+    const map = mapRef.current
+    if (map) {
+      map.flyTo({ center: [result.lng, result.lat], zoom: 14 })
+      if (markerRef.current) {
+        markerRef.current.setLngLat([result.lng, result.lat])
+      } else {
+        import("maplibre-gl").then(({ default: maplibregl }) => {
+          if (!mapRef.current) return
+          markerRef.current = new maplibregl.Marker({ draggable: true, color: "#2783DE" })
+            .setLngLat([result.lng, result.lat])
+            .addTo(mapRef.current)
+          markerRef.current.on("dragend", () => {
+            const pos = markerRef.current!.getLngLat()
+            onChange({ lat: pos.lat, lng: pos.lng })
+          })
+        })
+      }
+    }
+  }
 
   return (
     <div className="fk-step fk-step-location">
       {step.title && <h2 className="fk-title">{step.title}</h2>}
       {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
 
-      {step.showMap && !manual && (
-        <>
-          <div className="fk-map">
-            <div className="fk-map-road r1" />
-            <div className="fk-map-road r2" />
-            <div className="fk-map-road r3" />
-            <div className="fk-map-accuracy" />
-            <svg className="fk-map-pin" width="34" height="44" viewBox="0 0 34 44">
-              <path
-                d="M17 0C7.6 0 0 7.6 0 17c0 12 17 27 17 27s17-15 17-27C34 7.6 26.4 0 17 0z"
-                fill="var(--fk-accent)"
-              />
-              <circle cx="17" cy="17" r="6" fill="#fff" />
-            </svg>
-          </div>
-          <div className="fk-loc-row">
-            <div className="fk-loc-ic">📍</div>
-            <div>
-              <div className="fk-loc-title">{typeof value === "string" && value ? value : detected}</div>
-              {step.detectedSubLabel && <div className="fk-loc-detail">{step.detectedSubLabel}</div>}
-            </div>
-          </div>
-          <button type="button" className="fk-link" onClick={() => setManual(true)}>
-            {step.manualEntryLabel ?? "Inserisci un indirizzo manualmente"}
-          </button>
-        </>
-      )}
-
-      {(!step.showMap || manual) && (
+      <div className="fk-map-search">
         <input
           className="fk-input"
           type="text"
           placeholder={step.placeholder ?? "Cerca un indirizzo"}
-          value={typeof value === "string" ? value : ""}
-          onChange={(e) => onChange(e.target.value)}
-          autoFocus={manual}
+          value={query}
+          onChange={(e) => void runSearch(e.target.value)}
         />
+        {searching && <span className="fk-map-search-loading">Cerco…</span>}
+        {results.length > 0 && (
+          <ul className="fk-map-search-results">
+            {results.map((r, i) => (
+              <li key={i}>
+                <button type="button" onClick={() => selectResult(r)}>
+                  {r.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div ref={containerRef} className="fk-map-canvas" />
+
+      {(current.address || (current.lat !== undefined && current.lng !== undefined)) && (
+        <div className="fk-loc-row">
+          <div className="fk-loc-ic">📍</div>
+          <div>
+            <div className="fk-loc-title">
+              {current.address ?? `${current.lat?.toFixed(5)}, ${current.lng?.toFixed(5)}`}
+            </div>
+            {step.detectedSubLabel && <div className="fk-loc-detail">{step.detectedSubLabel}</div>}
+          </div>
+        </div>
       )}
     </div>
   )

@@ -4,15 +4,21 @@ import { themes, type ThemeMode } from "@flowkit/themes"
 import { createLocalAdapter } from "@flowkit/adapters"
 import { odoriFlow, feedbackFlow } from "@flowkit/presets"
 import type { Answers, Flow } from "@flowkit/core"
+import { customStepDemoFlow } from "./custom-step-demo"
+import { featuresDemoFlow } from "./features-demo"
 
 const presets: Record<string, Flow> = {
   odori: odoriFlow,
   feedback: feedbackFlow,
+  "custom-step": customStepDemoFlow,
+  "features-demo": featuresDemoFlow,
 }
 
 const presetLabels: Record<string, string> = {
   odori: "Segnala odore",
   feedback: "Feedback",
+  "custom-step": "Step custom (demo)",
+  "features-demo": "OAuth + Mappa (demo)",
 }
 
 const adapter = createLocalAdapter({ namespace: "flowkit-playground" })
@@ -49,6 +55,7 @@ export function App() {
         <label>
           Preset
           <select
+            aria-label="Preset"
             value={presetKey}
             onChange={(e) => {
               setPresetKey(e.target.value as keyof typeof presets)
@@ -64,7 +71,11 @@ export function App() {
         </label>
         <label>
           Tema
-          <select value={themeKey} onChange={(e) => setThemeKey(e.target.value as keyof typeof themes)}>
+          <select
+            aria-label="Tema"
+            value={themeKey}
+            onChange={(e) => setThemeKey(e.target.value as keyof typeof themes)}
+          >
             {themeOptions.map(([k, t]) => (
               <option key={k} value={k}>
                 {t.label}
