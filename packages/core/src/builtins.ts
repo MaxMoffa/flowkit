@@ -6,7 +6,8 @@ import {
   scaleStepSchema,
   chipsStepSchema,
   facesStepSchema,
-  notesPhotoStepSchema,
+  notesStepSchema,
+  photoStepSchema,
   npsStepSchema,
   multiSelectStepSchema,
   textStepSchema,
@@ -63,14 +64,15 @@ registerStepType({
 })
 
 registerStepType({
-  type: "notes-photo",
-  schema: notesPhotoStepSchema,
-  validate: (_step, value) =>
-    typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value) &&
-    (Boolean((value as { text?: string }).text?.trim()) ||
-      Boolean((value as { photo?: string }).photo)),
+  type: "notes",
+  schema: notesStepSchema,
+  validate: (_step, value) => typeof value === "string" && value.trim().length > 0,
+})
+
+registerStepType({
+  type: "photo",
+  schema: photoStepSchema,
+  validate: (_step, value) => typeof value === "string" && value.length > 0,
 })
 
 registerStepType({

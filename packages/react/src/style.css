@@ -920,6 +920,40 @@
   margin: 0;
 }
 
+.fk-pdf-export-btn,
+.fk-native-share-btn,
+.fk-result-link-btn,
+.fk-email-api-btn {
+  margin-top: var(--fk-space-sm);
+  width: 100%;
+}
+
+.fk-print-recap {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .fk-print-recap,
+  .fk-print-recap * {
+    visibility: visible;
+  }
+  .fk-print-recap {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: var(--fk-space-lg);
+  }
+  .fk-print-recap pre {
+    white-space: pre-wrap;
+    font-family: inherit;
+  }
+}
+
 .fk-rating-stars {
   display: flex;
   gap: 8px;

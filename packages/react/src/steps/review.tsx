@@ -14,16 +14,24 @@ function optionLabel(step: Step, rawValue: string): string {
 function formatAnswer(step: Step, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—"
   if (Array.isArray(value)) return value.map((v) => optionLabel(step, String(v))).join(", ")
-  if (typeof value === "object") {
-    const obj = value as { text?: string; photo?: string }
-    return [obj.text, obj.photo ? "📷" : undefined].filter(Boolean).join(" ") || "—"
+  if ((step.type as string) === "group") {
+    const children = (step as unknown as { steps: Step[] }).steps
+    const answers = value as Record<string, unknown>
+    return (
+      children
+        .map((child) => formatAnswer(child, answers[child.id]))
+        .filter((v) => v && v !== "—")
+        .join(", ") || "—"
+    )
   }
+  if (step.type === "photo") return value ? "📷" : "—"
+  if (typeof value === "object") return "—"
   return optionLabel(step, String(value))
 }
 
 function defaultIcon(step: Step): string {
   if (step.icon) return step.icon
-  switch (step.type) {
+  switch (step.type as string) {
     case "location":
       return "📍"
     case "select-cards":
@@ -34,7 +42,9 @@ function defaultIcon(step: Step): string {
       return "⏱️"
     case "faces":
       return "🙂"
-    case "notes-photo":
+    case "notes":
+    case "photo":
+    case "group":
       return "📝"
     default:
       return "•"

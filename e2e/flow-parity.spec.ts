@@ -24,7 +24,7 @@ test.describe("odori preset", () => {
     // faces (optional, auto-selected) -> skip
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
-    // notes-photo (optional) -> skip
+    // notes+photo group (both optional) -> skip
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
     // review -> submit

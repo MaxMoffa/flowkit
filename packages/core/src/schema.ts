@@ -95,10 +95,15 @@ export const facesStepSchema = z.object({
     ]),
 })
 
-export const notesPhotoStepSchema = z.object({
+export const notesStepSchema = z.object({
   ...baseStepFields,
-  type: z.literal("notes-photo"),
-  allowPhoto: z.boolean().default(true),
+  type: z.literal("notes"),
+  placeholder: z.string().optional(),
+})
+
+export const photoStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("photo"),
   placeholder: z.string().optional(),
 })
 
@@ -151,6 +156,51 @@ export const confirmationStepSchema = z.object({
       helpText: z.string().optional(),
     })
     .optional(),
+  /**
+   * Azioni opzionali sul risultato, in coesistenza con emailShare (mailto).
+   * `resultLink.createLink`/`emailApi.sendEmail` sono funzioni iniettate dal
+   * consumer (pattern già usato da mapAnswersToProperties in notion.ts): non
+   * sono JSON-serializzabili, quindi un flow che le usa va costruito come
+   * oggetto TS/JS, non caricato da JSON puro.
+   */
+  resultActions: z
+    .object({
+      pdfExport: z
+        .object({
+          enabled: z.boolean().default(false),
+          buttonLabel: z.string().default("Scarica PDF"),
+          documentTitle: z.string().optional(),
+        })
+        .optional(),
+      resultLink: z
+        .object({
+          enabled: z.boolean().default(false),
+          buttonLabel: z.string().default("Copia link"),
+          helpText: z.string().optional(),
+          createLink: z.custom<(answers: Record<string, unknown>) => Promise<{ url: string }>>(
+            (v) => typeof v === "function",
+          ),
+        })
+        .optional(),
+      nativeShare: z
+        .object({
+          enabled: z.boolean().default(false),
+          buttonLabel: z.string().default("Condividi"),
+          shareTitle: z.string().optional(),
+        })
+        .optional(),
+      emailApi: z
+        .object({
+          enabled: z.boolean().default(false),
+          buttonLabel: z.string().default("Invia via email (server)"),
+          helpText: z.string().optional(),
+          sendEmail: z.custom<(email: string, answers: Record<string, unknown>) => Promise<void>>(
+            (v) => typeof v === "function",
+          ),
+        })
+        .optional(),
+    })
+    .optional(),
 })
 
 export type IntroStep = z.infer<typeof introStepSchema>
@@ -159,7 +209,8 @@ export type SelectCardsStep = z.infer<typeof selectCardsStepSchema>
 export type ScaleStep = z.infer<typeof scaleStepSchema>
 export type ChipsStep = z.infer<typeof chipsStepSchema>
 export type FacesStep = z.infer<typeof facesStepSchema>
-export type NotesPhotoStep = z.infer<typeof notesPhotoStepSchema>
+export type NotesStep = z.infer<typeof notesStepSchema>
+export type PhotoStep = z.infer<typeof photoStepSchema>
 export type NpsStep = z.infer<typeof npsStepSchema>
 export type MultiSelectStep = z.infer<typeof multiSelectStepSchema>
 export type TextStep = z.infer<typeof textStepSchema>
@@ -189,7 +240,8 @@ export interface StepTypeMap {
   scale: ScaleStep
   chips: ChipsStep
   faces: FacesStep
-  "notes-photo": NotesPhotoStep
+  notes: NotesStep
+  photo: PhotoStep
   nps: NpsStep
   "multi-select": MultiSelectStep
   text: TextStep
@@ -206,7 +258,8 @@ export type BuiltinStepType =
   | "scale"
   | "chips"
   | "faces"
-  | "notes-photo"
+  | "notes"
+  | "photo"
   | "nps"
   | "multi-select"
   | "text"

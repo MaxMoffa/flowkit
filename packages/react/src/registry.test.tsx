@@ -3,7 +3,7 @@ import { registerStepComponent, getStepComponent } from "./index"
 import type { StepComponentProps } from "./types"
 
 describe("react step component registry", () => {
-  it("resolves the 12 built-in step components", () => {
+  it("resolves the built-in step components", () => {
     for (const type of [
       "intro",
       "location",
@@ -11,7 +11,8 @@ describe("react step component registry", () => {
       "scale",
       "chips",
       "faces",
-      "notes-photo",
+      "notes",
+      "photo",
       "nps",
       "multi-select",
       "text",

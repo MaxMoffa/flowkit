@@ -92,14 +92,27 @@ export const odoriFlow: Flow = parseFlow({
       ],
     },
     {
-      id: "notes",
-      type: "notes-photo",
+      id: "notes-photo-group",
+      type: "group",
       title: "Vuoi aggiungere altro?",
       subtitle: "Facoltativo. Ogni dettaglio aiuta l'analisi.",
       icon: "📝",
       required: false,
-      allowPhoto: true,
-      placeholder: "Es. l'odore aumenta quando tira vento da nord…",
+      layout: "stack",
+      steps: [
+        {
+          id: "notes",
+          type: "notes",
+          required: false,
+          placeholder: "Es. l'odore aumenta quando tira vento da nord…",
+        },
+        {
+          id: "photo",
+          type: "photo",
+          required: false,
+          placeholder: "Aggiungi una foto",
+        },
+      ],
     },
     {
       id: "review",
