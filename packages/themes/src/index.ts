@@ -4,6 +4,7 @@ import { mintFreshDark, mintFreshLight } from "./mint-fresh"
 import { midnightInkDark, midnightInkLight } from "./midnight-ink"
 import { sunsetClayDark, sunsetClayLight } from "./sunset-clay"
 import { roseQuartzDark, roseQuartzLight } from "./rose-quartz"
+import { showcaseDark, showcaseLight } from "./showcase"
 
 export type { ThemeTokens }
 export { notionCleanLight, notionCleanDark }
@@ -11,6 +12,7 @@ export { mintFreshLight, mintFreshDark }
 export { midnightInkLight, midnightInkDark }
 export { sunsetClayLight, sunsetClayDark }
 export { roseQuartzLight, roseQuartzDark }
+export { showcaseLight, showcaseDark }
 
 export type ThemeMode = "light" | "dark"
 
@@ -56,12 +58,20 @@ export const roseQuartz: Theme = {
   dark: roseQuartzDark,
 }
 
+export const showcase: Theme = {
+  name: "showcase",
+  label: "Showcase (demo feature)",
+  light: showcaseLight,
+  dark: showcaseDark,
+}
+
 export const themes: Record<string, Theme> = {
   "notion-clean": notionClean,
   "mint-fresh": mintFresh,
   "midnight-ink": midnightInk,
   "sunset-clay": sunsetClay,
   "rose-quartz": roseQuartz,
+  showcase: showcase,
 }
 
 const COLOR_RADIUS_VAR_MAP: Record<string, keyof ThemeTokens> = {

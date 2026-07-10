@@ -10,6 +10,7 @@ describe("themes registry", () => {
       "midnight-ink",
       "sunset-clay",
       "rose-quartz",
+      "showcase",
     ])
     const accents = new Set(Object.values(themes).map((t) => t.light.accent))
     expect(accents.size).toBe(Object.keys(themes).length)

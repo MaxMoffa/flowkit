@@ -81,6 +81,7 @@ export const featuresDemoFlow: Flow = parseFlow({
     {
       id: "quick-group",
       type: "group",
+      themeOverride: { accent: "#E56458" },
       title: "Un paio di domande veloci",
       layout: "stack",
       required: true,
