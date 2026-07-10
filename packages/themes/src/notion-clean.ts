@@ -16,6 +16,20 @@ export interface ThemeImageTokens {
   logo?: string
 }
 
+export interface ThemeLayoutTokens {
+  /** Posizione di header (back button + progress) e footer (CTA). Default: "top"/"bottom" (comportamento attuale). */
+  headerPosition?: "top" | "bottom"
+  footerPosition?: "top" | "bottom"
+  /** Variante della barra di progresso: barra piena, pallini, nascosta, o chiave di un componente custom registrato. Default: "bar". */
+  progressVariant?: "bar" | "dots" | "hidden" | string
+}
+
+export interface ThemeAnimationTokens {
+  /** Preset built-in "fade"/"slide", "none" (default, nessuna animazione), o nome di classi custom fornite dal consumer. */
+  name?: "fade" | "slide" | "none" | string
+  duration?: number
+}
+
 export interface ThemeTokens {
   text: string
   text2: string
@@ -40,6 +54,10 @@ export interface ThemeTokens {
   fonts?: ThemeFontTokens
   /** Personalizzazione immagini (v2.3), opzionale: nessun default = comportamento CSS invariato. */
   images?: ThemeImageTokens
+  /** Layout: posizione header/footer, variante barra di progresso. Opzionale, default = comportamento attuale. */
+  layout?: ThemeLayoutTokens
+  /** Animazione di transizione tra step. Opzionale, default "none" = nessun cambiamento visivo. */
+  animation?: ThemeAnimationTokens
 }
 
 export const notionCleanLight: ThemeTokens = {

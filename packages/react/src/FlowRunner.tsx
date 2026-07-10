@@ -69,6 +69,9 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     ? (partialTokensToCssVars(themeOverride) as CSSProperties)
     : undefined
 
+  const headerOrder = resolvedTokens.layout?.headerPosition === "bottom" ? 2 : 0
+  const footerOrder = resolvedTokens.layout?.footerPosition === "top" ? 0 : 2
+
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
     const nextAnswers = setAnswer(state, step.id, value)
     setState(nextAnswers)
@@ -101,7 +104,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     <ThemeProvider theme={theme} mode={mode}>
       <div className="fk-root" style={rootStyle}>
         {showHeader && (
-          <div className="fk-header">
+          <div className="fk-header" style={{ order: headerOrder }}>
             <button
               type="button"
               className="fk-back"
@@ -119,7 +122,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
             </span>
           </div>
         )}
-        <div className="fk-body">
+        <div className="fk-body" style={{ order: 1 }}>
           <div className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}`}>
             <div className="fk-step-theme-scope" style={stepThemeVars}>
               <StepView
@@ -134,7 +137,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
           </div>
         </div>
         {!last && (
-          <div className="fk-footer">
+          <div className="fk-footer" style={{ order: footerOrder }}>
             <div className="fk-footer-row">
               <button
                 type="button"
@@ -148,7 +151,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
           </div>
         )}
         {last && isConfirmation && (
-          <div className="fk-footer">
+          <div className="fk-footer" style={{ order: footerOrder }}>
             <button type="button" className="fk-btn-secondary" onClick={handleRestart}>
               {(step as StepWithConfirmationFields).secondaryCta ?? "Nuova segnalazione"}
             </button>
