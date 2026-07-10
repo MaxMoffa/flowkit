@@ -31,6 +31,14 @@ test.describe("odori preset", () => {
     await page.getByRole("button", { name: "Invia segnalazione ✓" }).click()
 
     await expect(page.locator(".fk-step-confirmation")).toBeVisible()
+    await expect(page.locator(".fk-stat-row")).toBeInViewport()
+
+    const scrollWrapper = page.locator(".fk-scroll-noheader")
+    const paddingLeft = await scrollWrapper.evaluate((el) => getComputedStyle(el).paddingLeft)
+    expect(parseFloat(paddingLeft)).toBeGreaterThan(0)
+
+    const overflowY = await scrollWrapper.evaluate((el) => getComputedStyle(el).overflowY)
+    expect(overflowY).toBe("auto")
   })
 })
 
