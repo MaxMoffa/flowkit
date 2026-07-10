@@ -23,9 +23,9 @@ export function OAuthStepView({ step, value, onChange }: StepComponentProps<OAut
       }
     }
     const url = buildAuthorizeUrl(provider, pkce)
-    // Disaccoppiato da onChange: la libreria non gestisce mai lo scambio codice→token,
-    // solo la costruzione dell'URL. È l'app host a completare il flow su redirect
-    // (vedi completeOAuthCallback) e a passare il risultato allo step tramite onChange.
+    // Decoupled from onChange: the library never handles the code→token exchange,
+    // only URL construction. The host app completes the flow on redirect
+    // (see completeOAuthCallback) and passes the result to the step via onChange.
     window.location.href = url
   }
 

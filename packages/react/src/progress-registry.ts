@@ -7,10 +7,9 @@ export interface ProgressComponentProps {
 }
 
 /**
- * Registry dei componenti barra di progresso, stesso pattern del registry
- * degli step (registry.tsx): "bar"/"dots" sono built-in, un consumer può
- * registrarne di custom con la propria chiave e referenziarla da
- * theme.layout.progressVariant.
+ * Registry of progress-bar components, same pattern as the step registry
+ * (registry.tsx): "bar"/"dots" are built-in, a consumer can register custom
+ * ones with their own key and reference it from theme.layout.progressVariant.
  */
 const registry = new Map<string, ComponentType<ProgressComponentProps>>()
 

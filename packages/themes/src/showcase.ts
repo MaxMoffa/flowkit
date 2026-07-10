@@ -2,10 +2,10 @@ import { notionCleanDark, notionCleanLight } from "./notion-clean"
 import type { ThemeTokens } from "./notion-clean"
 
 /**
- * Tema dimostrativo (non pensato per uso in produzione): mostra sfondo
- * pagina, barra di progresso a pallini, footer in cima e animazione slide
- * tra step, tutte feature opzionali del tema altrimenti invisibili se non
- * configurate. Selezionabile nel playground per verificarle a occhio e via
+ * Demonstration theme (not meant for production use): shows a page
+ * background, dots progress bar, top footer and a slide animation between
+ * steps — all optional theme features otherwise invisible if not
+ * configured. Selectable in the playground to check them visually and via
  * Playwright.
  */
 const showcaseBackground =

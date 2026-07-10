@@ -6,7 +6,7 @@ export interface OAuthResult {
   code?: string
   token?: string
   state?: string
-  /** true se l'utente ha scelto di procedere senza autenticarsi (vedi oauthStepSchema.allowAnonymous). */
+  /** true if the user chose to proceed without authenticating (see oauthStepSchema.allowAnonymous). */
   anonymous?: boolean
 }
 
@@ -46,13 +46,13 @@ export function isFirstStep(state: FlowState): boolean {
   return state.index === 0
 }
 
-/** Restituisce true se la risposta soddisfa i vincoli minimi dello step. */
+/** Returns true if the answer satisfies the step's minimum constraints. */
 export function isStepValid(step: Step, answers: Answers): boolean {
   if (step.required === false) return true
 
   const value = answers[step.id]
   const def = getStepTypeDefinition(step.type)
-  // Nessuna validazione registrata per questo tipo: passa (comportamento permissivo di default).
+  // No validation registered for this type: passes (permissive default behavior).
   if (!def) return true
   return def.validate(step, value, answers)
 }

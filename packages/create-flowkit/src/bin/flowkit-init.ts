@@ -20,7 +20,7 @@ const STEP_GROUP_IMPORTS: Record<OptionalStepGroup, string> = {
 }
 
 async function main() {
-  clack.intro("flowkit-init — aggiungi flowkit a un progetto esistente")
+  clack.intro("flowkit-init — add flowkit to an existing project")
 
   const framework = await selectFramework()
   const steps = await selectSteps()
@@ -31,17 +31,17 @@ async function main() {
 
   if (doInstall) {
     const s = clack.spinner()
-    s.start(`Installo ${packages.join(", ")} (${pm})`)
+    s.start(`Installing ${packages.join(", ")} (${pm})`)
     try {
       execSync(installCommand(pm, packages), { stdio: "ignore", cwd: process.cwd() })
-      s.stop("Dipendenze installate")
+      s.stop("Dependencies installed")
     } catch (err) {
-      s.stop("Installazione fallita")
+      s.stop("Installation failed")
       clack.log.error(err instanceof Error ? err.message : String(err))
-      clack.log.info(`Puoi installarle manualmente con: ${installCommand(pm, packages)}`)
+      clack.log.info(`You can install them manually with: ${installCommand(pm, packages)}`)
     }
   } else {
-    clack.log.info(`Installazione saltata. Comando da eseguire: ${installCommand(pm, packages)}`)
+    clack.log.info(`Installation skipped. Command to run: ${installCommand(pm, packages)}`)
   }
 
   const templateFile = path.join(templatesRoot(import.meta.url), "init", framework, "flowkit-setup.tsx")
@@ -50,7 +50,7 @@ async function main() {
   const targetFile = path.join(targetDir, "flowkit-setup.tsx")
 
   if (existsSync(targetFile)) {
-    clack.log.warn(`${path.relative(process.cwd(), targetFile)} esiste già, non sovrascritto.`)
+    clack.log.warn(`${path.relative(process.cwd(), targetFile)} already exists, not overwritten.`)
   } else {
     const template = readFileSync(templateFile, "utf8")
     const extraImports = steps.map((s) => `import "${STEP_GROUP_IMPORTS[s]}"\n`).join("")
@@ -59,11 +59,11 @@ async function main() {
       `import "@flowkit/react/style.css"\n${extraImports}`,
     )
     writeFileSync(targetFile, withImports)
-    clack.log.success(`Creato ${path.relative(process.cwd(), targetFile)}`)
+    clack.log.success(`Created ${path.relative(process.cwd(), targetFile)}`)
   }
 
   clack.outro(
-    "Fatto! Importa FlowkitDemo da src/flowkit-setup.tsx nella tua app per vedere flowkit in azione.",
+    "Done! Import FlowkitDemo from src/flowkit-setup.tsx in your app to see flowkit in action.",
   )
 }
 

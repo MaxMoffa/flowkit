@@ -3,12 +3,12 @@ import { registerStepType, getStepTypeDefinition } from "./registry"
 import { parseStep, type Step } from "./schema"
 
 /**
- * Step "group" (v2.14+): compone più step in un'unica pagina, senza propria
- * navigazione/validazione nella state machine — conta come un normale step
- * "foglia" del flow (nessun `role` speciale). Le risposte dei figli restano
- * annidate sotto l'id del gruppo (Record<childId, valore>), non flat: questo
- * evita ogni modifica a canGoNext/progress/next/prev in machine.ts, perché
- * il validate del gruppo (sotto) implementa già l'aggregazione richiesta.
+ * "group" step (v2.14+): composes multiple steps into a single page, with no
+ * navigation/validation of its own in the state machine — it counts as a
+ * normal "leaf" flow step (no special `role`). Children's answers stay
+ * nested under the group's id (Record<childId, value>), not flattened: this
+ * avoids any change to canGoNext/progress/next/prev in machine.ts, because
+ * the group's validate (below) already implements the required aggregation.
  */
 export const groupStepSchema = z
   .object({

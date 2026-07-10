@@ -2,9 +2,9 @@ import { useState } from "react"
 import type { ConfirmationStep } from "@flowkit/core"
 import type { StepComponentProps } from "../types"
 
-/** Appiattisce ricorsivamente answers (anche oggetti annidati da step "group") in testo piano.
- *  Valori che sembrano data URL (es. foto in base64) vengono omessi: non hanno senso in un
- *  riepilogo testuale/email e gonfierebbero inutilmente il corpo del messaggio. */
+/** Recursively flattens answers (including nested objects from a "group" step) into plain text.
+ *  Values that look like data URLs (e.g. base64 photos) are omitted: they don't make sense in
+ *  a text/email summary and would needlessly bloat the message body. */
 function answersToText(answers: Record<string, unknown>, prefix = ""): string {
   return Object.entries(answers)
     .flatMap(([key, value]) => {

@@ -13,8 +13,8 @@ export interface SupabaseAdapterOptions {
 }
 
 /**
- * Stub adapter per Supabase: richiede un client già inizializzato dal consumer
- * (non aggiungiamo @supabase/supabase-js come dipendenza diretta del pacchetto).
+ * Supabase stub adapter: requires a client already initialized by the consumer
+ * (we don't add @supabase/supabase-js as a direct dependency of the package).
  */
 export function createSupabaseAdapter(options: SupabaseAdapterOptions): FlowAdapter {
   const table = options.table ?? "flow_submissions"
@@ -24,7 +24,7 @@ export function createSupabaseAdapter(options: SupabaseAdapterOptions): FlowAdap
     async submit(flowId, answers) {
       const { error } = await options.client.from(table).insert({ flow_id: flowId, answers })
       if (error) {
-        throw new Error(`Invio Supabase fallito: ${error.message}`)
+        throw new Error(`Supabase submission failed: ${error.message}`)
       }
       drafts.delete(flowId)
     },

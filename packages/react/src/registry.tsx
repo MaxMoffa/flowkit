@@ -3,9 +3,9 @@ import type { Step } from "@flowkit/core"
 import type { StepComponentProps } from "./types"
 
 /**
- * Registry dei componenti React per tipo di step. Sostituisce il Record
- * chiuso: nuovi tipi (built-in o custom) si aggiungono chiamando
- * registerStepComponent, senza toccare questo file.
+ * Registry of React components per step type. Replaces the closed Record:
+ * new types (built-in or custom) are added by calling
+ * registerStepComponent, without touching this file.
  */
 const registry = new Map<string, ComponentType<StepComponentProps<Step>>>()
 
@@ -20,7 +20,7 @@ export function getStepComponent(type: string): ComponentType<StepComponentProps
   return registry.get(type)
 }
 
-/** @deprecated usare getStepComponent(type); mantenuto per retro-compatibilità di lettura diretta. */
+/** @deprecated use getStepComponent(type); kept for backward compatibility of direct reads. */
 export const stepRegistry = new Proxy(
   {},
   {

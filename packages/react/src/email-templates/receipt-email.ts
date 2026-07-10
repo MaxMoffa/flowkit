@@ -29,11 +29,11 @@ function formatAnswerValue(value: unknown): string {
 }
 
 /**
- * Genera l'HTML (stili inline, compatibile client email) per l'email di riepilogo che un
- * backend invia via resultActions.emailApi. Colori/raggi presi 1:1 dal tema notion-clean
- * (light) perché i client email non supportano variabili CSS: vanno inlineati. Funzione di
- * riferimento per il backend del consumer — non è chiamata da nessun codice client-side di
- * questo repo, l'invio effettivo dell'email avviene sempre lato server.
+ * Generates the HTML (inline styles, email-client compatible) for the receipt email a
+ * backend sends via resultActions.emailApi. Colors/radii taken 1:1 from the notion-clean
+ * (light) theme because email clients don't support CSS variables: they must be inlined.
+ * A reference function for the consumer's backend — not called from any client-side code
+ * in this repo, the actual email send always happens server-side.
  */
 export function renderReceiptEmailHtml({ title, message, answers }: ReceiptEmailTemplateOptions): string {
   const rows = Object.entries(answers)

@@ -1,6 +1,6 @@
 import { parseFlow, type Flow } from "@flowkit/core"
 
-/** Preset di raccolta feedback post-esperienza con NPS. */
+/** Post-experience feedback collection preset with NPS. */
 export const feedbackFlow: Flow = parseFlow({
   id: "feedback",
   title: "Lascia un feedback",

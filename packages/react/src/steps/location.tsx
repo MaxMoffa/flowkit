@@ -13,7 +13,7 @@ interface LocationValue {
   pointId?: string
 }
 
-/** Point-in-polygon minimale (ray casting) per selectionMode "region", niente dipendenza da turf. */
+/** Minimal point-in-polygon (ray casting) for selectionMode "region", no dependency on turf. */
 function isPointInPolygon(point: [number, number], ring: [number, number][]): boolean {
   let inside = false
   const [x, y] = point
@@ -52,8 +52,8 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
     if (!containerRef.current || step.showMap === false) return
     let cancelled = false
 
-    // Import dinamico: maplibre-gl esegue side-effect legati al DOM (Blob/URL) al
-    // caricamento del modulo, incompatibili con ambienti non-browser (SSR, jsdom nei test).
+    // Dynamic import: maplibre-gl performs DOM-related side effects (Blob/URL) on
+    // module load, incompatible with non-browser environments (SSR, jsdom in tests).
     import("maplibre-gl").then(({ default: maplibregl }) => {
       if (cancelled || !containerRef.current) return
 
@@ -237,8 +237,8 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
       return
     }
 
-    // Se il Permissions API riporta già "denied", il browser non ripropone il
-    // prompt nativo: mostriamo subito la guida invece di far fallire getCurrentPosition in silenzio.
+    // If the Permissions API already reports "denied", the browser won't show the
+    // native prompt again: show the guide right away instead of silently failing getCurrentPosition.
     if (navigator.permissions?.query) {
       try {
         const status = await navigator.permissions.query({
@@ -249,7 +249,7 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
           return
         }
       } catch {
-        // Permissions API non supportata per "geolocation" in questo browser: si prosegue comunque.
+        // Permissions API not supported for "geolocation" in this browser: proceed anyway.
       }
     }
 

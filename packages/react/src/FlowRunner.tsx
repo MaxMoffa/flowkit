@@ -21,7 +21,7 @@ import { BarProgress } from "./progress/BarProgress"
 import { ThemeProvider } from "./ThemeProvider"
 import type { FlowSubmitHandler } from "./types"
 
-/** Step con ruolo "intro": campi standard opzionali, sempre presenti su intro/confirmation built-in, opzionali su step custom con lo stesso ruolo. */
+/** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
 type StepWithIntroFields = { cta?: string }
 type StepWithConfirmationFields = { secondaryCta?: string; primaryCta?: string }
 

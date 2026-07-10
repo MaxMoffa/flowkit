@@ -3,10 +3,10 @@ import * as clack from "@clack/prompts"
 export type SupportedFramework = "react"
 
 const FRAMEWORK_OPTIONS = [
-  { value: "react" as const, label: "React", hint: "disponibile" },
-  { value: "vue" as const, label: "Vue", hint: "in arrivo, non ancora supportato" },
-  { value: "svelte" as const, label: "Svelte", hint: "in arrivo, non ancora supportato" },
-  { value: "vanilla" as const, label: "Vanilla JS", hint: "in arrivo, non ancora supportato" },
+  { value: "react" as const, label: "React", hint: "available" },
+  { value: "vue" as const, label: "Vue", hint: "coming soon, not yet supported" },
+  { value: "svelte" as const, label: "Svelte", hint: "coming soon, not yet supported" },
+  { value: "vanilla" as const, label: "Vanilla JS", hint: "coming soon, not yet supported" },
 ]
 
 function flagValue(name: string): string | undefined {
@@ -18,42 +18,42 @@ function flagValue(name: string): string | undefined {
   return undefined
 }
 
-/** Prompt di scelta framework. Solo "react" è implementato in questa versione della CLI: gli altri vengono accettati ma ricondotti a react con un avviso. Rispetta `--framework <name>` per l'uso non interattivo (CI/test). */
+/** Framework choice prompt. Only "react" is implemented in this CLI version: others are accepted but fall back to react with a warning. Respects `--framework <name>` for non-interactive use (CI/test). */
 export async function selectFramework(): Promise<SupportedFramework> {
   const flagged = flagValue("framework")
   if (flagged) {
     if (flagged !== "react") {
-      clack.log.warn(`"${flagged}" non è ancora supportato in questa versione della CLI: uso React.`)
+      clack.log.warn(`"${flagged}" isn't supported yet in this CLI version: using React.`)
     }
     return "react"
   }
 
   const value = await clack.select({
-    message: "Quale framework usi?",
+    message: "Which framework are you using?",
     options: FRAMEWORK_OPTIONS,
   })
   if (clack.isCancel(value)) {
-    clack.cancel("Operazione annullata.")
+    clack.cancel("Operation cancelled.")
     process.exit(0)
   }
   if (value !== "react") {
-    clack.log.warn(`"${value}" non è ancora supportato in questa versione della CLI: uso React.`)
+    clack.log.warn(`"${value}" isn't supported yet in this CLI version: using React.`)
   }
   return "react"
 }
 
-/** Rispetta `--name <value>` per l'uso non interattivo (CI/test). */
+/** Respects `--name <value>` for non-interactive use (CI/test). */
 export async function promptProjectName(defaultName: string): Promise<string> {
   const flagged = flagValue("name")
   if (flagged) return flagged
 
   const value = await clack.text({
-    message: "Nome del progetto (cartella di destinazione)",
+    message: "Project name (destination folder)",
     placeholder: defaultName,
     defaultValue: defaultName,
   })
   if (clack.isCancel(value)) {
-    clack.cancel("Operazione annullata.")
+    clack.cancel("Operation cancelled.")
     process.exit(0)
   }
   return value || defaultName
@@ -63,16 +63,16 @@ export const OPTIONAL_STEP_GROUPS = ["map-maplibre", "map-leaflet"] as const
 export type OptionalStepGroup = (typeof OPTIONAL_STEP_GROUPS)[number]
 
 const STEP_GROUP_OPTIONS = [
-  { value: "map-maplibre" as const, label: "Mappa (MapLibre)", hint: "step location, +maplibre-gl" },
-  { value: "map-leaflet" as const, label: "Mappa (Leaflet)", hint: "step location-leaflet, +leaflet" },
+  { value: "map-maplibre" as const, label: "Map (MapLibre)", hint: "location step, +maplibre-gl" },
+  { value: "map-leaflet" as const, label: "Map (Leaflet)", hint: "location-leaflet step, +leaflet" },
 ]
 
 /**
- * Selezione degli step opzionali con dipendenze pesanti (mappe): solo quelli scelti
- * vengono aggiunti come dipendenza e importati nel progetto generato/wirato, per
- * restare leggeri di default. Gli step "core" (senza dipendenze extra) sono sempre
- * inclusi e non richiedono scelta. Rispetta `--steps=map-maplibre,map-leaflet` per
- * l'uso non interattivo (CI/test); `--steps=` (vuoto) o l'omissione di un gruppo lo esclude.
+ * Selection of optional steps with heavy dependencies (maps): only the ones chosen
+ * get added as a dependency and imported in the generated/wired project, to stay
+ * light by default. The "core" steps (no extra dependencies) are always included
+ * and require no choice. Respects `--steps=map-maplibre,map-leaflet` for
+ * non-interactive use (CI/test); `--steps=` (empty) or omitting a group excludes it.
  */
 export async function selectSteps(): Promise<OptionalStepGroup[]> {
   const flagged = flagValue("steps")
@@ -84,28 +84,28 @@ export async function selectSteps(): Promise<OptionalStepGroup[]> {
   }
 
   const value = await clack.multiselect({
-    message: "Quali step opzionali (con dipendenze extra) vuoi includere?",
+    message: "Which optional steps (with extra dependencies) do you want to include?",
     options: STEP_GROUP_OPTIONS,
     required: false,
   })
   if (clack.isCancel(value)) {
-    clack.cancel("Operazione annullata.")
+    clack.cancel("Operation cancelled.")
     process.exit(0)
   }
   return value
 }
 
-/** `--yes` conferma, `--no-install` rifiuta, senza mostrare il prompt (uso non interattivo). */
+/** `--yes` confirms, `--no-install` declines, without showing the prompt (non-interactive use). */
 export async function confirmInstall(): Promise<boolean> {
   if (process.argv.includes("--no-install")) return false
   if (process.argv.includes("--yes")) return true
 
   const value = await clack.confirm({
-    message: "Installare le dipendenze ora?",
+    message: "Install dependencies now?",
     initialValue: true,
   })
   if (clack.isCancel(value)) {
-    clack.cancel("Operazione annullata.")
+    clack.cancel("Operation cancelled.")
     process.exit(0)
   }
   return value

@@ -6,14 +6,14 @@ import { detectPackageManager, devInstallCommand, runScriptCommand } from "../de
 import { copyTemplate, templatesRoot } from "../copy-template"
 
 async function main() {
-  clack.intro("create-flowkit — scaffold di una mini-app con il preset \"feedback\"")
+  clack.intro("create-flowkit — scaffold a mini-app with the \"feedback\" preset")
 
   const projectName = await promptProjectName("my-flowkit-app")
   const framework = await selectFramework()
   const targetDir = path.join(process.cwd(), projectName)
 
   if (existsSync(targetDir)) {
-    clack.log.error(`La cartella "${projectName}" esiste già.`)
+    clack.log.error(`Folder "${projectName}" already exists.`)
     process.exit(1)
   }
 
@@ -24,19 +24,19 @@ async function main() {
   const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf8")) as { name: string }
   pkgJson.name = projectName
   writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2) + "\n")
-  clack.log.success(`Progetto creato in ./${projectName}`)
+  clack.log.success(`Project created in ./${projectName}`)
 
   const pm = detectPackageManager(targetDir)
   const doInstall = await confirmInstall()
 
   if (doInstall) {
     const s = clack.spinner()
-    s.start(`Installo dipendenze (${pm})`)
+    s.start(`Installing dependencies (${pm})`)
     try {
       execSync(devInstallCommand(pm), { stdio: "ignore", cwd: targetDir })
-      s.stop("Dipendenze installate")
+      s.stop("Dependencies installed")
     } catch (err) {
-      s.stop("Installazione fallita")
+      s.stop("Installation failed")
       clack.log.error(err instanceof Error ? err.message : String(err))
     }
   }

@@ -3,11 +3,11 @@ import type { StepComponentProps } from "../types"
 import { getStepComponent } from "../registry"
 
 /**
- * Step "group": renderizza i suoi step figli inline sulla stessa pagina.
- * Il valore è un oggetto aggregato { [childId]: valore }, non flat — vedi
- * group-step.ts per il perché (evita modifiche alla state machine di core).
- * Non fa parte dell'unione statica Step (evita un ciclo di tipi con
- * StepTypeMap), quindi riceve StepComponentProps<Step> e fa il cast interno.
+ * "group" step: renders its child steps inline on the same page. The value
+ * is an aggregated object { [childId]: value }, not flat — see group-step.ts
+ * for why (avoids changes to core's state machine). It isn't part of the
+ * static Step union (avoids a type cycle with StepTypeMap), so it receives
+ * StepComponentProps<Step> and casts internally.
  */
 export function GroupStepView({ step, value, onChange, flow, answers }: StepComponentProps) {
   const groupStep = step as unknown as GroupStep

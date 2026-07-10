@@ -1,14 +1,14 @@
 import { knownOAuthProviders } from "./oauth-providers"
 
 export interface OAuthProviderConfig {
-  /** Es. "google" | "github" | "facebook" | "generic" | un id custom. */
+  /** E.g. "google" | "github" | "facebook" | "generic" | a custom id. */
   id: string
   clientId: string
-  /** Obbligatorio se id non è un provider noto (vedi knownOAuthProviders). */
+  /** Required if id isn't a known provider (see knownOAuthProviders). */
   authorizeUrl?: string
   scopes?: string[]
   redirectUri: string
-  /** Default true dove supportato (Web Crypto disponibile). */
+  /** Defaults to true where supported (Web Crypto available). */
   usePkce?: boolean
   extraAuthorizeParams?: Record<string, string>
 }
@@ -24,7 +24,7 @@ function base64UrlEncode(bytes: Uint8Array): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")
 }
 
-/** Genera una coppia PKCE (code_verifier/code_challenge S256) via Web Crypto. */
+/** Generates a PKCE pair (code_verifier/code_challenge S256) via Web Crypto. */
 export async function generatePkcePair(): Promise<PkcePair> {
   const verifierBytes = crypto.getRandomValues(new Uint8Array(32))
   const verifier = base64UrlEncode(verifierBytes)
@@ -34,15 +34,15 @@ export async function generatePkcePair(): Promise<PkcePair> {
 }
 
 /**
- * Costruisce l'URL di redirect verso il provider OAuth. Nessuna chiamata di
- * rete: solo composizione dell'URL. Lo scambio codice→token resta a carico
- * dell'app host (la libreria non lo esegue mai).
+ * Builds the redirect URL to the OAuth provider. No network call: just URL
+ * composition. The code→token exchange stays the host app's responsibility
+ * (the library never performs it).
  */
 export function buildAuthorizeUrl(provider: OAuthProviderConfig, pkce?: PkcePair): string {
   const authorizeUrl = provider.authorizeUrl ?? knownOAuthProviders[provider.id]?.authorizeUrl
   if (!authorizeUrl) {
     throw new Error(
-      `Nessun authorizeUrl per il provider "${provider.id}". Specifica authorizeUrl esplicito (richiesto per provider non noti/"generic").`,
+      `No authorizeUrl for provider "${provider.id}". Specify an explicit authorizeUrl (required for unknown/"generic" providers).`,
     )
   }
 

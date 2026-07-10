@@ -11,10 +11,10 @@ const baseStepFields = {
   required: z.boolean().default(true),
   icon: z.string().optional(),
   /**
-   * Override tema (v2.10) limitato a questo step: sottoinsieme di colori,
-   * radii e immagini del tema applicato solo mentre lo step è mostrato.
-   * Non tipizzato contro ThemeTokens: core non dipende da @flowkit/themes,
-   * la validazione/mappatura in CSS var avviene lato @flowkit/react.
+   * Theme override (v2.10) limited to this step: a subset of colors, radii
+   * and images applied only while the step is shown. Not typed against
+   * ThemeTokens: core doesn't depend on @flowkit/themes, the validation/CSS
+   * var mapping happens on the @flowkit/react side.
    */
   themeOverride: z.record(z.string(), z.unknown()).optional(),
 }
@@ -169,11 +169,11 @@ export const confirmationStepSchema = z.object({
     })
     .optional(),
   /**
-   * Azioni opzionali sul risultato, in coesistenza con emailShare (mailto).
-   * `resultLink.createLink`/`emailApi.sendEmail` sono funzioni iniettate dal
-   * consumer (pattern già usato da mapAnswersToProperties in notion.ts): non
-   * sono JSON-serializzabili, quindi un flow che le usa va costruito come
-   * oggetto TS/JS, non caricato da JSON puro.
+   * Optional result actions, coexisting with emailShare (mailto).
+   * `resultLink.createLink`/`emailApi.sendEmail` are functions injected by
+   * the consumer (a pattern already used by mapAnswersToProperties in
+   * notion.ts): they aren't JSON-serializable, so a flow using them must be
+   * built as a TS/JS object, not loaded from plain JSON.
    */
   resultActions: z
     .object({
@@ -231,10 +231,9 @@ export type ReviewStep = z.infer<typeof reviewStepSchema>
 export type ConfirmationStep = z.infer<typeof confirmationStepSchema>
 
 /**
- * Mappa type -> forma dello step. I 12 tipi built-in sono definiti qui; un
- * consumer che registra un tipo custom con registerStepType può ottenere
- * narrowing statico completo aumentando questa interfaccia via module
- * augmentation:
+ * Maps type -> step shape. The built-in types are defined here; a consumer
+ * registering a custom type with registerStepType can get full static
+ * narrowing by augmenting this interface via module augmentation:
  *
  *   declare module "@flowkit/core" {
  *     interface StepTypeMap {
@@ -242,14 +241,14 @@ export type ConfirmationStep = z.infer<typeof confirmationStepSchema>
  *     }
  *   }
  *
- * Senza augmentation, uno step custom resta comunque valido a runtime
- * (validato dal registry), ma richiede un cast a Step lato consumer.
+ * Without augmentation, a custom step is still valid at runtime (validated
+ * by the registry), but requires a cast to Step on the consumer side.
  */
 export interface StepTypeMap {
   intro: IntroStep
-  /** Config estesa (mappa reale maplibre-gl, v2.8), non lo schema base sopra. */
+  /** Extended config (real maplibre-gl map, v2.8), not the base schema above. */
   location: LocationStepConfig
-  /** Variante con Leaflet come motore di rendering (v2.15), stessa config di "location". */
+  /** Variant with Leaflet as the rendering engine (v2.15), same config as "location". */
   "location-leaflet": LocationLeafletStepConfig
   "select-cards": SelectCardsStep
   scale: ScaleStep
@@ -266,7 +265,7 @@ export interface StepTypeMap {
   oauth: OAuthStep
 }
 
-/** Tipi di step forniti da flowkit out-of-the-box (senza contare eventuali augmentation custom). */
+/** Step types shipped by flowkit out-of-the-box (not counting any custom augmentation). */
 export type BuiltinStepType =
   | "intro"
   | "location"
@@ -292,13 +291,13 @@ const baseStepShape = z.object({
   type: z.string().min(1),
 })
 
-/** Valida un singolo step delegando allo schema registrato per il suo `type` (vedi registry.ts). */
+/** Validates a single step by delegating to the schema registered for its `type` (see registry.ts). */
 export function parseStep(input: unknown): Step {
   const base = baseStepShape.passthrough().parse(input)
   const def = getStepTypeDefinition(base.type)
   if (!def) {
     throw new Error(
-      `Tipo di step sconosciuto "${base.type}". Registralo con registerStepType() prima di chiamare parseFlow().`,
+      `Unknown step type "${base.type}". Register it with registerStepType() before calling parseFlow().`,
     )
   }
   return def.schema.parse(input) as Step

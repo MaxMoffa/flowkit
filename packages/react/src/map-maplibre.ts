@@ -1,5 +1,5 @@
-// Entry separato: chi non usa lo step "location" non deve scaricare maplibre-gl.
-// import "@flowkit/react/map-maplibre" per registrare il componente.
+// Separate entry: those who don't use the "location" step shouldn't download maplibre-gl.
+// import "@flowkit/react/map-maplibre" to register the component.
 import { registerStepComponent } from "./registry"
 import { LocationStepView } from "./steps/location"
 

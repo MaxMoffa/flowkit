@@ -71,7 +71,7 @@ describe("createNotionAdapter", () => {
       fetchImpl: fetchImpl as unknown as typeof fetch,
     })
 
-    await expect(adapter.submit("flow-1", {})).rejects.toThrow(/Invio a Notion fallito/)
+    await expect(adapter.submit("flow-1", {})).rejects.toThrow(/Notion submission failed/)
   })
 
   it("returns null from loadDraft when no draft page exists", async () => {

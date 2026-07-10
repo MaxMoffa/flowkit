@@ -1,5 +1,5 @@
-// Entry separato: chi non usa lo step "location-leaflet" non deve scaricare leaflet.
-// import "@flowkit/react/map-leaflet" per registrare il componente.
+// Separate entry: those who don't use the "location-leaflet" step shouldn't download leaflet.
+// import "@flowkit/react/map-leaflet" to register the component.
 import { registerStepComponent } from "./registry"
 import { LocationLeafletStepView } from "./steps/location-leaflet"
 

@@ -18,14 +18,14 @@ export const selectionModeSchema = z.discriminatedUnion("kind", [
 export type SelectionMode = z.infer<typeof selectionModeSchema>
 
 /**
- * Config estesa dello step "location" (v2.8): mappa reale (maplibre-gl),
- * ricerca luoghi (geocoding, default Nominatim), modalità di selezione.
- * Estende lo schema base di location.ts (schema.ts) in modo additivo: un
- * flow che non specifica nulla di nuovo si comporta come prima (selectionMode
- * "point" di default).
+ * Extended config for the "location" step (v2.8): real map (maplibre-gl),
+ * place search (geocoding, default Nominatim), selection mode. Extends the
+ * base schema from location.ts (schema.ts) additively: a flow that doesn't
+ * specify anything new behaves like before (selectionMode "point" by
+ * default).
  */
 export const locationStepConfigSchema = locationStepSchema.extend({
-  /** URL dello stile maplibre. Default: stile demo pubblico, documentato come sostituibile. */
+  /** Maplibre style URL. Default: public demo style, documented as replaceable. */
   styleUrl: z.string().optional(),
   geocodingEndpoint: z.string().optional(),
   geocodingProvider: z.enum(["nominatim", "custom"]).default("nominatim"),
@@ -33,23 +33,23 @@ export const locationStepConfigSchema = locationStepSchema.extend({
   initialCenter: z
     .object({ lat: z.number(), lng: z.number(), zoom: z.number().optional() })
     .optional(),
-  /** Marker aggiuntivi mostrati sulla mappa oltre al punto selezionato (dichiarativo, serializzabile). */
+  /** Extra markers shown on the map besides the selected point (declarative, serializable). */
   extraMarkers: z
     .array(z.object({ lat: z.number(), lng: z.number(), label: z.string().optional() }))
     .optional(),
-  /** Mostra il pulsante "usa la mia posizione" (Geolocation API). Default: true. */
+  /** Shows the "use my location" button (Geolocation API). Default: true. */
   enableGps: z.boolean().default(true),
   /**
-   * Mostra la barra di ricerca indirizzi. Default: true. Se showMap è false,
-   * selectionMode (che presuppone interazione con la mappa) viene ignorato:
-   * la posizione può essere impostata solo via ricerca e/o GPS.
+   * Shows the address search bar. Default: true. If showMap is false,
+   * selectionMode (which assumes interaction with the map) is ignored:
+   * the position can only be set via search and/or GPS.
    */
   showSearch: z.boolean().default(true),
   gpsButtonLabel: z.string().optional(),
-  /** Testi del popup guida mostrato quando il permesso di geolocalizzazione è negato/bloccato. */
+  /** Text of the help popup shown when the geolocation permission is denied/blocked. */
   gpsGuideTitle: z.string().optional(),
   gpsGuideText: z.string().optional(),
-  /** Reverse geocoding automatico (coordinate -> etichetta) dopo GPS/click/drag. Default: true. */
+  /** Automatic reverse geocoding (coordinates -> label) after GPS/click/drag. Default: true. */
   enableReverseGeocode: z.boolean().default(true),
   reverseGeocodingEndpoint: z.string().optional(),
 })
@@ -57,8 +57,8 @@ export const locationStepConfigSchema = locationStepSchema.extend({
 export type LocationStepConfig = z.infer<typeof locationStepConfigSchema>
 
 /**
- * Sostituisce la registrazione builtin di "location" (schema+validate) fatta
- * in builtins.ts: import side-effect eseguito dopo, in index.ts.
+ * Replaces the builtin "location" registration (schema+validate) done in
+ * builtins.ts: side-effect import evaluated afterwards, in index.ts.
  */
 registerStepType({
   type: "location",

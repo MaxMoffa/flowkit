@@ -7,16 +7,16 @@ import type { Flow } from "@flowkit/core"
 const adapter = createLocalAdapter({ namespace: "my-app" })
 const theme = themes["notion-clean"]
 
-// Sostituisci con il tuo flow: vedi packages/presets o la sezione
-// "Definire un flow" del README di flowkit per la struttura completa
-// (step disponibili, config per tipo, temi, adapter).
+// Replace with your own flow: see packages/presets or the "Defining a flow"
+// section of the flowkit README for the full structure (available steps,
+// per-type config, themes, adapters).
 const flow: Flow = {
   id: "my-flow",
-  title: "Il mio flow",
-  locale: "it",
+  title: "My flow",
+  locale: "en",
   steps: [
-    { id: "welcome", type: "intro", title: "Ciao!", cta: "Inizia" },
-    { id: "end", type: "confirmation", title: "Grazie!" },
+    { id: "welcome", type: "intro", title: "Hello!", cta: "Start" },
+    { id: "end", type: "confirmation", title: "Thank you!" },
   ],
 }
 

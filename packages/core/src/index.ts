@@ -1,9 +1,10 @@
-// Ordine critico: i side-effect import registrano i tipi di step nel registry.
-// "location-step" e "oauth" devono essere valutati DOPO "builtins" (location-step
-// sostituisce la registrazione base di "location" con la config estesa). Vanno messi
-// prima di qualsiasi "export * from"/"export {...} from" verso questi stessi moduli:
-// un re-export è anch'esso un import e, se scritto prima nel file, farebbe valutare
-// quel modulo (e il suo registerStepType) in anticipo, rompendo l'ordine voluto.
+// Critical ordering: the side-effect imports register step types in the registry.
+// "location-step" and "oauth" must be evaluated AFTER "builtins" (location-step
+// replaces the base "location" registration with the extended config). They must
+// come before any "export * from"/"export {...} from" targeting these same modules:
+// a re-export is also an import, and if written earlier in the file it would cause
+// that module (and its registerStepType) to be evaluated early, breaking the
+// intended order.
 import "./builtins"
 import "./oauth"
 import "./location-step"

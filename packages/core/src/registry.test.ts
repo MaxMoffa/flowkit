@@ -55,6 +55,6 @@ describe("step type registry", () => {
   it("rejects an unregistered step type", () => {
     expect(() =>
       parseFlow({ id: "x", title: "X", steps: [{ id: "a", type: "does-not-exist" }] }),
-    ).toThrow(/Tipo di step sconosciuto/)
+    ).toThrow(/Unknown step type/)
   })
 })

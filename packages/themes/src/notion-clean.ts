@@ -3,29 +3,29 @@ export interface ThemeFontTokens {
   body?: string
   headingSize?: string
   bodySize?: string
-  /** URL di un font-face/stylesheet da iniettare (es. Google Fonts self-hosted o CDN). */
+  /** URL of a font-face/stylesheet to inject (e.g. self-hosted Google Fonts or a CDN). */
   headingFontUrl?: string
   bodyFontUrl?: string
 }
 
 export interface ThemeImageTokens {
-  /** Immagine di sfondo globale del flow. */
+  /** Global background image for the flow. */
   background?: string
-  /** Immagine di sfondo per id o type di step specifico. */
+  /** Background image for a specific step id or type. */
   stepBackground?: Record<string, string>
   logo?: string
 }
 
 export interface ThemeLayoutTokens {
-  /** Posizione di header (back button + progress) e footer (CTA). Default: "top"/"bottom" (comportamento attuale). */
+  /** Position of the header (back button + progress) and footer (CTA). Default: "top"/"bottom" (current behavior). */
   headerPosition?: "top" | "bottom"
   footerPosition?: "top" | "bottom"
-  /** Variante della barra di progresso: barra piena, pallini, nascosta, o chiave di un componente custom registrato. Default: "bar". */
+  /** Progress bar variant: solid bar, dots, hidden, or the key of a registered custom component. Default: "bar". */
   progressVariant?: "bar" | "dots" | "hidden" | string
 }
 
 export interface ThemeAnimationTokens {
-  /** Preset built-in "fade"/"slide", "none" (default, nessuna animazione), o nome di classi custom fornite dal consumer. */
+  /** Built-in "fade"/"slide" presets, "none" (default, no animation), or the name of custom classes provided by the consumer. */
   name?: "fade" | "slide" | "none" | string
   duration?: number
 }
@@ -50,13 +50,13 @@ export interface ThemeTokens {
   radiusLg: string
   radiusXl: string
   spacing: Record<"xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "xxxl", string>
-  /** Personalizzazione font (v2.3), opzionale: nessun default = comportamento CSS invariato. */
+  /** Font customization (v2.3), optional: no default = unchanged CSS behavior. */
   fonts?: ThemeFontTokens
-  /** Personalizzazione immagini (v2.3), opzionale: nessun default = comportamento CSS invariato. */
+  /** Image customization (v2.3), optional: no default = unchanged CSS behavior. */
   images?: ThemeImageTokens
-  /** Layout: posizione header/footer, variante barra di progresso. Opzionale, default = comportamento attuale. */
+  /** Layout: header/footer position, progress bar variant. Optional, default = current behavior. */
   layout?: ThemeLayoutTokens
-  /** Animazione di transizione tra step. Opzionale, default "none" = nessun cambiamento visivo. */
+  /** Transition animation between steps. Optional, default "none" = no visual change. */
   animation?: ThemeAnimationTokens
 }
 

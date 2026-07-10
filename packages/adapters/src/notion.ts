@@ -5,15 +5,15 @@ const NOTION_API_BASE = "https://api.notion.com/v1"
 const NOTION_VERSION = "2022-06-28"
 
 export interface NotionAdapterConfig {
-  /** Integration token Notion, iniettato dal consumer (mai hardcoded nel pacchetto). */
+  /** Notion integration token, injected by the consumer (never hardcoded in the package). */
   token: string
   databaseId: string
   fetchImpl?: typeof fetch
-  /** Override del mapping risposte -> property Notion. Default: mapping ragionevole per tipo. */
+  /** Override for the answers -> Notion property mapping. Default: a reasonable mapping per type. */
   mapAnswersToProperties?: (answers: Answers, flowId: string) => Record<string, unknown>
 }
 
-/** Mapping di default: stringa -> rich_text, numero -> number, array -> multi_select, altro -> rich_text (JSON). */
+/** Default mapping: string -> rich_text, number -> number, array -> multi_select, other -> rich_text (JSON). */
 function defaultMapAnswersToProperties(
   answers: Answers,
   flowId: string,
@@ -50,13 +50,13 @@ function answerValueToNotionProperty(value: AnswerValue): unknown {
 }
 
 /**
- * Adapter Notion: submit crea una pagina nel database Notion configurato.
- * Notion non ha un concetto nativo di "bozza": loadDraft/saveDraft operano su
- * una pagina con property `draft: true`, filtrata per `flowId` (rich_text) —
- * comportamento onesto, sempre via API Notion, nessun draft locale.
+ * Notion adapter: submit creates a page in the configured Notion database.
+ * Notion has no native concept of a "draft": loadDraft/saveDraft operate on
+ * a page with a `draft: true` property, filtered by `flowId` (rich_text) —
+ * honest behavior, always via the Notion API, no local draft.
  *
- * Nessuna dipendenza dall'SDK ufficiale (@notionhq/client): chiamate REST
- * dirette via fetch, coerente con l'adapter rest.ts esistente.
+ * No dependency on the official SDK (@notionhq/client): direct REST calls
+ * via fetch, consistent with the existing rest.ts adapter.
  */
 export function createNotionAdapter(config: NotionAdapterConfig): FlowAdapter {
   const fetchImpl = config.fetchImpl ?? fetch
@@ -83,7 +83,7 @@ export function createNotionAdapter(config: NotionAdapterConfig): FlowAdapter {
       }),
     })
     if (!res.ok) {
-      throw new Error(`Ricerca bozza Notion fallita: ${res.status} ${res.statusText}`)
+      throw new Error(`Notion draft search failed: ${res.status} ${res.statusText}`)
     }
     const data = (await res.json()) as { results: { id: string }[] }
     return data.results[0]?.id ?? null
@@ -108,7 +108,7 @@ export function createNotionAdapter(config: NotionAdapterConfig): FlowAdapter {
         ),
       })
       if (!res.ok) {
-        throw new Error(`Invio a Notion fallito: ${res.status} ${res.statusText}`)
+        throw new Error(`Notion submission failed: ${res.status} ${res.statusText}`)
       }
     },
 
@@ -117,7 +117,7 @@ export function createNotionAdapter(config: NotionAdapterConfig): FlowAdapter {
       if (!pageId) return null
       const res = await fetchImpl(`${NOTION_API_BASE}/pages/${pageId}`, { headers })
       if (!res.ok) {
-        throw new Error(`Lettura bozza Notion fallita: ${res.status} ${res.statusText}`)
+        throw new Error(`Notion draft read failed: ${res.status} ${res.statusText}`)
       }
       const page = (await res.json()) as { properties: Record<string, unknown> }
       return notionPropertiesToAnswers(page.properties)
@@ -141,13 +141,13 @@ export function createNotionAdapter(config: NotionAdapterConfig): FlowAdapter {
         ),
       })
       if (!res.ok) {
-        throw new Error(`Salvataggio bozza Notion fallito: ${res.status} ${res.statusText}`)
+        throw new Error(`Notion draft save failed: ${res.status} ${res.statusText}`)
       }
     },
   }
 }
 
-/** Estrae le risposte "grezze" da un set di property Notion (best-effort, per loadDraft). */
+/** Extracts "raw" answers from a set of Notion properties (best-effort, for loadDraft). */
 function notionPropertiesToAnswers(properties: Record<string, unknown>): Answers {
   const answers: Answers = {}
   for (const [key, raw] of Object.entries(properties)) {

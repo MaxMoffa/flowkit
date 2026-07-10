@@ -17,8 +17,8 @@ import {
 } from "./schema"
 
 /**
- * Registrazione dei 12 tipi di step built-in. Import per side-effect da
- * index.ts: chi consuma solo parseFlow/isStepValid non deve cambiare nulla.
+ * Registration of the built-in step types. Imported for its side effect from
+ * index.ts: anyone who only consumes parseFlow/isStepValid doesn't need to change anything.
  */
 
 registerStepType({

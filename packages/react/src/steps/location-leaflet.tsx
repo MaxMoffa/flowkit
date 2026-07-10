@@ -14,7 +14,7 @@ interface LocationValue {
   pointId?: string
 }
 
-/** Point-in-polygon minimale (ray casting) per selectionMode "region", niente dipendenza da turf. */
+/** Minimal point-in-polygon (ray casting) for selectionMode "region", no dependency on turf. */
 function isPointInPolygon(point: [number, number], ring: [number, number][]): boolean {
   let inside = false
   const [x, y] = point
@@ -57,8 +57,8 @@ export function LocationLeafletStepView({
     if (!containerRef.current || step.showMap === false) return
     let cancelled = false
 
-    // Import dinamico: leaflet esegue side-effect legati al DOM al caricamento del
-    // modulo, incompatibili con ambienti non-browser (SSR, jsdom nei test).
+    // Dynamic import: leaflet performs DOM-related side effects on module load,
+    // incompatible with non-browser environments (SSR, jsdom in tests).
     import("leaflet").then(({ default: L }) => {
       if (cancelled || !containerRef.current) return
 
@@ -224,7 +224,7 @@ export function LocationLeafletStepView({
           return
         }
       } catch {
-        // Permissions API non supportata per "geolocation" in questo browser: si prosegue comunque.
+        // Permissions API not supported for "geolocation" in this browser: proceed anyway.
       }
     }
 

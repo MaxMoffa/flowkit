@@ -1,6 +1,6 @@
 import { parseFlow, type Flow } from "@flowkit/core"
 
-/** Preset per la prenotazione di un tavolo in un ristorante. */
+/** Preset for booking a restaurant table. */
 export const restaurantFlow: Flow = parseFlow({
   id: "restaurant",
   title: "Prenota un tavolo",

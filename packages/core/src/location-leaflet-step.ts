@@ -4,11 +4,12 @@ import { selectionModeSchema, type SelectionMode } from "./location-step"
 import { z } from "zod"
 
 /**
- * Variante dello step "location" che usa Leaflet invece di maplibre-gl come
- * motore di rendering (v2.15). Stessa identica config dello step "location"
- * esteso (location-step.ts): cambia solo il tipo (per poterlo registrare
- * come componente React separato, installabile a scelta, vedi
- * @flowkit/react/map-leaflet) e il motore di rendering lato @flowkit/react.
+ * Variant of the "location" step that uses Leaflet instead of maplibre-gl as
+ * the rendering engine (v2.15). The exact same config as the extended
+ * "location" step (location-step.ts): only the type changes (so it can be
+ * registered as a separate, opt-in React component, see
+ * @flowkit/react/map-leaflet) along with the rendering engine on the
+ * @flowkit/react side.
  */
 export const locationLeafletStepConfigSchema = locationStepSchema.extend({
   type: z.literal("location-leaflet"),

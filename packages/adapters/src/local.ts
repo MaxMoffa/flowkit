@@ -18,13 +18,13 @@ function resultKey(namespace: string, id: string) {
   return `${namespace}:results:${id}`
 }
 
-/** Adapter che salva bozze e invii in localStorage (o storage compatibile iniettato). */
+/** Adapter that saves drafts and submissions to localStorage (or an injected compatible storage). */
 export function createLocalAdapter(options: LocalAdapterOptions = {}): FlowAdapter {
   const storage = options.storage ?? (typeof window !== "undefined" ? window.localStorage : undefined)
   const namespace = options.namespace ?? "flowkit"
 
   if (!storage) {
-    throw new Error("createLocalAdapter richiede uno Storage (localStorage non disponibile)")
+    throw new Error("createLocalAdapter requires a Storage (localStorage is not available)")
   }
 
   return {

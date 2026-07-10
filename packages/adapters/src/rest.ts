@@ -7,7 +7,7 @@ export interface RestAdapterOptions {
   fetchImpl?: typeof fetch
 }
 
-/** Adapter che invia le risposte a un endpoint REST. Le bozze restano solo in memoria. */
+/** Adapter that submits answers to a REST endpoint. Drafts stay in memory only. */
 export function createRestAdapter(options: RestAdapterOptions): FlowAdapter {
   const fetchImpl = options.fetchImpl ?? fetch
   const drafts = new Map<string, Answers>()
@@ -20,7 +20,7 @@ export function createRestAdapter(options: RestAdapterOptions): FlowAdapter {
         body: JSON.stringify(answers),
       })
       if (!res.ok) {
-        throw new Error(`Invio fallito: ${res.status} ${res.statusText}`)
+        throw new Error(`Submission failed: ${res.status} ${res.statusText}`)
       }
       drafts.delete(flowId)
     },
@@ -37,7 +37,7 @@ export function createRestAdapter(options: RestAdapterOptions): FlowAdapter {
         body: JSON.stringify(answers),
       })
       if (!res.ok) {
-        throw new Error(`Creazione link fallita: ${res.status} ${res.statusText}`)
+        throw new Error(`Link creation failed: ${res.status} ${res.statusText}`)
       }
       return (await res.json()) as { id: string; url: string }
     },

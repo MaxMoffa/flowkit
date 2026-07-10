@@ -119,10 +119,11 @@ function tokensToCssVars(tokens: ThemeTokens): Record<string, string> {
 }
 
 /**
- * Converte un sottoinsieme parziale di token (usato per l'override tema
- * per-step, v2.10) nelle sole CSS var corrispondenti ai campi presenti.
- * Non tocca fonts/spacing/images: l'override per-step è limitato a colori,
- * radii e immagini per evitare che un singolo step scombini il layout.
+ * Converts a partial subset of tokens (used for the per-step theme
+ * override, v2.10) into only the CSS vars corresponding to the fields
+ * present. Doesn't touch fonts/spacing/images: the per-step override is
+ * limited to colors, radii and images to avoid a single step throwing off
+ * the layout.
  */
 export function partialTokensToCssVars(partial: Partial<ThemeTokens>): Record<string, string> {
   const vars: Record<string, string> = {}
@@ -136,10 +137,10 @@ export function partialTokensToCssVars(partial: Partial<ThemeTokens>): Record<st
 }
 
 /**
- * Ritorna gli URL dei font custom da caricare per il tema (Google Fonts
- * self-hosted, CDN, ecc.). Framework-agnostic: restituisce solo i dati,
- * l'iniezione nel DOM (<link rel="stylesheet">) è responsabilità di ciascun
- * renderer (react/vue/svelte/vanilla).
+ * Returns the custom font URLs to load for the theme (self-hosted Google
+ * Fonts, CDN, etc.). Framework-agnostic: only returns the data, injecting
+ * into the DOM (<link rel="stylesheet">) is each renderer's responsibility
+ * (react/vue/svelte/vanilla).
  */
 export function injectThemeFontLinks(theme: Theme, mode: ThemeMode = "light"): string[] {
   const tokens = mode === "dark" ? theme.dark : theme.light

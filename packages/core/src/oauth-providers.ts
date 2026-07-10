@@ -1,4 +1,4 @@
-/** Authorize URL noti per provider comuni. Nessun segreto, solo endpoint pubblici. */
+/** Known authorize URLs for common providers. No secrets, public endpoints only. */
 export const knownOAuthProviders: Record<string, { authorizeUrl: string }> = {
   google: { authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth" },
   github: { authorizeUrl: "https://github.com/login/oauth/authorize" },

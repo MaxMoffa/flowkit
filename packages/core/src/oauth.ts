@@ -10,7 +10,7 @@ export const oauthProviderConfigSchema = z.object({
   redirectUri: z.string().min(1),
   usePkce: z.boolean().default(true),
   extraAuthorizeParams: z.record(z.string()).optional(),
-  /** Icona (emoji) del bottone provider. Se assente, si usa quella nota di default lato react. */
+  /** Provider button icon (emoji). If absent, the known default on the react side is used. */
   icon: z.string().optional(),
 })
 
@@ -22,7 +22,7 @@ export const oauthStepSchema = z.object({
   required: z.boolean().default(true),
   icon: z.string().optional(),
   providers: z.array(oauthProviderConfigSchema).min(1),
-  /** Se true, mostra un'opzione per procedere senza autenticarsi (anonimo). */
+  /** If true, shows an option to proceed without authenticating (anonymous). */
   allowAnonymous: z.boolean().default(false),
   anonymousLabel: z.string().optional(),
 })
@@ -41,9 +41,9 @@ registerStepType({
 })
 
 /**
- * Estrae il risultato OAuth (code/state, o token per i flow implicit) dalla
- * redirect URI di ritorno. Va chiamata dall'app host dopo il redirect: la
- * libreria non esegue mai lo scambio codice→token.
+ * Extracts the OAuth result (code/state, or token for implicit flows) from
+ * the return redirect URI. Should be called by the host app after the
+ * redirect: the library never performs the code→token exchange.
  */
 export function completeOAuthCallback(
   providerId: string,

@@ -1,6 +1,6 @@
 import { parseFlow, type Flow } from "@flowkit/core"
 
-/** Preset per raccogliere segnalazioni di odori molesti in un'area. */
+/** Preset for collecting reports of unpleasant smells in an area. */
 export const odoriFlow: Flow = parseFlow({
   id: "odori",
   title: "Segnala un odore",

@@ -7,11 +7,11 @@ export interface ReceiptEmailAdapterOptions {
 }
 
 export interface ReceiptEmailAdapter {
-  /** Chiede al backend di inviare un'email di riepilogo all'indirizzo indicato. Nessuno stato locale. */
+  /** Asks the backend to send a receipt email to the given address. No local state. */
   sendReceiptEmail(flowId: string, email: string, answers: Answers): Promise<void>
 }
 
-/** Adapter che chiama un endpoint REST per far inviare al backend un'email di riepilogo. */
+/** Adapter that calls a REST endpoint to have the backend send a receipt email. */
 export function createReceiptEmailAdapter(options: ReceiptEmailAdapterOptions): ReceiptEmailAdapter {
   const fetchImpl = options.fetchImpl ?? fetch
 
@@ -23,7 +23,7 @@ export function createReceiptEmailAdapter(options: ReceiptEmailAdapterOptions): 
         body: JSON.stringify({ email, answers }),
       })
       if (!res.ok) {
-        throw new Error(`Invio email fallito: ${res.status} ${res.statusText}`)
+        throw new Error(`Email send failed: ${res.status} ${res.statusText}`)
       }
     },
   }
