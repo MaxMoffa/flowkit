@@ -49,6 +49,9 @@ export const locationStepConfigSchema = locationStepSchema.extend({
   /** Testi del popup guida mostrato quando il permesso di geolocalizzazione è negato/bloccato. */
   gpsGuideTitle: z.string().optional(),
   gpsGuideText: z.string().optional(),
+  /** Reverse geocoding automatico (coordinate -> etichetta) dopo GPS/click/drag. Default: true. */
+  enableReverseGeocode: z.boolean().default(true),
+  reverseGeocodingEndpoint: z.string().optional(),
 })
 
 export type LocationStepConfig = z.infer<typeof locationStepConfigSchema>

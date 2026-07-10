@@ -47,6 +47,9 @@ export const featuresDemoFlow: Flow = parseFlow({
         ],
       },
       initialCenter: { lat: 45.0, lng: 8.0, zoom: 3 },
+      // Disabilitato: il test e2e su questo step verifica le coordinate raw esatte,
+      // il reverse geocode (rete reale/non mockata qui) le sovrascriverebbe in modo non deterministico.
+      enableReverseGeocode: false,
     },
     {
       id: "pick-search-only",

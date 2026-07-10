@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import type maplibregl from "maplibre-gl"
-import { geocode, type GeocodingResult, type LocationStepConfig } from "@flowkit/core"
+import { geocode, reverseGeocode, type GeocodingResult, type LocationStepConfig } from "@flowkit/core"
 import type { StepComponentProps } from "../types"
 
 const DEFAULT_STYLE_URL = "https://demotiles.maplibre.org/style.json"
@@ -36,6 +36,8 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
   const [gpsLoading, setGpsLoading] = useState(false)
   const [gpsError, setGpsError] = useState<string | null>(null)
   const [showGpsGuide, setShowGpsGuide] = useState(false)
+  const [reverseLoading, setReverseLoading] = useState(false)
+  const justSearchedRef = useRef(false)
 
   const current: LocationValue =
     typeof value === "object" && value !== null && !Array.isArray(value)
@@ -136,6 +138,35 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    if (step.enableReverseGeocode === false) return
+    if (justSearchedRef.current) {
+      justSearchedRef.current = false
+      return
+    }
+    if (typeof current.lat !== "number" || typeof current.lng !== "number") return
+    let cancelled = false
+    const timer = setTimeout(async () => {
+      setReverseLoading(true)
+      try {
+        const label = await reverseGeocode(current.lat!, current.lng!, {
+          endpoint: step.reverseGeocodingEndpoint,
+          provider: step.geocodingProvider,
+        })
+        if (!cancelled && label) {
+          onChange({ ...current, address: label })
+        }
+      } finally {
+        if (!cancelled) setReverseLoading(false)
+      }
+    }, 500)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current.lat, current.lng])
+
   async function runSearch(q: string) {
     setQuery(q)
     if (q.trim().length < 3) {
@@ -155,6 +186,7 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
   }
 
   function selectResult(result: GeocodingResult) {
+    justSearchedRef.current = true
     onChange({ lat: result.lat, lng: result.lng, address: result.label })
     setResults([])
     setQuery(result.label)
@@ -295,6 +327,7 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
           </div>
         </div>
       )}
+      {reverseLoading && <span className="fk-map-search-loading">Cerco indirizzo…</span>}
 
       {showGpsGuide && (
         <div className="fk-gps-guide-overlay" role="dialog" aria-modal="true">
