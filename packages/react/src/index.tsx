@@ -5,5 +5,7 @@ export { stepRegistry, registerStepComponent, getStepComponent } from "./registr
 export type { StepComponentProps, FlowSubmitHandler } from "./types"
 export { registerProgressComponent, getProgressComponent } from "./progress-registry"
 export type { ProgressComponentProps } from "./progress-registry"
+export { renderReceiptEmailHtml } from "./email-templates/receipt-email"
+export type { ReceiptEmailTemplateOptions } from "./email-templates/receipt-email"
 import "./steps/builtins"
 import "./progress/builtins"

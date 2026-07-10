@@ -30,5 +30,16 @@ export function createRestAdapter(options: RestAdapterOptions): FlowAdapter {
     async saveDraft(flowId, answers) {
       drafts.set(flowId, answers)
     },
+    async createResultLink(flowId, answers) {
+      const res = await fetchImpl(`${options.baseUrl}/flows/${flowId}/results`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...options.headers },
+        body: JSON.stringify(answers),
+      })
+      if (!res.ok) {
+        throw new Error(`Creazione link fallita: ${res.status} ${res.statusText}`)
+      }
+      return (await res.json()) as { id: string; url: string }
+    },
   }
 }

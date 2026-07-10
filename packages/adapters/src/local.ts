@@ -14,6 +14,10 @@ function submissionsKey(namespace: string, flowId: string) {
   return `${namespace}:submissions:${flowId}`
 }
 
+function resultKey(namespace: string, id: string) {
+  return `${namespace}:results:${id}`
+}
+
 /** Adapter che salva bozze e invii in localStorage (o storage compatibile iniettato). */
 export function createLocalAdapter(options: LocalAdapterOptions = {}): FlowAdapter {
   const storage = options.storage ?? (typeof window !== "undefined" ? window.localStorage : undefined)
@@ -37,6 +41,12 @@ export function createLocalAdapter(options: LocalAdapterOptions = {}): FlowAdapt
     },
     async saveDraft(flowId, answers) {
       storage.setItem(draftKey(namespace, flowId), JSON.stringify(answers))
+    },
+    async createResultLink(_flowId, answers) {
+      const id = crypto.randomUUID()
+      storage.setItem(resultKey(namespace, id), JSON.stringify(answers))
+      const origin = typeof window !== "undefined" ? window.location.origin + window.location.pathname : ""
+      return { id, url: `${origin}?result=${id}` }
     },
   }
 }

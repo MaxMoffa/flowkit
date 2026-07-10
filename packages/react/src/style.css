@@ -920,6 +920,12 @@
   margin: 0;
 }
 
+.fk-email-api-error {
+  font-size: 13px;
+  color: var(--fk-danger);
+  margin: 0;
+}
+
 .fk-pdf-export-btn,
 .fk-native-share-btn,
 .fk-result-link-btn,
