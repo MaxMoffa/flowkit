@@ -3,6 +3,7 @@ import type { Flow } from "@flowkit/core"
 import { customStepDemoFlow } from "./custom-step-demo"
 import { featuresDemoFlow } from "./features-demo"
 import { customIntroDemoFlow } from "./custom-intro-demo"
+import { resultActionsDemoFlow } from "./result-actions-demo"
 
 export const presets: Record<string, Flow> = {
   odori: odoriFlow,
@@ -10,6 +11,7 @@ export const presets: Record<string, Flow> = {
   "custom-step": customStepDemoFlow,
   "features-demo": featuresDemoFlow,
   "custom-intro": customIntroDemoFlow,
+  "result-actions-demo": resultActionsDemoFlow,
 }
 
 export const presetLabels: Record<string, string> = {
@@ -18,4 +20,5 @@ export const presetLabels: Record<string, string> = {
   "custom-step": "Step custom (demo)",
   "features-demo": "OAuth + Mappa (demo)",
   "custom-intro": "Intro & conferma custom (demo)",
+  "result-actions-demo": "Azioni sul risultato (demo)",
 }
