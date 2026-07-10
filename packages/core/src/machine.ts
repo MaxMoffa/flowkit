@@ -6,15 +6,17 @@ export interface OAuthResult {
   code?: string
   token?: string
   state?: string
+  /** true se l'utente ha scelto di procedere senza autenticarsi (vedi oauthStepSchema.allowAnonymous). */
+  anonymous?: boolean
 }
 
 export type AnswerValue =
   | string
   | number
   | string[]
-  | { text?: string; photo?: string }
   | OAuthResult
   | { lat?: number; lng?: number; address?: string; regionId?: string; pointId?: string }
+  | Record<string, unknown>
   | null
 
 export type Answers = Record<string, AnswerValue>

@@ -41,12 +41,26 @@ export function OAuthStepView({ step, value, onChange }: StepComponentProps<OAut
             className={`fk-oauth-btn ${connected?.providerId === provider.id ? "fk-oauth-btn-connected" : ""}`}
             onClick={() => void connect(provider)}
           >
-            <span className="fk-emoji">{providerIcons[provider.id] ?? "🔐"}</span>
+            <span className="fk-emoji">{provider.icon ?? providerIcons[provider.id] ?? "🔐"}</span>
             {connected?.providerId === provider.id ? `Connesso (${provider.id}) ✓` : `Continua con ${provider.id}`}
           </button>
         ))}
       </div>
-      {connected && (
+      {step.allowAnonymous && !connected?.anonymous && (
+        <button
+          type="button"
+          className="fk-link"
+          onClick={() => onChange({ providerId: "", anonymous: true })}
+        >
+          {step.anonymousLabel ?? "Continua senza account"}
+        </button>
+      )}
+      {connected?.anonymous && (
+        <button type="button" className="fk-link" onClick={() => onChange(null)}>
+          Continui in anonimo · Annulla
+        </button>
+      )}
+      {connected && !connected.anonymous && (
         <button type="button" className="fk-link" onClick={() => onChange(null)}>
           Disconnetti
         </button>

@@ -10,6 +10,8 @@ export const oauthProviderConfigSchema = z.object({
   redirectUri: z.string().min(1),
   usePkce: z.boolean().default(true),
   extraAuthorizeParams: z.record(z.string()).optional(),
+  /** Icona (emoji) del bottone provider. Se assente, si usa quella nota di default lato react. */
+  icon: z.string().optional(),
 })
 
 export const oauthStepSchema = z.object({
@@ -20,6 +22,9 @@ export const oauthStepSchema = z.object({
   required: z.boolean().default(true),
   icon: z.string().optional(),
   providers: z.array(oauthProviderConfigSchema).min(1),
+  /** Se true, mostra un'opzione per procedere senza autenticarsi (anonimo). */
+  allowAnonymous: z.boolean().default(false),
+  anonymousLabel: z.string().optional(),
 })
 
 export type OAuthStep = z.infer<typeof oauthStepSchema>
@@ -27,9 +32,11 @@ export type OAuthStep = z.infer<typeof oauthStepSchema>
 registerStepType({
   type: "oauth",
   schema: oauthStepSchema,
-  validate: (_step, value) => {
+  validate: (step, value) => {
     const result = value as OAuthResult | null
-    return Boolean(result && typeof result === "object" && (result.code || result.token))
+    if (!result || typeof result !== "object") return false
+    if (step.allowAnonymous && result.anonymous) return true
+    return Boolean(result.code || result.token)
   },
 })
 
