@@ -122,3 +122,57 @@
 - [x] `DECISIONS.md`: log decisioni pendenti (registry/StepTypeMap, ordine side-effect import, key={step.id}, CLI, Notion, e2e)
 - [x] `scripts/spec-check.mjs`: generalizzazione (già in v2.0, verificata coerente coi nuovi tipi oauth/location estesa)
 - [x] `pnpm verify` verde su tutto il monorepo esteso
+
+## v2.14 — Sfondo pagina/step da tema
+- [x] `packages/themes`: `partialTokensToCssVars`, tabella condivisa token→var
+- [x] `FlowRunner.tsx`: risolve `images.stepBackground[id|type]` → `--fk-image-step-background`
+- [x] CSS `.fk-root`: background cover/center dietro le card, nessuno scrim di default
+- [x] Test e2e (`theme-visual.spec.ts`, tema "showcase")
+
+## v2.15 — Override tema per singolo step
+- [x] `core/schema.ts`: campo `themeOverride` opzionale in `baseStepFields`
+- [x] `FlowRunner.tsx`: wrapper `.fk-step-theme-scope` con CSS var mergiate, scope solo sullo step corrente
+- [x] Test e2e (accento diverso solo sullo step con override)
+
+## v2.16 — Location: GPS sotto la mappa, stile neutro
+- [x] CSS `.fk-btn-neutral`, rimossa classe `.fk-link` dal bottone GPS
+- [x] `location.tsx`: bottone spostato sotto `.fk-map-canvas`
+- [x] Test e2e (posizione DOM + classe)
+
+## v2.17 — Location: toggle indipendenti mappa/ricerca/gps
+- [x] `core/location-step.ts`: campo `showSearch` (default true)
+- [x] `location.tsx`: render condizionale dei 3 blocchi, skip init maplibre se `showMap=false`
+- [x] Demo step per ogni combinazione in `features-demo.tsx`
+- [x] Test e2e (search-only, map-only, gps-only)
+
+## v2.18 — Location: reverse geocoding reale
+- [x] `core/geocoding.ts`: `reverseGeocode()` (Nominatim `/reverse`, mai throw)
+- [x] `core/location-step.ts`: `enableReverseGeocode` (default true), `reverseGeocodingEndpoint`
+- [x] `location.tsx`: effect debounced (500ms) su lat/lng, guard su ricerca forward appena eseguita
+- [x] `enableReverseGeocode: false` sullo step demo `pick-preset-point` (preserva il test coordinate raw)
+- [x] Test e2e (successo mockato + fallback su errore)
+- [x] Nota in DECISIONS.md: default `true` cambia l'etichetta visibile, non la validazione
+
+## v2.19 — Step "group": comporre più step in un'unica pagina
+- [x] `core/group-step.ts`: schema + parse ricorsivo dei figli + `validate` aggregato
+- [x] `react/steps/group.tsx`: rendering inline dei figli, valore aggregato `{ [childId]: value }`
+- [x] CSS layout `stack`/`columns`
+- [x] Demo step in `features-demo.tsx`, test e2e (validazione aggregata)
+
+## v2.20 — Header/footer: posizione configurabile da tema
+- [x] `themes`: `ThemeLayoutTokens.headerPosition/footerPosition`
+- [x] `FlowRunner.tsx`: CSS `order` su header/body/footer (nessun riordino JSX)
+- [x] Test e2e (tema "showcase", footer sopra l'header)
+
+## v2.21 — Barra di progresso: varianti bar/dots/hidden/custom
+- [x] `react/progress-registry.ts`: registry component (stesso pattern degli step)
+- [x] `BarProgress`/`DotsProgress` built-in, `theme.layout.progressVariant` seleziona
+- [x] CSS `.fk-progress-dots`
+- [x] Test e2e (variante dots visibile, barra assente)
+
+## v2.22 — Animazioni di transizione tra step da tema
+- [x] `themes`: `ThemeAnimationTokens.name/duration`
+- [x] `FlowRunner.tsx`: tracking direzione next/prev, classi `fk-anim-${name}-dir-${direction}` sul wrapper remounted
+- [x] CSS keyframes `fade`/`slide`, nessun cambiamento se `animation` assente/`"none"`
+- [x] Tema "showcase" per dimostrare tutte le feature v2.14-2.22 insieme
+- [x] Test e2e (classe applicata al cambio step)

@@ -408,6 +408,61 @@ da caricare): il pacchetto themes resta framework-agnostic, quindi l'iniezione d
 `<link rel="stylesheet">` nel DOM è responsabilità dell'app host (o di un renderer come
 `@flowkit/react`, in una versione futura con supporto integrato).
 
+### Sfondo pagina/step, posizione header/footer, barra di progresso, animazioni
+
+```ts
+const myTheme: Theme = {
+  name: "brand",
+  label: "Brand",
+  light: {
+    ...notionClean.light,
+    images: {
+      background: "/brand-bg.jpg",        // sfondo globale di tutte le pagine
+      stepBackground: { intro: "/brand-hero.jpg" }, // override per id o type di step
+    },
+    layout: {
+      headerPosition: "top",    // "top" (default) | "bottom"
+      footerPosition: "bottom", // "top" | "bottom" (default)
+      progressVariant: "dots",  // "bar" (default) | "dots" | "hidden" | chiave custom
+    },
+    animation: {
+      name: "slide", // "none" (default) | "fade" | "slide" | nome custom
+      duration: 250,  // ms
+    },
+  },
+  dark: notionClean.dark,
+}
+```
+
+Tutti opzionali: un tema che non li imposta si comporta esattamente come oggi. Lo
+sfondo (immagine o SVG, anche come data-URI) si applica dietro alle card, che restano
+opache. `progressVariant: "hidden"` nasconde solo la barra, non il bottone indietro.
+Una variante custom si registra come i componenti degli step:
+
+```ts
+import { registerProgressComponent } from "@flowkit/react"
+
+registerProgressComponent("mio-stile", ({ pct, currentIndex, total }) => (
+  <div>{currentIndex + 1} di {total} ({pct}%)</div>
+))
+// poi: theme.layout.progressVariant = "mio-stile"
+```
+
+Le animazioni `"fade"`/`"slide"` sono pronte all'uso; un nome diverso applica solo le
+classi `fk-anim-${name}-enter`/`fk-anim-${name}-dir-next|prev` al wrapper dello step,
+CSS/keyframes da fornire nell'app host — stesso approccio "porta il tuo CSS" dei temi
+custom.
+
+Il tema **"showcase"** (`themes.showcase` / selezionabile nel playground) mostra tutte
+queste feature insieme, a scopo dimostrativo.
+
+Anche un singolo step può sovrascrivere una parte del tema mentre è mostrato, col campo
+comune `themeOverride` (vedi [Campi comuni a ogni step](#campi-comuni-a-ogni-step)):
+
+```ts
+{ id: "quiz-finale", type: "scale", themeOverride: { accent: "#E56458" }, /* ... */ }
+```
+
 ### Creare un tema custom
 
 Non serve modificare `@flowkit/themes`: basta costruire un oggetto `Theme` compatibile
@@ -527,6 +582,7 @@ Ogni oggetto in `steps[]` — qualunque `type` abbia — accetta questi campi ba
 | `subtitle` | `string` | — | Sottotitolo/descrizione sotto il titolo |
 | `required` | `boolean` | `true` | Se `false`, lo step è sempre considerato valido: il bottone "Continua" non si blocca in attesa di una risposta |
 | `icon` | `string` (emoji) | — | Icona mostrata nella riga di riepilogo dello step `review` (se assente, viene usata un'icona di default in base al `type`) |
+| `themeOverride` | oggetto (sottoinsieme di token tema) | — | Sovrascrive alcuni token del tema (colori, radii, immagini) solo mentre questo step è mostrato, es. `{ accent: "#E56458" }`. Vedi [Configurare un tema](#configurare-un-tema) |
 
 L'ordine di `steps[]` è l'ordine di navigazione. Non esiste un concetto di step
 condizionale/ramificazione: se ti serve, componi flow diversi e scegli quale montare
@@ -560,17 +616,30 @@ mappa, geocoding).
 | Campo | Tipo | Default | Note |
 |---|---|---|---|
 | `placeholder` | `string` | `"Cerca un indirizzo"` | Placeholder della barra di ricerca indirizzo |
-| `showMap` | `boolean` | `true` | Riservato per retro-compatibilità; la mappa reale è sempre mostrata |
+| `showMap` | `boolean` | `true` | Mostra/nasconde la mappa. Se `false`, la posizione si imposta solo via ricerca e/o GPS (`selectionMode` viene ignorato) |
+| `showSearch` | `boolean` | `true` | Mostra/nasconde la barra di ricerca indirizzo |
+| `enableGps` | `boolean` | `true` | Mostra/nasconde il bottone "usa la mia posizione", renderizzato sotto la mappa con stile neutro (non colore accento) |
+| `gpsButtonLabel` | `string` | `"Usa la mia posizione"` | Testo del bottone GPS |
+| `gpsGuideTitle`/`gpsGuideText` | `string` | testo di default | Titolo/testo del popup guida mostrato quando il permesso di geolocalizzazione è negato/bloccato |
+| `enableReverseGeocode` | `boolean` | `true` | Dopo GPS/click/drag sulla mappa, risolve automaticamente le coordinate in un indirizzo leggibile (Nominatim `/reverse` o endpoint custom); se `false` o la richiesta fallisce, resta il fallback "lat, lng" |
+| `reverseGeocodingEndpoint` | `string` | endpoint pubblico Nominatim `/reverse` | Endpoint di reverse geocoding, sostituibile |
 | `detectedSubLabel` | `string` | — | Riga secondaria sotto l'indirizzo/coordinate selezionate |
 | `styleUrl` | `string` | stile demo pubblico maplibre | URL dello stile mappa, sostituibile |
-| `geocodingEndpoint` | `string` | endpoint pubblico Nominatim | Endpoint di ricerca luoghi, sostituibile (es. server self-hosted) |
-| `selectionMode` | vedi [Step Mappa](#step-mappa-maplibre-gl) | `{ kind: "point" }` | Cosa significa "selezionare" sulla mappa |
+| `geocodingEndpoint` | `string` | endpoint pubblico Nominatim `/search` | Endpoint di ricerca luoghi (forward), sostituibile (es. server self-hosted) |
+| `selectionMode` | vedi [Step Mappa](#step-mappa-maplibre-gl) | `{ kind: "point" }` | Cosa significa "selezionare" sulla mappa (ignorato se `showMap: false`) |
 | `initialCenter` | `{ lat, lng, zoom? }` | Roma, zoom 11 | Centro/zoom iniziali della mappa |
 | `extraMarkers` | `{ lat, lng, label? }[]` | — | Marker decorativi aggiuntivi, non selezionabili |
+
+`showMap`, `showSearch` ed `enableGps` sono indipendenti: puoi combinarli a piacere (solo
+ricerca, solo mappa, solo GPS, o qualunque combinazione) per adattare lo step a casi
+diversi senza dover scegliere fra più tipi di step.
 
 ```ts
 { id: "location", type: "location", title: "Dove lo senti?",
   subtitle: "Cerca un indirizzo o clicca direttamente sulla mappa." }
+
+// Solo GPS, niente mappa né ricerca:
+{ id: "location-gps-only", type: "location", showMap: false, showSearch: false }
 ```
 
 #### `select-cards`
@@ -756,6 +825,28 @@ Schermata finale, senza header/progress bar; footer con due bottoni. Componente:
 { id: "confirmation", type: "confirmation", title: "Grazie!",
   message: "La tua segnalazione è stata registrata.",
   stats: [{ value: "35", label: "segnalazioni oggi in zona" }, { value: "#12", label: "la tua di oggi" }] }
+```
+
+#### `group`
+
+Compone più step in un'unica pagina, senza navigazione propria: conta come un normale
+step del flow. Il valore risposta è un oggetto aggregato `{ [childId]: valore }` — le
+risposte dei figli restano annidate sotto l'id del gruppo, non flat nelle `Answers` di
+primo livello. Il bottone "Continua" resta disabilitato finché tutti i figli
+`required` (default `true`) non hanno una risposta valida. Componente: `GroupStepView`.
+
+| Campo | Tipo | Default | Note |
+|---|---|---|---|
+| `layout` | `"stack" \| "columns"` | `"stack"` | `"stack"`: figli impilati verticalmente. `"columns"`: figli affiancati, a capo su schermi stretti |
+| `steps` | `Step[]` | — (min 1) | Step figli, stessa sintassi di `steps[]` a livello di flow (qualunque tipo registrato, incluso `group` stesso, non testato/consigliato) |
+
+```ts
+{ id: "quick-group", type: "group", title: "Un paio di domande veloci", layout: "stack",
+  steps: [
+    { id: "satisfaction", type: "scale", title: "Quanto sei soddisfatto?", min: 1, max: 5 },
+    { id: "liked", type: "chips", title: "Cosa ti è piaciuto?", multiple: true,
+      options: [{ value: "velocita", label: "Velocità" }, { value: "facilita", label: "Facilità" }] },
+  ] }
 ```
 
 ## Step OAuth
@@ -1068,10 +1159,19 @@ ora:
 - `oauth-step.spec.ts` — intercetta il redirect OAuth e verifica i parametri
   dell'authorize URL (`client_id`, `redirect_uri`, PKCE).
 - `map-step.spec.ts` — mappa reale: selezione `point` via click, `preset-points` via
-  marker, ricerca geocoding reale (Nominatim).
+  marker, ricerca geocoding reale (Nominatim), combinazioni `showMap`/`showSearch`/
+  `enableGps`, posizione/stile del bottone GPS, reverse geocoding (mockato, successo
+  e fallback su errore).
+- `group-step.spec.ts` — step `group`: rendering dei figli inline, validazione
+  aggregata (bottone "Continua" bloccato finché tutti i figli richiesti non hanno
+  risposta).
 - `cli-scaffold.spec.ts` — lancia `flowkit-init`/`create-flowkit` in una cartella
   temporanea, in modalità non interattiva (`--framework react --no-install`), e
   ispeziona i file generati.
+
+`theme-visual.spec.ts` copre anche il tema `showcase`: sfondo pagina, barra di
+progresso a pallini, footer sopra l'header, animazione di transizione, e l'override
+tema per singolo step (`themeOverride`).
 
 ```bash
 npm run build --workspace=@flowkit/create-flowkit   # necessario prima di cli-scaffold.spec.ts

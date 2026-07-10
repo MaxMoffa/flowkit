@@ -141,3 +141,50 @@ Note delle scelte prese in autonomia (lavoro headless, nessuna domanda all'utent
   destinazione deve quindi avere (almeno) le property `flowId` (testo) e `draft`
   (checkbox) oltre a una property per ciascuna risposta che si vuole mappare, oppure un
   `mapAnswersToProperties` custom che le gestisca diversamente.
+- **Sfondo pagina/step + override tema per-step (v2.14/v2.15)**: `images.background`/
+  `images.stepBackground` erano già nel tipo `ThemeTokens` ma mai consumati; niente nuovo
+  campo, solo CSS + risoluzione in `FlowRunner`. `themeOverride` per-step è in
+  `baseStepFields` (core) ma tipizzato `z.record(z.string(), z.unknown())`, non
+  `Partial<ThemeTokens>`: `packages/core` non dipende da `@flowkit/themes` (solo `zod`),
+  mantenerlo così evita di introdurre quella dipendenza solo per un tipo. La mappatura in
+  CSS var (`partialTokensToCssVars`) e quindi la validazione "di fatto" dei campi
+  accettati vive in `@flowkit/react`. Scoping: wrapper `.fk-step-theme-scope` attorno al
+  solo step corrente (dentro `.fk-scroll`), non sul div `.fk-theme` globale — così le
+  variabili CSS ridichiarate lì si applicano in cascata solo ai discendenti di quello
+  step, senza toccare header/footer.
+- **`url(...)` nei valori CSS derivati dal tema**: valori come data-URI SVG contengono
+  spazi non quotati; `url(non-quotato con spazi)` è sintatticamente invalido e fa
+  fallback silenzioso della proprietà CSS all'initial value (bug reale trovato scrivendo
+  i test e2e del tema "showcase": lo sfondo pagina risultava `background-image: none`).
+  Fix: `tokensToCssVars`/`partialTokensToCssVars` ora emettono `url("...")` quotato.
+- **Step "group" (v2.19)**: le risposte dei figli restano annidate sotto l'id del gruppo
+  (`answers[group.id] = { [childId]: value }`), non flat nel top-level `answers`. Scelta
+  per evitare qualunque modifica a `canGoNext`/`progress`/`next`/`prev` nella state
+  machine di `packages/core`: il gruppo è un normalissimo step "foglia" (nessun `role`
+  speciale) il cui `validate` aggrega i validator dei figli. Il tipo `GroupStep` non è
+  stato aggiunto a `StepTypeMap`/`Step` in `schema.ts` perché creerebbe una dipendenza
+  circolare di tipi (`Step` → `GroupStep` → `Step[]` via `parseStep`); il componente
+  React riceve `StepComponentProps` generico e fa il cast interno, stesso compromesso
+  già accettato altrove per gli step con `role` custom.
+- **Header/footer/progress/animazioni da tema (v2.20/v2.21/v2.22)**: tutti opzionali su
+  `ThemeTokens.layout`/`ThemeTokens.animation`, nessun default visibile diverso da oggi.
+  Riordino header/footer via CSS `order` (non riordino JSX) per non duplicare la logica
+  di rendering; i 4 valori (`header-top`, `header-bottom`, `footer-top`, `footer-bottom`)
+  hanno order distinti (1/3, 0/4) per evitare pareggi che farebbero vincere sempre
+  l'ordine di scrittura nel JSX (bug reale trovato scrivendo il test e2e: con
+  `footerPosition: "top"` e header default, a parità di `order` il footer restava sotto
+  perché scritto dopo nel JSX). Barra di progresso: registry component
+  (`registerProgressComponent`) identico al pattern già usato per gli step, per
+  coerenza mentale con chi già estende flowkit. Animazioni: nessun meccanismo di
+  iniezione CSS per i preset custom, il consumer porta le proprie keyframes/classi
+  `fk-anim-${name}-*`, coerente con l'approccio "porta il tuo CSS" già usato per i temi.
+- **Tema "showcase" (v2.14-2.22)**: aggiunto come 6° tema selezionabile nel playground
+  per rendere le nuove feature di tema (altrimenti invisibili senza configurazione)
+  raggiungibili e testabili end-to-end con Playwright attraverso la UI reale, invece che
+  solo con test unitari. Non pensato per uso in produzione.
+- **`enableReverseGeocode` default `true` (v2.18)**: cambia il comportamento visibile di
+  default (prima non c'era reverse geocoding, coordinate GPS/click mostrate raw) ma non
+  tocca la validazione né il valore salvato (`{lat,lng}`), solo l'etichetta mostrata.
+  Fallback silenzioso su qualunque errore di rete/HTTP. Il demo step
+  `pick-preset-point` in `features-demo.tsx` lo disabilita esplicitamente perché il suo
+  test e2e verifica le coordinate raw esatte, che il reverse geocode sovrascriverebbe.
