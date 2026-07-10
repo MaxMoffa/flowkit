@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build -w packages/core -w packages/themes && npm run build -w packages/adapters -w packages/presets -w packages/react -w packages/create-flowkit && npm run build -w apps/playground --if-present",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build && node scripts/spec-check.mjs"
   },
   "devDependencies": {
