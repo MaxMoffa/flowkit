@@ -25,7 +25,7 @@ implementati** in questa versione — la CLI e questa documentazione trattano og
 React; le sezioni relative agli altri framework torneranno quando i pacchetti
 corrispondenti esisteranno.
 
-Monorepo pnpm composto da:
+Monorepo npm (workspaces) composto da:
 
 ```
 packages/core            # schema Flow/Step (zod), registry step aperto, macchina a stati, oauth, geocoding, i18n
@@ -69,17 +69,17 @@ il rendering vive solo nel pacchetto del framework scelto (oggi: `@flowkit/react
 
 ## Installazione
 
-Requisiti: Node 18+ e [pnpm](https://pnpm.io) (usato dal monorepo per i workspace).
+Requisiti: Node 18+ e npm (usato dal monorepo per i workspace).
 
 ```bash
-pnpm install
+npm install
 ```
 
 Se consumi Flowkit da un altro progetto (non da questo monorepo), installa i pacchetti
 che ti servono dal registry dove li hai pubblicati:
 
 ```bash
-pnpm add @flowkit/core @flowkit/react @flowkit/themes @flowkit/adapters
+npm install @flowkit/core @flowkit/react @flowkit/themes @flowkit/adapters
 ```
 
 > **Nota**: i pacchetti `@flowkit/*` non sono ancora pubblicati su un registry pubblico
@@ -133,7 +133,7 @@ funzionano pipando stdin.
 ## Quickstart: playground
 
 ```bash
-pnpm --filter @flowkit/playground dev
+npm run dev --workspace=@flowkit/playground
 ```
 
 Apri l'URL stampato da Vite. La pagina mostra:
@@ -1001,16 +1001,16 @@ Il playground include anche due demo aggiuntive (non pacchetti a sé, solo esemp
 ## Script del monorepo
 
 ```bash
-pnpm lint        # eslint su tutto il monorepo
-pnpm typecheck   # tsc --noEmit (usa i sorgenti dei pacchetti via `paths`, non i dist)
-pnpm test        # vitest (unit test: core, themes, adapters, react registry, CLI)
-pnpm build       # build di tutti i pacchetti (tsup) + playground (vite build)
-pnpm verify      # lint + typecheck + test + build + scripts/spec-check.mjs
-pnpm test:e2e    # Playwright, non incluso in `verify` (più lento, richiede browser)
+npm run lint        # eslint su tutto il monorepo
+npm run typecheck   # tsc --noEmit (usa i sorgenti dei pacchetti via `paths`, non i dist)
+npm run test        # vitest (unit test: core, themes, adapters, react registry, CLI)
+npm run build       # build di tutti i pacchetti (tsup) + playground (vite build)
+npm run verify      # lint + typecheck + test + build + scripts/spec-check.mjs
+npm run test:e2e    # Playwright, non incluso in `verify` (più lento, richiede browser)
 ```
 
-`pnpm verify` è il gate di "definizione di fatto" del progetto (vedi `CLAUDE.md`):
-deve passare prima di considerare un task completo. `pnpm test:e2e` gira separatamente
+`npm run verify` è il gate di "definizione di fatto" del progetto (vedi `CLAUDE.md`):
+deve passare prima di considerare un task completo. `npm run test:e2e` gira separatamente
 (anche in CI, workflow dedicato) perché comporta build+preview del playground e
 avvio di un browser: più lento, non pensato per il ciclo rapido di `verify`.
 
@@ -1020,7 +1020,7 @@ avvio di un browser: più lento, non pensato per il ciclo rapido di `verify`.
 playground in dev, devi ribuildare il pacchetto toccato prima di ricaricare la pagina:
 
 ```bash
-pnpm --filter @flowkit/react --filter @flowkit/core build
+npm run build --workspace=@flowkit/react --workspace=@flowkit/core
 ```
 
 (`packages/react/src/style.css` fa eccezione: è importato per path diretto, quindi le
@@ -1044,9 +1044,9 @@ ora:
   ispeziona i file generati.
 
 ```bash
-pnpm --filter @flowkit/create-flowkit build   # necessario prima di cli-scaffold.spec.ts
-npx playwright install chromium               # una tantum
-pnpm test:e2e
+npm run build --workspace=@flowkit/create-flowkit   # necessario prima di cli-scaffold.spec.ts
+npx playwright install chromium                     # una tantum
+npm run test:e2e
 ```
 
 Gira anche in CI (`.github/workflows/e2e.yml`), separato dal gate di `verify`

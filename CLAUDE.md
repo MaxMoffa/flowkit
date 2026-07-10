@@ -1,7 +1,7 @@
 # Flowkit — istruzioni per l'agente
 
 Libreria open source React per comporre \"flow\" guidati e themeable da un config.
-Monorepo pnpm. Target: React 18 + TypeScript. Build: Vite (playground) e tsup (pacchetti).
+Monorepo npm (workspaces). Target: React 18 + TypeScript. Build: Vite (playground) e tsup (pacchetti).
 Validazione config con zod. Test con vitest. Lint con eslint.
 
 ## Struttura dei pacchetti
@@ -27,11 +27,11 @@ text/number/email, review, confirmation.
 ## Regole di lavoro
 - Lavora un task alla volta, dal primo non spuntato in TASKS.md.
 - Commit piccoli e attomici, un commit per task, messaggi in imperativo.
-- Dopo ogni modifica esegui `pnpm verify` e correggi finché non passa.
+- Dopo ogni modifica esegui `npm run verify` e correggi finché non passa.
 - Non fare domande (headless): prendi decisioni ragionevoli e annotale in DECISIONS.md.
 - Non toccare file fuori dal repo. Niente `git push --force`. Niente rimozione dati.
 - Se lo stesso errore si ripete 3 volte, scrivi BLOCKED.md con causa e ipotesi, poi fermati.
 - Aggiorna TASKS.md spuntando i task completati.
 
 ## Definizione di \"fatto\"
-Il progetto è completo quando `pnpm verify` passa: vedi scripts/spec-check.mjs e i test.
+Il progetto è completo quando `npm run verify` passa: vedi scripts/spec-check.mjs e i test.

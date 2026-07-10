@@ -1,6 +1,0 @@
-packages:
-  - "packages/*"
-  - "apps/*"
-  - "!packages/create-flowkit/templates/**"
-allowBuilds:
-  esbuild: true

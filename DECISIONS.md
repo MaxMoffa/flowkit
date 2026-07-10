@@ -2,6 +2,16 @@
 
 Note delle scelte prese in autonomia (lavoro headless, nessuna domanda all'utente).
 
+- **Migrazione pnpm → npm**: monorepo convertito a npm workspaces su richiesta esplicita.
+  `pnpm-workspace.yaml` rimosso, `workspaces` dichiarato in `package.json` root
+  (`["packages/*", "apps/*"]` — l'esclusione dei template di `create-flowkit` non serve:
+  `packages/create-flowkit/templates/**` non è un child diretto di `packages/*`, npm non
+  lo tratta come workspace). Dipendenze interne `"workspace:*"` → `"*"`. `allowBuilds.esbuild`
+  (gate build-script pnpm-specific) non ha equivalente: npm esegue gli script di build dei
+  pacchetti senza approvazione interattiva. Lockfile `pnpm-lock.yaml` sostituito da
+  `package-lock.json`. Le voci storiche più sotto restano invariate (documentano lo stato
+  al momento in cui furono prese).
+
 - **Package manager build**: pnpm non era installato nell'ambiente; installato via
   `npm install -g pnpm` (corepack non aveva permessi per il symlink globale).
 - **Composite TS project references**: abbandonato l'approccio `tsc -b` con progetti

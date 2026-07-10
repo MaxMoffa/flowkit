@@ -2,14 +2,14 @@
   "name": "flowkit",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.10.0",
+  "workspaces": ["packages/*", "apps/*"],
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "build": "pnpm -r build",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && node scripts/spec-check.mjs"
+    "build": "npm run build --workspaces --if-present",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && node scripts/spec-check.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

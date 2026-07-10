@@ -15,7 +15,7 @@
     "build": "tsup src/index.ts --format esm --dts --clean"
   },
   "dependencies": {
-    "@flowkit/core": "workspace:*"
+    "@flowkit/core": "*"
   },
   "devDependencies": {
     "tsup": "^8.3.5"

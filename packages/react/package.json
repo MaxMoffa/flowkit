@@ -20,8 +20,8 @@
     "react-dom": "^18.3.1"
   },
   "dependencies": {
-    "@flowkit/core": "workspace:*",
-    "@flowkit/themes": "workspace:*",
+    "@flowkit/core": "*",
+    "@flowkit/themes": "*",
     "maplibre-gl": "^4.7.1"
   },
   "devDependencies": {

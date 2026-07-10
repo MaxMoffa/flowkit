@@ -9,11 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@flowkit/core": "workspace:*",
-    "@flowkit/react": "workspace:*",
-    "@flowkit/themes": "workspace:*",
-    "@flowkit/adapters": "workspace:*",
-    "@flowkit/presets": "workspace:*",
+    "@flowkit/core": "*",
+    "@flowkit/react": "*",
+    "@flowkit/themes": "*",
+    "@flowkit/adapters": "*",
+    "@flowkit/presets": "*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.24.1"
