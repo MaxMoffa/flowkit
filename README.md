@@ -294,6 +294,36 @@ ma va castato a `Step` quando lo inserisci in un array `steps[]` tipizzato. Vedi
 esempio completo funzionante in `apps/playground/src/custom-step-demo.tsx` (preset
 "Step custom (demo)" nel playground).
 
+### Intro/conferma personalizzate (`role`)
+
+Gli step `intro` e `confirmation` sono "step di ruolo": `FlowRunner` nasconde per loro
+header/progress bar e guida il footer sticky (CTA in basso, o i due bottoni finali della
+conferma) leggendo genericamente i campi `cta`/`primaryCta`/`secondaryCta` dallo step
+corrente — non serve che sia letteralmente di `type: "intro"`/`"confirmation"`.
+
+Se vuoi sostituire *tutto* il contenuto sopra il CTA (utile per farne una mini landing
+page, o per una schermata finale con condivisione social/testimonial custom), registra
+un tuo step type con lo stesso meccanismo di uno step personalizzato, aggiungendo
+`role: "intro"` oppure `role: "confirmation"` alla registrazione:
+
+```ts
+registerStepType({
+  type: "intro-hero",
+  schema: introHeroStepSchema, // include un campo "cta" come l'intro standard
+  validate: () => true,
+  role: "intro", // FlowRunner nasconde l'header e legge "cta" da questo step
+})
+```
+
+Il componente React registrato per `"intro-hero"` può renderizzare qualsiasi JSX: il
+footer sticky con il CTA resta quello standard di `FlowRunner`, generato in automatico.
+Lo stesso vale per `role: "confirmation"` (il footer standard legge `primaryCta`/
+`secondaryCta` dallo step). Gli step built-in `intro`/`confirmation` restano invariati e
+pienamente retrocompatibili — `role` è opzionale e serve solo a chi vuole sostituirli.
+
+Esempio completo (`intro-hero` + `confirmation-hero`) in
+`apps/playground/src/custom-intro-demo.tsx` (preset "Intro & conferma custom (demo)").
+
 ## Configurare un tema
 
 Un tema (`packages/themes/src/index.ts`) ha questa forma:

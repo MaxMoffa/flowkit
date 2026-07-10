@@ -17,6 +17,26 @@
   box-sizing: border-box;
 }
 
+/* Adattamento desktop: oltre i breakpoint mobile, contieni il flow in una
+   colonna centrata invece di lasciarlo stirare full-bleed sull'intera larghezza. */
+@media (min-width: 640px) {
+  .fk-theme {
+    max-width: 480px;
+    margin-inline: auto;
+    min-height: 100vh;
+    box-shadow: 0 0 0 1px var(--fk-border);
+  }
+}
+
+@media (min-width: 768px) {
+  .fk-header,
+  .fk-scroll,
+  .fk-scroll-noheader,
+  .fk-footer {
+    padding-inline: var(--fk-space-xxl);
+  }
+}
+
 /* Header: back button + progress + step counter */
 .fk-header {
   display: flex;
@@ -236,6 +256,29 @@
   max-width: 280px;
   margin-inline: auto;
   margin-bottom: 0;
+}
+
+/* Intro/conferma completamente custom (demo playground: role "intro"/"confirmation") */
+.fk-step-intro-hero,
+.fk-step-confirmation-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--fk-space-md);
+}
+
+.fk-intro-hero-image {
+  font-size: 56px;
+}
+
+.fk-intro-hero-quote {
+  max-width: 320px;
+  margin: 0 auto;
+  color: var(--fk-text2);
+  font-style: italic;
 }
 
 /* Location + map (maplibre-gl) */

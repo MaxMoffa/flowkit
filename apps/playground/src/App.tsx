@@ -6,12 +6,14 @@ import { odoriFlow, feedbackFlow } from "@flowkit/presets"
 import type { Answers, Flow } from "@flowkit/core"
 import { customStepDemoFlow } from "./custom-step-demo"
 import { featuresDemoFlow } from "./features-demo"
+import { customIntroDemoFlow } from "./custom-intro-demo"
 
 const presets: Record<string, Flow> = {
   odori: odoriFlow,
   feedback: feedbackFlow,
   "custom-step": customStepDemoFlow,
   "features-demo": featuresDemoFlow,
+  "custom-intro": customIntroDemoFlow,
 }
 
 const presetLabels: Record<string, string> = {
@@ -19,9 +21,12 @@ const presetLabels: Record<string, string> = {
   feedback: "Feedback",
   "custom-step": "Step custom (demo)",
   "features-demo": "OAuth + Mappa (demo)",
+  "custom-intro": "Intro & conferma custom (demo)",
 }
 
 const adapter = createLocalAdapter({ namespace: "flowkit-playground" })
+
+type SimWidth = 390 | 768 | null
 
 export function App() {
   const [presetKey, setPresetKey] = useState<keyof typeof presets>("odori")
@@ -29,6 +34,8 @@ export function App() {
   const [mode, setMode] = useState<ThemeMode>("light")
   const [runKey, setRunKey] = useState(0)
   const [lastSubmission, setLastSubmission] = useState<Answers | null>(null)
+  const [fullscreen, setFullscreen] = useState(false)
+  const [simWidth, setSimWidth] = useState<SimWidth>(null)
 
   const flow = presets[presetKey]!
   const theme = themes[themeKey]!
@@ -89,6 +96,9 @@ export function App() {
         <button type="button" onClick={restart}>
           ↺ Ricomincia
         </button>
+        <button type="button" onClick={() => setFullscreen(true)} aria-label="Anteprima fullscreen">
+          ⛶ Anteprima fullscreen
+        </button>
       </div>
 
       <div
@@ -145,6 +155,51 @@ export function App() {
           Codice su GitHub
         </a>
       </footer>
+
+      {fullscreen && (
+        <div className="pg-fullscreen-overlay" data-pg-mode={mode}>
+          <div className="pg-fullscreen-bar">
+            <div className="pg-fullscreen-sim">
+              <button
+                type="button"
+                className={simWidth === 390 ? "pg-sim-active" : ""}
+                onClick={() => setSimWidth(390)}
+              >
+                Mobile 390px
+              </button>
+              <button
+                type="button"
+                className={simWidth === 768 ? "pg-sim-active" : ""}
+                onClick={() => setSimWidth(768)}
+              >
+                Tablet 768px
+              </button>
+              <button
+                type="button"
+                className={simWidth === null ? "pg-sim-active" : ""}
+                onClick={() => setSimWidth(null)}
+              >
+                Desktop (100%)
+              </button>
+            </div>
+            <button type="button" onClick={() => setFullscreen(false)} aria-label="Chiudi anteprima fullscreen">
+              ✕ Chiudi
+            </button>
+          </div>
+          <div className="pg-fullscreen-frame" style={{ width: simWidth ?? "100%" }}>
+            <FlowRunner
+              key={`fullscreen-${presetKey}-${runKey}`}
+              flow={flow}
+              theme={theme}
+              mode={mode}
+              onSubmit={async (answers) => {
+                await adapter.submit(flow.id, answers)
+                setLastSubmission(answers)
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

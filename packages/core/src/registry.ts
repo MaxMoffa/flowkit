@@ -9,6 +9,8 @@ export interface StepTypeDefinition<TStep = unknown, TValue = unknown> {
   type: string
   schema: z.ZodType<TStep, z.ZodTypeDef, unknown>
   validate: (step: TStep, value: TValue, answers: Record<string, unknown>) => boolean
+  /** Ruolo opzionale nel wizard: nasconde l'header e guida CTA/footer di FlowRunner. */
+  role?: "intro" | "confirmation"
 }
 
 const registry = new Map<string, StepTypeDefinition>()

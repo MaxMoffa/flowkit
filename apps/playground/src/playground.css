@@ -106,6 +106,55 @@ body {
   flex-direction: column;
 }
 
+.pg-fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #f4f3f1;
+  display: flex;
+  flex-direction: column;
+}
+
+.pg-fullscreen-overlay[data-pg-mode="dark"] {
+  background: #16161a;
+}
+
+.pg-fullscreen-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.pg-fullscreen-sim {
+  display: flex;
+  gap: 8px;
+}
+
+.pg-fullscreen-sim button {
+  border-radius: 8px;
+}
+
+.pg-sim-active {
+  background: #2783de;
+  color: white;
+  border-color: #2783de;
+}
+
+.pg-fullscreen-frame {
+  flex: 1;
+  margin-inline: auto;
+  max-width: 100%;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
 .pg-notch {
   position: absolute;
   top: 0;

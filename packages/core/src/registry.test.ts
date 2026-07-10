@@ -10,6 +10,23 @@ describe("step type registry", () => {
     expect(types.length).toBeGreaterThanOrEqual(12)
   })
 
+  it("tags built-in intro/confirmation with the matching role", () => {
+    expect(getStepTypeDefinition("intro")?.role).toBe("intro")
+    expect(getStepTypeDefinition("confirmation")?.role).toBe("confirmation")
+    expect(getStepTypeDefinition("text")?.role).toBeUndefined()
+  })
+
+  it("propagates a custom role through registerStepType", () => {
+    registerStepType({
+      type: "intro-custom-test",
+      schema: z.object({ id: z.string(), type: z.literal("intro-custom-test") }),
+      validate: () => true,
+      role: "intro",
+    })
+
+    expect(getStepTypeDefinition("intro-custom-test")?.role).toBe("intro")
+  })
+
   it("allows registering a custom step type and using it in a flow", () => {
     const ratingStarsSchema = z.object({
       id: z.string(),

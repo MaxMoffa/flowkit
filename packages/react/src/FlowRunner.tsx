@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react"
-import type { Answers, ConfirmationStep, Flow, IntroStep, Step } from "@flowkit/core"
+import type { Answers, Flow } from "@flowkit/core"
 import {
   canGoNext,
   createFlowState,
   getCurrentStep,
+  getStepTypeDefinition,
   isFirstStep,
   isLastStep,
   next as nextState,
@@ -16,13 +17,9 @@ import { getStepComponent } from "./registry"
 import { ThemeProvider } from "./ThemeProvider"
 import type { FlowSubmitHandler } from "./types"
 
-function isIntroStep(step: Step): step is IntroStep {
-  return step.type === "intro"
-}
-
-function isConfirmationStep(step: Step): step is ConfirmationStep {
-  return step.type === "confirmation"
-}
+/** Step con ruolo "intro": campi standard opzionali, sempre presenti su intro/confirmation built-in, opzionali su step custom con lo stesso ruolo. */
+type StepWithIntroFields = { cta?: string }
+type StepWithConfirmationFields = { secondaryCta?: string; primaryCta?: string }
 
 export interface FlowRunnerProps {
   flow: Flow
@@ -47,11 +44,14 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const pct = useMemo(() => Math.round(flowProgress(flow, state) * 100), [flow, state])
 
   const middleSteps = useMemo(
-    () => flow.steps.filter((s) => s.type !== "intro" && s.type !== "confirmation"),
+    () => flow.steps.filter((s) => !getStepTypeDefinition(s.type)?.role),
     [flow],
   )
   const middleIndex = middleSteps.findIndex((s) => s.id === step.id)
-  const showHeader = step.type !== "intro" && step.type !== "confirmation"
+  const stepRole = getStepTypeDefinition(step.type)?.role
+  const isIntro = stepRole === "intro"
+  const isConfirmation = stepRole === "confirmation"
+  const showHeader = !isIntro && !isConfirmation
 
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
     const nextAnswers = setAnswer(state, step.id, value)
@@ -75,7 +75,11 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   }
 
   const primaryLabel =
-    step.type === "review" ? "Invia segnalazione ✓" : isIntroStep(step) ? step.cta : "Continua"
+    step.type === "review"
+      ? "Invia segnalazione ✓"
+      : isIntro
+        ? ((step as StepWithIntroFields).cta ?? "Continua")
+        : "Continua"
 
   return (
     <ThemeProvider theme={theme} mode={mode}>
@@ -100,7 +104,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
           </div>
         )}
         <div className="fk-body">
-          <div className={showHeader ? "fk-scroll" : undefined}>
+          <div className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}`}>
             <StepView
               key={step.id}
               step={step}
@@ -125,13 +129,13 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
             </div>
           </div>
         )}
-        {last && isConfirmationStep(step) && (
+        {last && isConfirmation && (
           <div className="fk-footer">
             <button type="button" className="fk-btn-secondary" onClick={handleRestart}>
-              {step.secondaryCta ?? "Nuova segnalazione"}
+              {(step as StepWithConfirmationFields).secondaryCta ?? "Nuova segnalazione"}
             </button>
             <button type="button" className="fk-btn-primary" onClick={handleRestart}>
-              {step.primaryCta ?? "Torna alla home"}
+              {(step as StepWithConfirmationFields).primaryCta ?? "Torna alla home"}
             </button>
           </div>
         )}

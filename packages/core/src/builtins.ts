@@ -23,6 +23,7 @@ registerStepType({
   type: "intro",
   schema: introStepSchema,
   validate: () => true,
+  role: "intro",
 })
 
 registerStepType({
@@ -110,4 +111,5 @@ registerStepType({
   type: "confirmation",
   schema: confirmationStepSchema,
   validate: () => true,
+  role: "confirmation",
 })
