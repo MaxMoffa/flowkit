@@ -7,3 +7,8 @@ dist
 test-results
 playwright-report
 blob-report
+
+# Local-only agent workflow files (not published, not needed by anyone cloning the repo)
+CLAUDE.md
+DECISIONS.md
+TASKS.md
