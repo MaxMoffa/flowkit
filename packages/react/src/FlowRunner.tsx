@@ -13,8 +13,8 @@ import {
   progress as flowProgress,
   setAnswer,
 } from "@flowkit/core"
-import type { Theme, ThemeMode } from "@flowkit/themes"
-import { notionClean } from "@flowkit/themes"
+import type { Theme, ThemeMode, ThemeTokens } from "@flowkit/themes"
+import { notionClean, partialTokensToCssVars } from "@flowkit/themes"
 import { getStepComponent } from "./registry"
 import { ThemeProvider } from "./ThemeProvider"
 import type { FlowSubmitHandler } from "./types"
@@ -62,6 +62,11 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     resolvedTokens.images?.stepBackground?.[step.type]
   const rootStyle: CSSProperties | undefined = stepBgUrl
     ? ({ "--fk-image-step-background": `url(${stepBgUrl})` } as CSSProperties)
+    : undefined
+
+  const themeOverride = (step as { themeOverride?: Partial<ThemeTokens> }).themeOverride
+  const stepThemeVars: CSSProperties | undefined = themeOverride
+    ? (partialTokensToCssVars(themeOverride) as CSSProperties)
     : undefined
 
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
@@ -116,14 +121,16 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
         )}
         <div className="fk-body">
           <div className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}`}>
-            <StepView
-              key={step.id}
-              step={step}
-              value={state.answers[step.id] ?? null}
-              onChange={handleChange}
-              flow={flow}
-              answers={state.answers}
-            />
+            <div className="fk-step-theme-scope" style={stepThemeVars}>
+              <StepView
+                key={step.id}
+                step={step}
+                value={state.answers[step.id] ?? null}
+                onChange={handleChange}
+                flow={flow}
+                answers={state.answers}
+              />
+            </div>
           </div>
         </div>
         {!last && (

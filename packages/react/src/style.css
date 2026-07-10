@@ -87,6 +87,10 @@
   flex: none;
 }
 
+.fk-step-theme-scope {
+  display: contents;
+}
+
 .fk-scroll {
   flex: 1;
   overflow-y: auto;

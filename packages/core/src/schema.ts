@@ -9,6 +9,13 @@ const baseStepFields = {
   subtitle: z.string().optional(),
   required: z.boolean().default(true),
   icon: z.string().optional(),
+  /**
+   * Override tema (v2.10) limitato a questo step: sottoinsieme di colori,
+   * radii e immagini del tema applicato solo mentre lo step è mostrato.
+   * Non tipizzato contro ThemeTokens: core non dipende da @flowkit/themes,
+   * la validazione/mappatura in CSS var avviene lato @flowkit/react.
+   */
+  themeOverride: z.record(z.string(), z.unknown()).optional(),
 }
 
 export const introStepSchema = z.object({
