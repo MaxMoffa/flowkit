@@ -12,6 +12,7 @@ import { TextStepView } from "./text"
 import { ReviewStepView } from "./review"
 import { ConfirmationStepView } from "./confirmation"
 import { OAuthStepView } from "./oauth"
+import { GroupStepView } from "./group"
 
 registerStepComponent("intro", IntroStepView)
 registerStepComponent("location", LocationStepView)
@@ -26,3 +27,4 @@ registerStepComponent("text", TextStepView)
 registerStepComponent("review", ReviewStepView)
 registerStepComponent("confirmation", ConfirmationStepView)
 registerStepComponent("oauth", OAuthStepView)
+registerStepComponent("group", GroupStepView)

@@ -111,6 +111,22 @@
   min-height: 0;
 }
 
+.fk-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fk-space-xl);
+}
+
+.fk-group-columns .fk-group-items {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.fk-group-columns .fk-group-item {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
 .fk-title {
   font-size: 26px;
   line-height: 1.2;

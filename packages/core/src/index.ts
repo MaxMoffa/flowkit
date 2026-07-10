@@ -7,6 +7,7 @@
 import "./builtins"
 import "./oauth"
 import "./location-step"
+import "./group-step"
 
 export * from "./schema"
 export * from "./machine"
@@ -19,3 +20,5 @@ export type { OAuthStep } from "./oauth"
 export * from "./geocoding"
 export { locationStepConfigSchema } from "./location-step"
 export type { LocationStepConfig, SelectionMode } from "./location-step"
+export { groupStepSchema } from "./group-step"
+export type { GroupStep } from "./group-step"

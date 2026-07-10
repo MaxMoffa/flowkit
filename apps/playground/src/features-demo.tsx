@@ -78,6 +78,32 @@ export const featuresDemoFlow: Flow = parseFlow({
       showMap: false,
       showSearch: false,
     },
+    {
+      id: "quick-group",
+      type: "group",
+      title: "Un paio di domande veloci",
+      layout: "stack",
+      required: true,
+      steps: [
+        {
+          id: "quick-scale",
+          type: "scale",
+          title: "Quanto sei soddisfatto?",
+          min: 1,
+          max: 5,
+        },
+        {
+          id: "quick-chips",
+          type: "chips",
+          title: "Cosa ti è piaciuto?",
+          multiple: true,
+          options: [
+            { value: "velocita", label: "Velocità" },
+            { value: "facilita", label: "Facilità" },
+          ],
+        },
+      ],
+    },
     { id: "end", type: "confirmation", title: "Grazie!" },
   ],
 })
