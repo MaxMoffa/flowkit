@@ -47,7 +47,7 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
   const selectionMode = step.selectionMode ?? { kind: "point" as const }
 
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!containerRef.current || step.showMap === false) return
     let cancelled = false
 
     // Import dinamico: maplibre-gl esegue side-effect legati al DOM (Blob/URL) al
@@ -246,29 +246,31 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
       {step.title && <h2 className="fk-title">{step.title}</h2>}
       {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
 
-      <div className="fk-map-search">
-        <input
-          className="fk-input"
-          type="text"
-          placeholder={step.placeholder ?? "Cerca un indirizzo"}
-          value={query}
-          onChange={(e) => void runSearch(e.target.value)}
-        />
-        {searching && <span className="fk-map-search-loading">Cerco…</span>}
-        {results.length > 0 && (
-          <ul className="fk-map-search-results">
-            {results.map((r, i) => (
-              <li key={i}>
-                <button type="button" onClick={() => selectResult(r)}>
-                  {r.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {step.showSearch !== false && (
+        <div className="fk-map-search">
+          <input
+            className="fk-input"
+            type="text"
+            placeholder={step.placeholder ?? "Cerca un indirizzo"}
+            value={query}
+            onChange={(e) => void runSearch(e.target.value)}
+          />
+          {searching && <span className="fk-map-search-loading">Cerco…</span>}
+          {results.length > 0 && (
+            <ul className="fk-map-search-results">
+              {results.map((r, i) => (
+                <li key={i}>
+                  <button type="button" onClick={() => selectResult(r)}>
+                    {r.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
-      <div ref={containerRef} className="fk-map-canvas" />
+      {step.showMap !== false && <div ref={containerRef} className="fk-map-canvas" />}
 
       {step.enableGps !== false && (
         <button

@@ -39,6 +39,12 @@ export const locationStepConfigSchema = locationStepSchema.extend({
     .optional(),
   /** Mostra il pulsante "usa la mia posizione" (Geolocation API). Default: true. */
   enableGps: z.boolean().default(true),
+  /**
+   * Mostra la barra di ricerca indirizzi. Default: true. Se showMap è false,
+   * selectionMode (che presuppone interazione con la mappa) viene ignorato:
+   * la posizione può essere impostata solo via ricerca e/o GPS.
+   */
+  showSearch: z.boolean().default(true),
   gpsButtonLabel: z.string().optional(),
   /** Testi del popup guida mostrato quando il permesso di geolocalizzazione è negato/bloccato. */
   gpsGuideTitle: z.string().optional(),
