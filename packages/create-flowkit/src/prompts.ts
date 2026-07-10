@@ -59,6 +59,42 @@ export async function promptProjectName(defaultName: string): Promise<string> {
   return value || defaultName
 }
 
+export const OPTIONAL_STEP_GROUPS = ["map-maplibre", "map-leaflet"] as const
+export type OptionalStepGroup = (typeof OPTIONAL_STEP_GROUPS)[number]
+
+const STEP_GROUP_OPTIONS = [
+  { value: "map-maplibre" as const, label: "Mappa (MapLibre)", hint: "step location, +maplibre-gl" },
+  { value: "map-leaflet" as const, label: "Mappa (Leaflet)", hint: "step location-leaflet, +leaflet" },
+]
+
+/**
+ * Selezione degli step opzionali con dipendenze pesanti (mappe): solo quelli scelti
+ * vengono aggiunti come dipendenza e importati nel progetto generato/wirato, per
+ * restare leggeri di default. Gli step "core" (senza dipendenze extra) sono sempre
+ * inclusi e non richiedono scelta. Rispetta `--steps=map-maplibre,map-leaflet` per
+ * l'uso non interattivo (CI/test); `--steps=` (vuoto) o l'omissione di un gruppo lo esclude.
+ */
+export async function selectSteps(): Promise<OptionalStepGroup[]> {
+  const flagged = flagValue("steps")
+  if (flagged !== undefined) {
+    return flagged
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s): s is OptionalStepGroup => (OPTIONAL_STEP_GROUPS as readonly string[]).includes(s))
+  }
+
+  const value = await clack.multiselect({
+    message: "Quali step opzionali (con dipendenze extra) vuoi includere?",
+    options: STEP_GROUP_OPTIONS,
+    required: false,
+  })
+  if (clack.isCancel(value)) {
+    clack.cancel("Operazione annullata.")
+    process.exit(0)
+  }
+  return value
+}
+
 /** `--yes` conferma, `--no-install` rifiuta, senza mostrare il prompt (uso non interattivo). */
 export async function confirmInstall(): Promise<boolean> {
   if (process.argv.includes("--no-install")) return false
