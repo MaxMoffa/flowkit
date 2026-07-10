@@ -78,6 +78,10 @@
   min-height: 0;
 }
 
+.fk-scroll-noheader {
+  padding-top: var(--fk-space-xl);
+}
+
 .fk-body {
   flex: 1;
   display: flex;
@@ -187,7 +191,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--fk-space-xl) var(--fk-space-xxl);
+  padding-block: var(--fk-space-xl);
   gap: 0;
 }
 
@@ -647,7 +651,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding-top: 60px;
+  padding-top: var(--fk-space-xxxl);
 }
 
 .fk-check {
@@ -672,7 +676,7 @@
   flex: 1;
   background: var(--fk-soft);
   border-radius: var(--fk-radius-lg);
-  padding: 18px 14px;
+  padding: var(--fk-space-lg) var(--fk-space-md);
   text-align: center;
 }
 
