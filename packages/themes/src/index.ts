@@ -2,11 +2,15 @@ import type { ThemeTokens } from "./notion-clean"
 import { notionCleanDark, notionCleanLight } from "./notion-clean"
 import { mintFreshDark, mintFreshLight } from "./mint-fresh"
 import { midnightInkDark, midnightInkLight } from "./midnight-ink"
+import { sunsetClayDark, sunsetClayLight } from "./sunset-clay"
+import { roseQuartzDark, roseQuartzLight } from "./rose-quartz"
 
 export type { ThemeTokens }
 export { notionCleanLight, notionCleanDark }
 export { mintFreshLight, mintFreshDark }
 export { midnightInkLight, midnightInkDark }
+export { sunsetClayLight, sunsetClayDark }
+export { roseQuartzLight, roseQuartzDark }
 
 export type ThemeMode = "light" | "dark"
 
@@ -38,10 +42,26 @@ export const midnightInk: Theme = {
   dark: midnightInkDark,
 }
 
+export const sunsetClay: Theme = {
+  name: "sunset-clay",
+  label: "Sunset Clay",
+  light: sunsetClayLight,
+  dark: sunsetClayDark,
+}
+
+export const roseQuartz: Theme = {
+  name: "rose-quartz",
+  label: "Rose Quartz",
+  light: roseQuartzLight,
+  dark: roseQuartzDark,
+}
+
 export const themes: Record<string, Theme> = {
   "notion-clean": notionClean,
   "mint-fresh": mintFresh,
   "midnight-ink": midnightInk,
+  "sunset-clay": sunsetClay,
+  "rose-quartz": roseQuartz,
 }
 
 function tokensToCssVars(tokens: ThemeTokens): Record<string, string> {

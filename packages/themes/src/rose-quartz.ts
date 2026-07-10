@@ -1,0 +1,46 @@
+import type { ThemeTokens } from "./notion-clean"
+import { notionCleanLight } from "./notion-clean"
+
+export const roseQuartzLight: ThemeTokens = {
+  text: "#2E2228",
+  text2: "#8A7480",
+  canvas: "#FFFFFF",
+  soft: "#FBF3F6",
+  surface: "#F6E8EE",
+  border: "#EFD9E2",
+  accent: "#C85D82",
+  accentSoft: "#FAE3EC",
+  success: "#47A172",
+  successSoft: "#E7F1EC",
+  warning: "#D5893C",
+  warningSoft: "#FBEEDD",
+  danger: "#DE5C6B",
+  dangerSoft: "#FBE3E6",
+  radiusSm: "10px",
+  radiusMd: "14px",
+  radiusLg: "20px",
+  radiusXl: "28px",
+  spacing: notionCleanLight.spacing,
+}
+
+export const roseQuartzDark: ThemeTokens = {
+  text: "#F5E9EE",
+  text2: "#B598A3",
+  canvas: "#221A1E",
+  soft: "#2B2126",
+  surface: "#34272D",
+  border: "#46323B",
+  accent: "#E37B9C",
+  accentSoft: "#3B2530",
+  success: "#5CBF8A",
+  successSoft: "#1F332A",
+  warning: "#E5A65C",
+  warningSoft: "#3A2E18",
+  danger: "#ED7E8B",
+  dangerSoft: "#3A2226",
+  radiusSm: "10px",
+  radiusMd: "14px",
+  radiusLg: "20px",
+  radiusXl: "28px",
+  spacing: notionCleanLight.spacing,
+}

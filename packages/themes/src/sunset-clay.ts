@@ -1,0 +1,46 @@
+import type { ThemeTokens } from "./notion-clean"
+import { notionCleanLight } from "./notion-clean"
+
+export const sunsetClayLight: ThemeTokens = {
+  text: "#2E2420",
+  text2: "#8A7A6E",
+  canvas: "#FFFFFF",
+  soft: "#FBF6F1",
+  surface: "#F5EBE1",
+  border: "#EDDDC9",
+  accent: "#D9713C",
+  accentSoft: "#FBE7D7",
+  success: "#47A172",
+  successSoft: "#E7F1EC",
+  warning: "#D69A3A",
+  warningSoft: "#FBEEDA",
+  danger: "#DD5C4E",
+  dangerSoft: "#FBE5E1",
+  radiusSm: "10px",
+  radiusMd: "14px",
+  radiusLg: "20px",
+  radiusXl: "28px",
+  spacing: notionCleanLight.spacing,
+}
+
+export const sunsetClayDark: ThemeTokens = {
+  text: "#F3E9E1",
+  text2: "#B39D8C",
+  canvas: "#201A16",
+  soft: "#2A2119",
+  surface: "#33281F",
+  border: "#453325",
+  accent: "#E8894F",
+  accentSoft: "#3D2A1B",
+  success: "#5CBF8A",
+  successSoft: "#1F332A",
+  warning: "#E5AC5C",
+  warningSoft: "#3A2C18",
+  danger: "#EC7A6A",
+  dangerSoft: "#3A231F",
+  radiusSm: "10px",
+  radiusMd: "14px",
+  radiusLg: "20px",
+  radiusXl: "28px",
+  spacing: notionCleanLight.spacing,
+}

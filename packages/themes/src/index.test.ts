@@ -1,6 +1,20 @@
 import { describe, expect, it } from "vitest"
-import { notionClean, themeToCssVars, injectThemeFontLinks } from "./index"
+import { notionClean, themeToCssVars, injectThemeFontLinks, themes } from "./index"
 import type { Theme } from "./index"
+
+describe("themes registry", () => {
+  it("includes all built-in themes with distinct accents", () => {
+    expect(Object.keys(themes)).toEqual([
+      "notion-clean",
+      "mint-fresh",
+      "midnight-ink",
+      "sunset-clay",
+      "rose-quartz",
+    ])
+    const accents = new Set(Object.values(themes).map((t) => t.light.accent))
+    expect(accents.size).toBe(Object.keys(themes).length)
+  })
+})
 
 describe("themeToCssVars", () => {
   it("maps existing tokens without regressions", () => {
