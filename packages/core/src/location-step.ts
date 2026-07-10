@@ -37,6 +37,12 @@ export const locationStepConfigSchema = locationStepSchema.extend({
   extraMarkers: z
     .array(z.object({ lat: z.number(), lng: z.number(), label: z.string().optional() }))
     .optional(),
+  /** Mostra il pulsante "usa la mia posizione" (Geolocation API). Default: true. */
+  enableGps: z.boolean().default(true),
+  gpsButtonLabel: z.string().optional(),
+  /** Testi del popup guida mostrato quando il permesso di geolocalizzazione è negato/bloccato. */
+  gpsGuideTitle: z.string().optional(),
+  gpsGuideText: z.string().optional(),
 })
 
 export type LocationStepConfig = z.infer<typeof locationStepConfigSchema>

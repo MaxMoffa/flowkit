@@ -33,6 +33,9 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<GeocodingResult[]>([])
   const [searching, setSearching] = useState(false)
+  const [gpsLoading, setGpsLoading] = useState(false)
+  const [gpsError, setGpsError] = useState<string | null>(null)
+  const [showGpsGuide, setShowGpsGuide] = useState(false)
 
   const current: LocationValue =
     typeof value === "object" && value !== null && !Array.isArray(value)
@@ -175,6 +178,69 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
     }
   }
 
+  function flyToCoords(lat: number, lng: number) {
+    const map = mapRef.current
+    if (!map) return
+    map.flyTo({ center: [lng, lat], zoom: 14 })
+    if (markerRef.current) {
+      markerRef.current.setLngLat([lng, lat])
+    } else {
+      import("maplibre-gl").then(({ default: maplibregl }) => {
+        if (!mapRef.current) return
+        markerRef.current = new maplibregl.Marker({ draggable: true, color: "#2783DE" })
+          .setLngLat([lng, lat])
+          .addTo(mapRef.current)
+        markerRef.current.on("dragend", () => {
+          const pos = markerRef.current!.getLngLat()
+          onChange({ lat: pos.lat, lng: pos.lng })
+        })
+      })
+    }
+  }
+
+  async function requestGpsLocation() {
+    setGpsError(null)
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setShowGpsGuide(true)
+      return
+    }
+
+    // Se il Permissions API riporta già "denied", il browser non ripropone il
+    // prompt nativo: mostriamo subito la guida invece di far fallire getCurrentPosition in silenzio.
+    if (navigator.permissions?.query) {
+      try {
+        const status = await navigator.permissions.query({
+          name: "geolocation" as PermissionName,
+        })
+        if (status.state === "denied") {
+          setShowGpsGuide(true)
+          return
+        }
+      } catch {
+        // Permissions API non supportata per "geolocation" in questo browser: si prosegue comunque.
+      }
+    }
+
+    setGpsLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGpsLoading(false)
+        const { latitude: lat, longitude: lng } = pos.coords
+        onChange({ lat, lng })
+        flyToCoords(lat, lng)
+      },
+      (err) => {
+        setGpsLoading(false)
+        if (err.code === err.PERMISSION_DENIED) {
+          setShowGpsGuide(true)
+        } else {
+          setGpsError("Posizione non disponibile. Riprova o seleziona sulla mappa.")
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    )
+  }
+
   return (
     <div className="fk-step fk-step-location">
       {step.title && <h2 className="fk-title">{step.title}</h2>}
@@ -202,6 +268,18 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
         )}
       </div>
 
+      {step.enableGps !== false && (
+        <button
+          type="button"
+          className="fk-link fk-gps-btn"
+          onClick={() => void requestGpsLocation()}
+          disabled={gpsLoading}
+        >
+          📍 {gpsLoading ? "Rilevo la posizione…" : (step.gpsButtonLabel ?? "Usa la mia posizione")}
+        </button>
+      )}
+      {gpsError && <p className="fk-gps-error">{gpsError}</p>}
+
       <div ref={containerRef} className="fk-map-canvas" />
 
       {(current.address || (current.lat !== undefined && current.lng !== undefined)) && (
@@ -212,6 +290,24 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
               {current.address ?? `${current.lat?.toFixed(5)}, ${current.lng?.toFixed(5)}`}
             </div>
             {step.detectedSubLabel && <div className="fk-loc-detail">{step.detectedSubLabel}</div>}
+          </div>
+        </div>
+      )}
+
+      {showGpsGuide && (
+        <div className="fk-gps-guide-overlay" role="dialog" aria-modal="true">
+          <div className="fk-gps-guide">
+            <div className="fk-gps-guide-ic">📍</div>
+            <div className="fk-gps-guide-title">
+              {step.gpsGuideTitle ?? "Permesso di posizione bloccato"}
+            </div>
+            <p className="fk-gps-guide-text">
+              {step.gpsGuideText ??
+                "Il browser ha bloccato l'accesso alla posizione. Apri le impostazioni del sito (icona 🔒/ⓘ accanto all'indirizzo), consenti \"Posizione\" e riprova."}
+            </p>
+            <button type="button" className="fk-btn fk-btn-primary" onClick={() => setShowGpsGuide(false)}>
+              Ho capito
+            </button>
           </div>
         </div>
       )}

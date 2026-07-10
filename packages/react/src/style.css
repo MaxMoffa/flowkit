@@ -383,6 +383,64 @@
   padding: 4px;
 }
 
+.fk-gps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  margin-bottom: var(--fk-space-sm);
+}
+
+.fk-gps-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.fk-gps-error {
+  font-size: 13px;
+  color: var(--fk-danger);
+  margin: -4px 0 var(--fk-space-sm);
+}
+
+.fk-gps-guide-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--fk-space-lg);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.fk-gps-guide {
+  max-width: 340px;
+  width: 100%;
+  background: var(--fk-canvas);
+  border-radius: var(--fk-radius-lg);
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+}
+
+.fk-gps-guide-ic {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.fk-gps-guide-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fk-text);
+  margin-bottom: 8px;
+}
+
+.fk-gps-guide-text {
+  font-size: 14px;
+  color: var(--fk-text2);
+  margin-bottom: 16px;
+}
+
 .fk-input,
 .fk-textarea {
   width: 100%;
