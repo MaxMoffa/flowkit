@@ -205,6 +205,35 @@
   color: var(--fk-text);
 }
 
+.fk-btn-neutral {
+  width: 100%;
+  height: 52px;
+  border: 1px solid var(--fk-border);
+  border-radius: var(--fk-radius-md);
+  background: var(--fk-soft);
+  color: var(--fk-text);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  transition: transform 0.1s, background 0.2s;
+  margin-bottom: var(--fk-space-sm);
+}
+
+.fk-btn-neutral:active {
+  transform: scale(0.98);
+}
+
+.fk-btn-neutral:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+}
+
 /* Intro / landing hero */
 .fk-step-intro {
   flex: 1;
@@ -391,19 +420,6 @@
   border: none;
   cursor: pointer;
   padding: 4px;
-}
-
-.fk-gps-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 4px;
-  margin-bottom: var(--fk-space-sm);
-}
-
-.fk-gps-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
 }
 
 .fk-gps-error {

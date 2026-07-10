@@ -268,10 +268,12 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
         )}
       </div>
 
+      <div ref={containerRef} className="fk-map-canvas" />
+
       {step.enableGps !== false && (
         <button
           type="button"
-          className="fk-link fk-gps-btn"
+          className="fk-btn-neutral fk-gps-btn"
           onClick={() => void requestGpsLocation()}
           disabled={gpsLoading}
         >
@@ -279,8 +281,6 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
         </button>
       )}
       {gpsError && <p className="fk-gps-error">{gpsError}</p>}
-
-      <div ref={containerRef} className="fk-map-canvas" />
 
       {(current.address || (current.lat !== undefined && current.lng !== undefined)) && (
         <div className="fk-loc-row">
