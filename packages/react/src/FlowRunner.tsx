@@ -33,6 +33,13 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const last = isLastStep(flow, state)
   const pct = useMemo(() => Math.round(flowProgress(flow, state) * 100), [flow, state])
 
+  const middleSteps = useMemo(
+    () => flow.steps.filter((s) => s.type !== "intro" && s.type !== "confirmation"),
+    [flow],
+  )
+  const middleIndex = middleSteps.findIndex((s) => s.id === step.id)
+  const showHeader = step.type !== "intro" && step.type !== "confirmation"
+
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
     const nextAnswers = setAnswer(state, step.id, value)
     setState(nextAnswers)
@@ -50,31 +57,67 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     setState((s) => prevState(flow, s))
   }
 
+  function handleRestart() {
+    setState(createFlowState())
+  }
+
+  const primaryLabel =
+    step.type === "review" ? "Invia segnalazione ✓" : step.type === "intro" ? step.cta : "Continua"
+
   return (
     <ThemeProvider theme={theme} mode={mode}>
       <div className="fk-root">
-        {!last && (
-          <div className="fk-progress-track" role="progressbar" aria-valuenow={pct}>
-            <div className="fk-progress-fill" style={{ width: `${pct}%` }} />
+        {showHeader && (
+          <div className="fk-header">
+            <button
+              type="button"
+              className="fk-back"
+              onClick={handlePrev}
+              disabled={first}
+              aria-label="Indietro"
+            >
+              ←
+            </button>
+            <div className="fk-progress-track" role="progressbar" aria-valuenow={pct}>
+              <div className="fk-progress-fill" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="fk-stepno">
+              {middleIndex + 1}/{middleSteps.length}
+            </span>
           </div>
         )}
         <div className="fk-body">
-          <StepView step={step} value={state.answers[step.id] ?? null} onChange={handleChange} flow={flow} answers={state.answers} />
+          <div className={showHeader ? "fk-scroll" : undefined}>
+            <StepView
+              step={step}
+              value={state.answers[step.id] ?? null}
+              onChange={handleChange}
+              flow={flow}
+              answers={state.answers}
+            />
+          </div>
         </div>
         {!last && (
           <div className="fk-footer">
-            {!first && (
-              <button type="button" className="fk-btn-secondary" onClick={handlePrev}>
-                Indietro
+            <div className="fk-footer-row">
+              <button
+                type="button"
+                className={`fk-btn-primary ${step.type === "review" ? "fk-btn-success" : ""}`}
+                disabled={!valid}
+                onClick={handleNext}
+              >
+                {primaryLabel}
               </button>
-            )}
-            <button
-              type="button"
-              className="fk-btn-primary"
-              disabled={!valid}
-              onClick={handleNext}
-            >
-              {step.type === "review" ? "Invia" : "Avanti"}
+            </div>
+          </div>
+        )}
+        {last && step.type === "confirmation" && (
+          <div className="fk-footer">
+            <button type="button" className="fk-btn-secondary" onClick={handleRestart}>
+              {step.secondaryCta ?? "Nuova segnalazione"}
+            </button>
+            <button type="button" className="fk-btn-primary" onClick={handleRestart}>
+              {step.primaryCta ?? "Torna alla home"}
             </button>
           </div>
         )}

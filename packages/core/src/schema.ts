@@ -5,6 +5,7 @@ const baseStepFields = {
   title: z.string().optional(),
   subtitle: z.string().optional(),
   required: z.boolean().default(true),
+  icon: z.string().optional(),
 }
 
 export const introStepSchema = z.object({
@@ -12,12 +13,17 @@ export const introStepSchema = z.object({
   type: z.literal("intro"),
   emoji: z.string().optional(),
   cta: z.string().default("Inizia"),
+  livePill: z.string().optional(),
 })
 
 export const locationStepSchema = z.object({
   ...baseStepFields,
   type: z.literal("location"),
   placeholder: z.string().optional(),
+  showMap: z.boolean().default(true),
+  detectedLabel: z.string().optional(),
+  detectedSubLabel: z.string().optional(),
+  manualEntryLabel: z.string().optional(),
 })
 
 export const selectCardsStepSchema = z.object({
@@ -43,6 +49,9 @@ export const scaleStepSchema = z.object({
   max: z.number().default(5),
   minLabel: z.string().optional(),
   maxLabel: z.string().optional(),
+  variant: z.enum(["pills", "slider"]).default("pills"),
+  valueLabels: z.array(z.string()).optional(),
+  valueColors: z.array(z.string()).optional(),
 })
 
 export const chipsStepSchema = z.object({
@@ -53,6 +62,13 @@ export const chipsStepSchema = z.object({
     .array(z.object({ value: z.string(), label: z.string() }))
     .min(1),
 })
+
+export const durationChipValues = [
+  "< 5 min",
+  "5–30 min",
+  "> 30 min",
+  "Persistente",
+] as const
 
 export const facesStepSchema = z.object({
   ...baseStepFields,
@@ -103,6 +119,7 @@ export const textStepSchema = z.object({
 export const reviewStepSchema = z.object({
   ...baseStepFields,
   type: z.literal("review"),
+  meta: z.string().optional(),
 })
 
 export const confirmationStepSchema = z.object({
@@ -111,6 +128,19 @@ export const confirmationStepSchema = z.object({
   title: z.string().default("Grazie!"),
   message: z.string().optional(),
   emoji: z.string().optional(),
+  stats: z
+    .array(z.object({ value: z.string(), label: z.string() }))
+    .optional(),
+  primaryCta: z.string().optional(),
+  secondaryCta: z.string().optional(),
+  emailShare: z
+    .object({
+      enabled: z.boolean().default(false),
+      subject: z.string().optional(),
+      buttonLabel: z.string().default("Invia via email"),
+      helpText: z.string().optional(),
+    })
+    .optional(),
 })
 
 export const stepSchema = z.discriminatedUnion("type", [

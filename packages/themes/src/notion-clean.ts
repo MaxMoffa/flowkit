@@ -6,12 +6,17 @@ export interface ThemeTokens {
   surface: string
   border: string
   accent: string
+  accentSoft: string
   success: string
+  successSoft: string
   warning: string
+  warningSoft: string
   danger: string
+  dangerSoft: string
   radiusSm: string
   radiusMd: string
   radiusLg: string
+  radiusXl: string
   spacing: Record<"xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "xxxl", string>
 }
 
@@ -23,12 +28,17 @@ export const notionCleanLight: ThemeTokens = {
   surface: "#F0EFED",
   border: "#E6E5E3",
   accent: "#2783DE",
+  accentSoft: "#E5F2FC",
   success: "#46A171",
+  successSoft: "#E8F1EC",
   warning: "#D5803B",
+  warningSoft: "#FBEBDE",
   danger: "#E56458",
-  radiusSm: "8px",
-  radiusMd: "12px",
+  dangerSoft: "#FCE9E7",
+  radiusSm: "10px",
+  radiusMd: "14px",
   radiusLg: "20px",
+  radiusXl: "28px",
   spacing: {
     xs: "4px",
     sm: "8px",
@@ -48,11 +58,16 @@ export const notionCleanDark: ThemeTokens = {
   surface: "#2A2A29",
   border: "#3A3A38",
   accent: "#4B9FEF",
+  accentSoft: "#213348",
   success: "#5CBF8A",
+  successSoft: "#1F332A",
   warning: "#E0954D",
+  warningSoft: "#3A2C1C",
   danger: "#EC7A6E",
-  radiusSm: "8px",
-  radiusMd: "12px",
+  dangerSoft: "#3A2320",
+  radiusSm: "10px",
+  radiusMd: "14px",
   radiusLg: "20px",
+  radiusXl: "28px",
   spacing: notionCleanLight.spacing,
 }

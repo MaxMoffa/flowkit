@@ -1,7 +1,16 @@
+import { useEffect } from "react"
 import type { FacesStep } from "@flowkit/core"
 import type { StepComponentProps } from "../types"
 
 export function FacesStepView({ step, value, onChange }: StepComponentProps<FacesStep>) {
+  useEffect(() => {
+    if (!value) {
+      const mid = step.faces[Math.floor(step.faces.length / 2)]
+      if (mid) onChange(mid.value)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <div className="fk-step fk-step-faces">
       {step.title && <h2 className="fk-title">{step.title}</h2>}

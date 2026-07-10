@@ -10,6 +10,11 @@ const presets: Record<string, Flow> = {
   feedback: feedbackFlow,
 }
 
+const presetLabels: Record<string, string> = {
+  odori: "Segnala odore",
+  feedback: "Feedback",
+}
+
 const adapter = createLocalAdapter({ namespace: "flowkit-playground" })
 
 export function App() {
@@ -22,7 +27,7 @@ export function App() {
   const flow = presets[presetKey]!
   const theme = themes[themeKey]!
 
-  const themeOptions = useMemo(() => Object.keys(themes), [])
+  const themeOptions = useMemo(() => Object.entries(themes), [])
 
   function restart() {
     setRunKey((k) => k + 1)
@@ -30,6 +35,16 @@ export function App() {
 
   return (
     <div className="pg-page" data-pg-mode={mode}>
+      <header className="pg-hero">
+        <p className="pg-eyebrow">Flowkit</p>
+        <h1>Componi flow guidati, themeable, in pochi minuti.</h1>
+        <p className="pg-hero-sub">
+          Libreria React headless-first per costruire wizard mobile: config in TypeScript,
+          rendering React, temi a variabili CSS. Prova i preset qui sotto, cambia tema e
+          naviga il flow come farebbe un utente reale.
+        </p>
+      </header>
+
       <div className="pg-controls">
         <label>
           Preset
@@ -40,16 +55,19 @@ export function App() {
               restart()
             }}
           >
-            <option value="odori">Segnala odore</option>
-            <option value="feedback">Feedback</option>
+            {Object.keys(presets).map((k) => (
+              <option key={k} value={k}>
+                {presetLabels[k] ?? k}
+              </option>
+            ))}
           </select>
         </label>
         <label>
           Tema
           <select value={themeKey} onChange={(e) => setThemeKey(e.target.value as keyof typeof themes)}>
-            {themeOptions.map((k) => (
+            {themeOptions.map(([k, t]) => (
               <option key={k} value={k}>
-                {k}
+                {t.label}
               </option>
             ))}
           </select>
@@ -62,22 +80,60 @@ export function App() {
         </button>
       </div>
 
-      <div className="pg-frame">
-        <FlowRunner
-          key={`${presetKey}-${runKey}`}
-          flow={flow}
-          theme={theme}
-          mode={mode}
-          onSubmit={async (answers) => {
-            await adapter.submit(flow.id, answers)
-            setLastSubmission(answers)
-          }}
-        />
+      <div
+        className="pg-phone"
+        style={{
+          background: mode === "dark" ? theme.dark.canvas : theme.light.canvas,
+          color: mode === "dark" ? theme.dark.text : theme.light.text,
+        }}
+      >
+        <div className="pg-notch" />
+        <div className="pg-statusbar">
+          <span>9:41</span>
+          <span>{flow.title}</span>
+        </div>
+        <div className="pg-frame">
+          <FlowRunner
+            key={`${presetKey}-${runKey}`}
+            flow={flow}
+            theme={theme}
+            mode={mode}
+            onSubmit={async (answers) => {
+              await adapter.submit(flow.id, answers)
+              setLastSubmission(answers)
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="pg-theme-strip">
+        {themeOptions.map(([k, t]) => (
+          <button
+            key={k}
+            type="button"
+            className={`pg-swatch ${k === themeKey ? "pg-swatch-active" : ""}`}
+            onClick={() => setThemeKey(k as keyof typeof themes)}
+            style={{
+              background: mode === "dark" ? t.dark.canvas : t.light.canvas,
+              borderColor: mode === "dark" ? t.dark.accent : t.light.accent,
+            }}
+            title={t.label}
+          >
+            <span style={{ background: mode === "dark" ? t.dark.accent : t.light.accent }} />
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {lastSubmission && (
         <pre className="pg-debug">{JSON.stringify(lastSubmission, null, 2)}</pre>
       )}
+
+      <footer className="pg-footer">
+        <a href="https://github.com/MaxMoffa/flowkit" target="_blank" rel="noreferrer">
+          Codice su GitHub
+        </a>
+      </footer>
     </div>
   )
 }
