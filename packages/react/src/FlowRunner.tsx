@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react"
 import { useMemo, useState } from "react"
 import type { Answers, Flow } from "@flowkit/core"
 import {
@@ -13,6 +14,7 @@ import {
   setAnswer,
 } from "@flowkit/core"
 import type { Theme, ThemeMode } from "@flowkit/themes"
+import { notionClean } from "@flowkit/themes"
 import { getStepComponent } from "./registry"
 import { ThemeProvider } from "./ThemeProvider"
 import type { FlowSubmitHandler } from "./types"
@@ -53,6 +55,15 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const isConfirmation = stepRole === "confirmation"
   const showHeader = !isIntro && !isConfirmation
 
+  const resolvedTheme = theme ?? notionClean
+  const resolvedTokens = mode === "dark" ? resolvedTheme.dark : resolvedTheme.light
+  const stepBgUrl =
+    resolvedTokens.images?.stepBackground?.[step.id] ??
+    resolvedTokens.images?.stepBackground?.[step.type]
+  const rootStyle: CSSProperties | undefined = stepBgUrl
+    ? ({ "--fk-image-step-background": `url(${stepBgUrl})` } as CSSProperties)
+    : undefined
+
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
     const nextAnswers = setAnswer(state, step.id, value)
     setState(nextAnswers)
@@ -83,7 +94,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
 
   return (
     <ThemeProvider theme={theme} mode={mode}>
-      <div className="fk-root">
+      <div className="fk-root" style={rootStyle}>
         {showHeader && (
           <div className="fk-header">
             <button

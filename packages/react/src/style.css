@@ -18,6 +18,12 @@
   flex: 1;
   min-height: 0;
   box-sizing: border-box;
+  position: relative;
+  isolation: isolate;
+  background-image: var(--fk-image-step-background, var(--fk-image-background, none));
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 @media (min-width: 768px) {

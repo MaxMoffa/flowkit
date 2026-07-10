@@ -64,34 +64,39 @@ export const themes: Record<string, Theme> = {
   "rose-quartz": roseQuartz,
 }
 
+const COLOR_RADIUS_VAR_MAP: Record<string, keyof ThemeTokens> = {
+  "--fk-text": "text",
+  "--fk-text2": "text2",
+  "--fk-canvas": "canvas",
+  "--fk-soft": "soft",
+  "--fk-surface": "surface",
+  "--fk-border": "border",
+  "--fk-accent": "accent",
+  "--fk-accent-soft": "accentSoft",
+  "--fk-success": "success",
+  "--fk-success-soft": "successSoft",
+  "--fk-warning": "warning",
+  "--fk-warning-soft": "warningSoft",
+  "--fk-danger": "danger",
+  "--fk-danger-soft": "dangerSoft",
+  "--fk-radius-sm": "radiusSm",
+  "--fk-radius-md": "radiusMd",
+  "--fk-radius-lg": "radiusLg",
+  "--fk-radius-xl": "radiusXl",
+}
+
 function tokensToCssVars(tokens: ThemeTokens): Record<string, string> {
-  const vars: Record<string, string> = {
-    "--fk-text": tokens.text,
-    "--fk-text2": tokens.text2,
-    "--fk-canvas": tokens.canvas,
-    "--fk-soft": tokens.soft,
-    "--fk-surface": tokens.surface,
-    "--fk-border": tokens.border,
-    "--fk-accent": tokens.accent,
-    "--fk-accent-soft": tokens.accentSoft,
-    "--fk-success": tokens.success,
-    "--fk-success-soft": tokens.successSoft,
-    "--fk-warning": tokens.warning,
-    "--fk-warning-soft": tokens.warningSoft,
-    "--fk-danger": tokens.danger,
-    "--fk-danger-soft": tokens.dangerSoft,
-    "--fk-radius-sm": tokens.radiusSm,
-    "--fk-radius-md": tokens.radiusMd,
-    "--fk-radius-lg": tokens.radiusLg,
-    "--fk-radius-xl": tokens.radiusXl,
-    "--fk-space-xs": tokens.spacing.xs,
-    "--fk-space-sm": tokens.spacing.sm,
-    "--fk-space-md": tokens.spacing.md,
-    "--fk-space-lg": tokens.spacing.lg,
-    "--fk-space-xl": tokens.spacing.xl,
-    "--fk-space-xxl": tokens.spacing.xxl,
-    "--fk-space-xxxl": tokens.spacing.xxxl,
+  const vars: Record<string, string> = {}
+  for (const [cssVar, key] of Object.entries(COLOR_RADIUS_VAR_MAP)) {
+    vars[cssVar] = tokens[key] as string
   }
+  vars["--fk-space-xs"] = tokens.spacing.xs
+  vars["--fk-space-sm"] = tokens.spacing.sm
+  vars["--fk-space-md"] = tokens.spacing.md
+  vars["--fk-space-lg"] = tokens.spacing.lg
+  vars["--fk-space-xl"] = tokens.spacing.xl
+  vars["--fk-space-xxl"] = tokens.spacing.xxl
+  vars["--fk-space-xxxl"] = tokens.spacing.xxxl
 
   if (tokens.fonts?.heading) vars["--fk-font-heading"] = tokens.fonts.heading
   if (tokens.fonts?.body) vars["--fk-font-body"] = tokens.fonts.body
@@ -100,6 +105,23 @@ function tokensToCssVars(tokens: ThemeTokens): Record<string, string> {
   if (tokens.images?.background) vars["--fk-image-background"] = `url(${tokens.images.background})`
   if (tokens.images?.logo) vars["--fk-image-logo"] = `url(${tokens.images.logo})`
 
+  return vars
+}
+
+/**
+ * Converte un sottoinsieme parziale di token (usato per l'override tema
+ * per-step, v2.10) nelle sole CSS var corrispondenti ai campi presenti.
+ * Non tocca fonts/spacing/images: l'override per-step è limitato a colori,
+ * radii e immagini per evitare che un singolo step scombini il layout.
+ */
+export function partialTokensToCssVars(partial: Partial<ThemeTokens>): Record<string, string> {
+  const vars: Record<string, string> = {}
+  for (const [cssVar, key] of Object.entries(COLOR_RADIUS_VAR_MAP)) {
+    const value = partial[key]
+    if (typeof value === "string") vars[cssVar] = value
+  }
+  if (partial.images?.background) vars["--fk-image-background"] = `url(${partial.images.background})`
+  if (partial.images?.logo) vars["--fk-image-logo"] = `url(${partial.images.logo})`
   return vars
 }
 
