@@ -1,0 +1,144 @@
+# Flowkit — guida rapida per agenti LLM
+
+> Questo file è un riassunto pensato per agenti/LLM che devono costruire flow con
+> Flowkit senza leggere l'intero README.md. Per dettagli completi, esempi estesi e
+> spiegazioni, vedi README.md (fonte di verità).
+
+## Cos'è
+
+Libreria open source React, headless-first, per comporre "flow" (wizard/onboarding a
+step) guidati e themeable da un config TypeScript validato con zod. Monorepo npm
+(workspaces). Target: React 18 + TypeScript. Build: tsup (pacchetti) / Vite (playground).
+Tema di riferimento: "notion-clean" (minimalismo caldo, mobile-first, CTA sticky in
+basso).
+
+## Layout pacchetti
+
+| Pacchetto | Ruolo |
+|---|---|
+| `packages/core` | Headless: schema zod, macchina a stati del flow, registry step type, i18n |
+| `packages/react` | Renderer React: `FlowRunner`, componenti degli step, registry componenti, CSS |
+| `packages/themes` | Design token (colori/spacing/radius) → variabili CSS per tema |
+| `packages/adapters` | Destinazioni di submit: `local` (localStorage), `rest`, stub `supabase` |
+| `packages/presets` | Flow config pronti all'uso (`odori`, `feedback`) |
+| `packages/create-flowkit` | CLI: `create-flowkit` (scaffold app) e `flowkit-init` (aggiunge Flowkit a un progetto esistente) |
+| `apps/playground` | App Vite demo: seleziona preset/tema, mock telefono 390px + anteprima fullscreen responsive |
+
+## Definire un flow (essenziale)
+
+```ts
+import { parseFlow } from "@flowkit/core"
+
+const flow = parseFlow({
+  id: "my-flow",
+  title: "Il mio flow",
+  locale: "it", // opzionale, default "it"
+  steps: [ /* vedi tabella step sotto */ ],
+})
+```
+
+`parseFlow` valida con zod e lancia errore descrittivo se `type` non è registrato.
+
+Campi comuni a ogni step: `id` (obbligatorio), `type` (obbligatorio), `title`,
+`subtitle`, `required` (default `true`), `icon` (emoji, usata nel riepilogo di `review`).
+
+## Step built-in (12)
+
+| Tipo | Scopo | Campi chiave |
+|---|---|---|
+| `intro` | Hero iniziale, no header | `emoji`, `cta` (default "Inizia"), `livePill` |
+| `location` | Località con mappa reale (maplibre-gl) | `showMap`, `placeholder`, config estesa in `location-step.ts` |
+| `select-cards` | Selezione card singola/multipla | `multiple`, `options[]` |
+| `scale` | Scala numerica (pills o slider) | `min`, `max`, `variant` |
+| `chips` | Chip singola/multipla | `multiple`, `options[]` |
+| `faces` | Rating a emoji-faccine | `faces[]` |
+| `notes-photo` | Testo libero + foto opzionale | `allowPhoto`, `placeholder` |
+| `nps` | Net Promoter Score | `question` |
+| `multi-select` | Selezione multipla con min/max | `options[]`, `min`, `max` |
+| `text` | Testo/numero/email | `variant` (`text`\|`number`\|`email`), `multiline` |
+| `review` | Riepilogo prima dell'invio | `meta` |
+| `confirmation` | Schermata finale | `stats[]`, `emailShare`, `primaryCta`, `secondaryCta` |
+| `oauth` | Flow OAuth+PKCE (v2.x) | vedi README § "Step OAuth" |
+
+Dettagli completi per ogni tipo: README.md § "Riferimento per tipo di step".
+
+## Step personalizzati (registry runtime)
+
+Nessuna union chiusa: registra un tipo nuovo senza toccare `schema.ts`:
+
+```ts
+// 1. core: schema + validazione
+import { z } from "zod"
+import { registerStepType } from "@flowkit/core"
+
+const mySchema = z.object({ id: z.string(), type: z.literal("my-step"), /* ... */ })
+registerStepType({ type: "my-step", schema: mySchema, validate: (_s, v) => Boolean(v) })
+
+// 2. react: componente
+import { registerStepComponent, type StepComponentProps } from "@flowkit/react"
+function MyStepView({ step, value, onChange }: StepComponentProps<z.infer<typeof mySchema>>) {
+  return <div className="fk-step">{/* JSX libero */}</div>
+}
+registerStepComponent("my-step", MyStepView)
+
+// 3. opzionale: type-safety completa su Step
+declare module "@flowkit/core" {
+  interface StepTypeMap { "my-step": z.infer<typeof mySchema> }
+}
+```
+
+Esempio funzionante: `apps/playground/src/custom-step-demo.tsx`.
+
+### Intro/conferma completamente custom (`role`)
+
+`intro`/`confirmation` sono "step di ruolo": `FlowRunner` nasconde header/progress bar
+e pilota il footer sticky (CTA / doppio bottone finale) leggendo genericamente
+`cta`/`primaryCta`/`secondaryCta` dallo step corrente. Per sostituire *tutto* il
+contenuto sopra il CTA (mini landing page, schermata finale con share/testimonial
+custom), registra un tuo step con lo stesso meccanismo sopra aggiungendo
+`role: "intro"` o `role: "confirmation"`:
+
+```ts
+registerStepType({
+  type: "intro-hero",
+  schema: introHeroSchema, // includi un campo "cta" come l'intro standard
+  validate: () => true,
+  role: "intro",
+})
+```
+
+Il footer sticky resta quello generico di `FlowRunner`; il corpo (`registerStepComponent`)
+è JSX completamente libero. Esempio: `apps/playground/src/custom-intro-demo.tsx`
+(`intro-hero` + `confirmation-hero`).
+
+## Theming
+
+`packages/themes` esporta temi come oggetti di design token (colori light/dark,
+spacing, radius) convertiti in variabili CSS (`--fk-*`) da `ThemeProvider`
+(usato internamente da `FlowRunner`). Per un tema custom, crea un oggetto con la stessa
+forma di `notion-clean` (`packages/themes/src/notion-clean.ts`) e passalo come prop
+`theme` a `FlowRunner`. Import CSS richiesto una volta: `@flowkit/react/style.css`.
+
+## Responsive
+
+Il CSS di `packages/react` è mobile-first con media query additive (`min-width: 640px`
+e `768px`) che centrano il flow in una colonna a larghezza massima e aumentano il
+padding orizzontale su viewport desktop, senza toccare il layout sotto i 640px. Nel
+playground, il bottone "⛶ Anteprima fullscreen" apre l'esperienza fuori dal mock
+telefono, con un selettore di larghezza simulata (mobile/tablet/desktop) per verificarne
+la resa responsive come verrà davvero incorporata da un consumer.
+
+## Avviare/buildare
+
+```bash
+npm install
+npm run dev --workspace=@flowkit/playground   # playground in dev
+npm run verify                                 # lint + typecheck + test + build + spec-check
+npm run test:e2e                               # Playwright (separato da verify)
+```
+
+## Riferimenti
+
+- README.md — documentazione completa (installazione, CLI, temi, OAuth, mappa, i18n, adapter, test e2e).
+- DECISIONS.md — log delle decisioni prese in autonomia durante lo sviluppo.
+- CLAUDE.md — regole di lavoro per agenti che modificano questo repo.
