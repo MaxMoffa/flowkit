@@ -82,11 +82,10 @@ packages you need from wherever you've published them:
 npm install @flowkit-io/core @flowkit-io/react @flowkit-io/themes @flowkit-io/adapters
 ```
 
-> **Note**: the `@flowkit-io/*` packages aren't published to a public registry yet at
-> this stage of the project (all `"private": true`). The install examples above and
-> the CLI below are written for once they are published; in the meantime, to use them
-> from another local project, point at the package folders with the `file:` protocol
-> (e.g. `"@flowkit-io/core": "file:../flowkit/packages/core"`).
+> The `@flowkit-io/*` packages are published on the public npm registry — see
+> [npmjs.com/package/@flowkit-io/react](https://www.npmjs.com/package/@flowkit-io/react)
+> (same for `core`, `themes`, `adapters`, `presets`, `create-flowkit`). Install directly
+> with `npm install`/`npx` as shown above, no `file:` protocol or local monorepo needed.
 
 `@flowkit-io/presets` is optional: it only contains ready-made examples, it isn't
 required to use the library with your own config.
