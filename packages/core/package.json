@@ -1,7 +1,16 @@
 {
   "name": "@flowkit/core",
   "version": "0.1.0",
-  "private": true,
+  "description": "Headless config schema, flow state machine, validation and i18n for Flowkit.",
+  "license": "MIT",
+  "author": "Massimo Moffa",
+  "homepage": "https://github.com/MaxMoffa/flowkit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxMoffa/flowkit.git",
+    "directory": "packages/core"
+  },
+  "keywords": ["flowkit", "form", "wizard", "flow", "config"],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,6 +19,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean"

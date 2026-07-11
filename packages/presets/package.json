@@ -1,7 +1,16 @@
 {
   "name": "@flowkit/presets",
   "version": "0.1.0",
-  "private": true,
+  "description": "Ready-made Flowkit flow configs (surveys, feedback, etc).",
+  "license": "MIT",
+  "author": "Massimo Moffa",
+  "homepage": "https://github.com/MaxMoffa/flowkit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxMoffa/flowkit.git",
+    "directory": "packages/presets"
+  },
+  "keywords": ["flowkit", "preset", "survey", "feedback"],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,11 +20,15 @@
       "import": "./dist/index.js"
     }
   },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean"
   },
   "dependencies": {
-    "@flowkit/core": "*"
+    "@flowkit/core": "^0.1.0"
   },
   "devDependencies": {
     "tsup": "^8.3.5"

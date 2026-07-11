@@ -1,7 +1,16 @@
 {
   "name": "@flowkit/react",
   "version": "0.1.0",
-  "private": true,
+  "description": "React renderer and step components for Flowkit.",
+  "license": "MIT",
+  "author": "Massimo Moffa",
+  "homepage": "https://github.com/MaxMoffa/flowkit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxMoffa/flowkit.git",
+    "directory": "packages/react"
+  },
+  "keywords": ["flowkit", "react", "form", "wizard"],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,6 +29,10 @@
       "import": "./dist/map-leaflet.js"
     }
   },
+  "files": ["dist", "src/style.css"],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.tsx src/map-maplibre.ts src/map-leaflet.ts --format esm --dts --clean --external react --external react-dom"
   },
@@ -34,8 +47,8 @@
     "leaflet": { "optional": true }
   },
   "dependencies": {
-    "@flowkit/core": "*",
-    "@flowkit/themes": "*"
+    "@flowkit/core": "^0.1.0",
+    "@flowkit/themes": "^0.1.0"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.21",

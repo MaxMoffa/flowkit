@@ -1,6 +1,7 @@
 {
   "name": "flowkit",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "workspaces": ["packages/*", "apps/*"],
   "scripts": {
@@ -9,7 +10,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "build": "npm run build -w packages/core -w packages/themes && npm run build -w packages/adapters -w packages/presets -w packages/react -w packages/create-flowkit && npm run build -w apps/playground --if-present",
-    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && node scripts/spec-check.mjs"
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && node scripts/spec-check.mjs",
+    "release": "npm run build -w packages/core -w packages/themes && npm run build -w packages/adapters -w packages/presets -w packages/react -w packages/create-flowkit && npm publish -w packages/core -w packages/themes -w packages/adapters -w packages/presets -w packages/react -w packages/create-flowkit"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

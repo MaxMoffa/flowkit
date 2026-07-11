@@ -1,7 +1,16 @@
 {
   "name": "@flowkit/create-flowkit",
   "version": "0.1.0",
-  "private": true,
+  "description": "CLI to scaffold a new Flowkit app or add Flowkit to an existing project.",
+  "license": "MIT",
+  "author": "Massimo Moffa",
+  "homepage": "https://github.com/MaxMoffa/flowkit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxMoffa/flowkit.git",
+    "directory": "packages/create-flowkit"
+  },
+  "keywords": ["flowkit", "cli", "scaffold", "create"],
   "type": "module",
   "bin": {
     "create-flowkit": "./dist/create-flowkit.js",
@@ -11,6 +20,9 @@
     "dist",
     "templates"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup"
   },
