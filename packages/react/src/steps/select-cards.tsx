@@ -1,4 +1,4 @@
-import type { SelectCardsStep } from "@flowkit/core"
+import type { SelectCardsStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 export function SelectCardsStepView({ step, value, onChange }: StepComponentProps<SelectCardsStep>) {

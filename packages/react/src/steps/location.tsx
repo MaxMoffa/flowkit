@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import type maplibregl from "maplibre-gl"
-import { geocode, reverseGeocode, type GeocodingResult, type LocationStepConfig } from "@flowkit/core"
+import { geocode, reverseGeocode, type GeocodingResult, type LocationStepConfig } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 const DEFAULT_STYLE_URL = "https://demotiles.maplibre.org/style.json"

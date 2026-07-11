@@ -1,6 +1,6 @@
 import { z } from "zod"
-import { registerStepType, parseFlow, type Flow } from "@flowkit/core"
-import { registerStepComponent, type StepComponentProps } from "@flowkit/react"
+import { registerStepType, parseFlow, type Flow } from "@flowkit-io/core"
+import { registerStepComponent, type StepComponentProps } from "@flowkit-io/react"
 
 /**
  * Esempio end-to-end dell'API di step custom (v2.2): un nuovo tipo "rating-stars"
@@ -20,7 +20,7 @@ const ratingStarsStepSchema = z.object({
 
 export type RatingStarsStep = z.infer<typeof ratingStarsStepSchema>
 
-declare module "@flowkit/core" {
+declare module "@flowkit-io/core" {
   interface StepTypeMap {
     "rating-stars": RatingStarsStep
   }

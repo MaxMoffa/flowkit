@@ -1,12 +1,12 @@
-import { parseFlow, type Answers, type Flow } from "@flowkit/core"
-import { createLocalAdapter, createReceiptEmailAdapter } from "@flowkit/adapters"
+import { parseFlow, type Answers, type Flow } from "@flowkit-io/core"
+import { createLocalAdapter, createReceiptEmailAdapter } from "@flowkit-io/adapters"
 
 /**
  * Demo che collega i 4 resultActions della confirmation a veri adapter:
  * pdfExport/nativeShare non richiedono callback (solo API browser), mentre
  * resultLink/emailApi mostrano il pattern di iniezione di funzioni nella
- * config dello step, così @flowkit/react resta disaccoppiato da
- * @flowkit/adapters. L'endpoint di emailApi (/api, relativo) non esiste
+ * config dello step, così @flowkit-io/react resta disaccoppiato da
+ * @flowkit-io/adapters. L'endpoint di emailApi (/api, relativo) non esiste
  * davvero in questa demo: in dev la richiesta fallirà mostrando lo stato di
  * errore, nei test e2e viene intercettata con page.route.
  */

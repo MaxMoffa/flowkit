@@ -10,7 +10,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "npm run build --workspace=@flowkit/playground && npm run preview --workspace=@flowkit/playground -- --port 4173",
+    command: "npm run build --workspace=@flowkit-io/playground && npm run preview --workspace=@flowkit-io/playground -- --port 4173",
     url: "http://localhost:4173",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

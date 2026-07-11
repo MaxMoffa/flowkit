@@ -32,8 +32,8 @@ test.describe("create-flowkit CLI", () => {
         { cwd: dir },
       )
       const setup = readFileSync(path.join(dir, "src", "flowkit-setup.tsx"), "utf8")
-      expect(setup).toContain('import "@flowkit/react/map-leaflet"')
-      expect(setup).not.toContain('import "@flowkit/react/map-maplibre"')
+      expect(setup).toContain('import "@flowkit-io/react/map-leaflet"')
+      expect(setup).not.toContain('import "@flowkit-io/react/map-maplibre"')
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
@@ -48,7 +48,7 @@ test.describe("create-flowkit CLI", () => {
         { cwd: dir },
       )
       const setup = readFileSync(path.join(dir, "src", "flowkit-setup.tsx"), "utf8")
-      expect(setup).not.toContain("@flowkit/react/map-")
+      expect(setup).not.toContain("@flowkit-io/react/map-")
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }

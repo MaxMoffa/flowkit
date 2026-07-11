@@ -1,4 +1,4 @@
-import type { Answers } from "@flowkit/core"
+import type { Answers } from "@flowkit-io/core"
 import type { FlowAdapter } from "./types"
 
 export interface RestAdapterOptions {

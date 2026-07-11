@@ -1,4 +1,4 @@
-import type { NpsStep } from "@flowkit/core"
+import type { NpsStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 export function NpsStepView({ step, value, onChange }: StepComponentProps<NpsStep>) {

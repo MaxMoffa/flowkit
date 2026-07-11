@@ -1,8 +1,8 @@
-import { FlowRunner } from "@flowkit/react"
-import "@flowkit/react/style.css"
-import { themes } from "@flowkit/themes"
-import { createLocalAdapter } from "@flowkit/adapters"
-import type { Flow } from "@flowkit/core"
+import { FlowRunner } from "@flowkit-io/react"
+import "@flowkit-io/react/style.css"
+import { themes } from "@flowkit-io/themes"
+import { createLocalAdapter } from "@flowkit-io/adapters"
+import type { Flow } from "@flowkit-io/core"
 
 const adapter = createLocalAdapter({ namespace: "my-app" })
 const theme = themes["notion-clean"]

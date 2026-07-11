@@ -1,4 +1,4 @@
-import { parseFlow, type Flow } from "@flowkit/core"
+import { parseFlow, type Flow } from "@flowkit-io/core"
 
 /** Post-experience feedback collection preset with NPS. */
 export const feedbackFlow: Flow = parseFlow({

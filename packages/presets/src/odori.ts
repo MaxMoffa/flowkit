@@ -1,4 +1,4 @@
-import { parseFlow, type Flow } from "@flowkit/core"
+import { parseFlow, type Flow } from "@flowkit-io/core"
 
 /** Preset for collecting reports of unpleasant smells in an area. */
 export const odoriFlow: Flow = parseFlow({

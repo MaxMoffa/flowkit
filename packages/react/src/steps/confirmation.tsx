@@ -1,5 +1,5 @@
 import { useState } from "react"
-import type { ConfirmationStep } from "@flowkit/core"
+import type { ConfirmationStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 /** Recursively flattens answers (including nested objects from a "group" step) into plain text.

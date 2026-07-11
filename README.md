@@ -17,9 +17,9 @@ screen" wizards such as reports, surveys, onboarding and multi-step forms: you w
 `Flow` object, Flowkit renders it, handles navigation and validation, and applies the
 theme.
 
-**Multi-framework status**: the core (`@flowkit/core`), themes (`@flowkit/themes`) and
-adapters (`@flowkit/adapters`) are framework-agnostic by design. The **React** renderer
-(`@flowkit/react`) is complete and covered by automated tests (unit + Playwright
+**Multi-framework status**: the core (`@flowkit-io/core`), themes (`@flowkit-io/themes`) and
+adapters (`@flowkit-io/adapters`) are framework-agnostic by design. The **React** renderer
+(`@flowkit-io/react`) is complete and covered by automated tests (unit + Playwright
 end-to-end). **Vue, Svelte and vanilla JS renderers are planned but not yet
 implemented** in this version — the CLI and this documentation cover React only for
 now; sections for the other frameworks will return once the corresponding packages
@@ -39,7 +39,7 @@ e2e/                                 # Playwright end-to-end tests (React target
 ```
 
 No dependency on an external state framework: the core is headless (no DOM), rendering
-lives only in the chosen framework package (today: `@flowkit/react`).
+lives only in the chosen framework package (today: `@flowkit-io/react`).
 
 ---
 
@@ -79,16 +79,16 @@ If you consume Flowkit from another project (not from this monorepo), install th
 packages you need from wherever you've published them:
 
 ```bash
-npm install @flowkit/core @flowkit/react @flowkit/themes @flowkit/adapters
+npm install @flowkit-io/core @flowkit-io/react @flowkit-io/themes @flowkit-io/adapters
 ```
 
-> **Note**: the `@flowkit/*` packages aren't published to a public registry yet at
+> **Note**: the `@flowkit-io/*` packages aren't published to a public registry yet at
 > this stage of the project (all `"private": true`). The install examples above and
 > the CLI below are written for once they are published; in the meantime, to use them
 > from another local project, point at the package folders with the `file:` protocol
-> (e.g. `"@flowkit/core": "file:../flowkit/packages/core"`).
+> (e.g. `"@flowkit-io/core": "file:../flowkit/packages/core"`).
 
-`@flowkit/presets` is optional: it only contains ready-made examples, it isn't
+`@flowkit-io/presets` is optional: it only contains ready-made examples, it isn't
 required to use the library with your own config.
 
 ## CLI: `create-flowkit` and `flowkit-init`
@@ -99,7 +99,7 @@ warning, pending their renderer packages):
 
 ### `create-flowkit` — scaffold a mini-app
 
-Creates a standalone Vite+React project, already wired with `@flowkit/presets` (the
+Creates a standalone Vite+React project, already wired with `@flowkit-io/presets` (the
 `feedback` preset), the default theme and the `local` adapter — no backend required to
 get started.
 
@@ -122,13 +122,13 @@ npx flowkit-init --framework react --yes
 ```
 
 Detects the project's package manager (pnpm/yarn/npm from the lockfile present),
-installs `@flowkit/core` + `@flowkit/themes` + `@flowkit/adapters` + the chosen
+installs `@flowkit-io/core` + `@flowkit-io/themes` + `@flowkit-io/adapters` + the chosen
 framework package, and writes a `src/flowkit-setup.tsx` file with the minimal wiring
 (an empty `FlowRunner` ready to fill in) — not a whole preset.
 
 `flowkit-init` also asks which **optional steps with heavy dependencies** (the two map
 variants) you want to include: only the ones you choose get installed (`maplibre-gl`
-and/or `leaflet`) and imported (`@flowkit/react/map-maplibre`/`map-leaflet`) in the
+and/or `leaflet`) and imported (`@flowkit-io/react/map-maplibre`/`map-leaflet`) in the
 generated file — a project that doesn't use maps installs neither library.
 
 ```bash
@@ -144,7 +144,7 @@ work when piping stdin.
 ## Quickstart: playground
 
 ```bash
-npm run dev --workspace=@flowkit/playground
+npm run dev --workspace=@flowkit-io/playground
 ```
 
 Open the URL printed by Vite. The page shows:
@@ -165,12 +165,12 @@ understand how the various step types behave.
 
 | Concept | Lives in | What it is |
 |---|---|---|
-| `Flow` | `@flowkit/core` | zod-validated object: `{ id, title, locale, steps[] }` |
-| `Step` | `@flowkit/core` | A "screen" of the flow; its `type` is resolved at runtime from a **registry** (see [Custom steps](#custom-steps)), not a closed union |
-| `Answers` | `@flowkit/core` | `Record<stepId, value>`, the state filled in by the user |
-| `Theme` | `@flowkit/themes` | `{ name, label, light, dark }`, each variant is a set of tokens (colors, spacing, fonts, images) |
-| `FlowRunner` | `@flowkit/react` | React component that mounts a `Flow`, manages state/navigation/rendering |
-| `FlowAdapter` | `@flowkit/adapters` | `{ submit, loadDraft, saveDraft }` interface for persisting answers (local/rest/supabase/notion) |
+| `Flow` | `@flowkit-io/core` | zod-validated object: `{ id, title, locale, steps[] }` |
+| `Step` | `@flowkit-io/core` | A "screen" of the flow; its `type` is resolved at runtime from a **registry** (see [Custom steps](#custom-steps)), not a closed union |
+| `Answers` | `@flowkit-io/core` | `Record<stepId, value>`, the state filled in by the user |
+| `Theme` | `@flowkit-io/themes` | `{ name, label, light, dark }`, each variant is a set of tokens (colors, spacing, fonts, images) |
+| `FlowRunner` | `@flowkit-io/react` | React component that mounts a `Flow`, manages state/navigation/rendering |
+| `FlowAdapter` | `@flowkit-io/adapters` | `{ submit, loadDraft, saveDraft }` interface for persisting answers (local/rest/supabase/notion) |
 
 The typical flow: write a `Flow` with `parseFlow(...)`, pass it to `<FlowRunner>`
 along with a `Theme` and an `onSubmit`, and once the user reaches the `review` step
@@ -180,11 +180,11 @@ and confirms, you receive `Answers` already validated according to each step's
 ## Using Flowkit in an app
 
 ```tsx
-import { FlowRunner } from "@flowkit/react"
-import { notionClean } from "@flowkit/themes"
-import { createLocalAdapter } from "@flowkit/adapters"
-import { feedbackFlow } from "@flowkit/presets"
-import "@flowkit/react/style.css" // base component styles (fk-*), required
+import { FlowRunner } from "@flowkit-io/react"
+import { notionClean } from "@flowkit-io/themes"
+import { createLocalAdapter } from "@flowkit-io/adapters"
+import { feedbackFlow } from "@flowkit-io/presets"
+import "@flowkit-io/react/style.css" // base component styles (fk-*), required
 
 const adapter = createLocalAdapter()
 
@@ -224,8 +224,8 @@ the theme to a wider layout (e.g. to also style your own elements around the flo
 you can use `<ThemeProvider>` directly:
 
 ```tsx
-import { ThemeProvider } from "@flowkit/react"
-import { midnightInk } from "@flowkit/themes"
+import { ThemeProvider } from "@flowkit-io/react"
+import { midnightInk } from "@flowkit-io/themes"
 
 <ThemeProvider theme={midnightInk} mode="dark">
   {/* any markup with fk-* classes will inherit the theme's CSS variables */}
@@ -234,15 +234,15 @@ import { midnightInk } from "@flowkit/themes"
 
 ## Custom steps
 
-A step's `type` is no longer a closed union: `@flowkit/core` exposes a **runtime
-registry** (`registerStepType`) and `@flowkit/react` the matching component registry
+A step's `type` is no longer a closed union: `@flowkit-io/core` exposes a **runtime
+registry** (`registerStepType`) and `@flowkit-io/react` the matching component registry
 (`registerStepComponent`). The built-in steps register themselves on package import —
 adding a new one doesn't require touching `schema.ts` or `registry.tsx`.
 
 ```ts
 // 1. Schema + validation (framework-agnostic, in any file of your app)
 import { z } from "zod"
-import { registerStepType } from "@flowkit/core"
+import { registerStepType } from "@flowkit-io/core"
 
 const ratingStarsStepSchema = z.object({
   id: z.string().min(1),
@@ -264,7 +264,7 @@ registerStepType({
 
 ```tsx
 // 2. React component
-import { registerStepComponent, type StepComponentProps } from "@flowkit/react"
+import { registerStepComponent, type StepComponentProps } from "@flowkit-io/react"
 
 function RatingStarsView({ step, value, onChange }: StepComponentProps<RatingStarsStep>) {
   const current = typeof value === "number" ? value : 0
@@ -293,7 +293,7 @@ augmented via TypeScript module augmentation. If you want `Step` to include your
 type at the type level (full narrowing, no cast), augment the map:
 
 ```ts
-declare module "@flowkit/core" {
+declare module "@flowkit-io/core" {
   interface StepTypeMap {
     "rating-stars": RatingStarsStep
   }
@@ -417,10 +417,10 @@ const myTheme: Theme = {
 }
 ```
 
-`@flowkit/themes` exposes `injectThemeFontLinks(theme, mode)` (returns the font URLs to
+`@flowkit-io/themes` exposes `injectThemeFontLinks(theme, mode)` (returns the font URLs to
 load): the themes package stays framework-agnostic, so actually injecting the
 `<link rel="stylesheet">` into the DOM is the host app's responsibility (or a renderer
-like `@flowkit/react`, in a future version with built-in support).
+like `@flowkit-io/react`, in a future version with built-in support).
 
 ### Page/step background, header/footer position, progress bar, animations
 
@@ -454,7 +454,7 @@ All optional: a theme that doesn't set them behaves exactly like today. The back
 registers like step components:
 
 ```ts
-import { registerProgressComponent } from "@flowkit/react"
+import { registerProgressComponent } from "@flowkit-io/react"
 
 registerProgressComponent("my-style", ({ pct, currentIndex, total }) => (
   <div>{currentIndex + 1} of {total} ({pct}%)</div>
@@ -479,11 +479,11 @@ Even a single step can override part of the theme while it's shown, via the comm
 
 ### Creating a custom theme
 
-No need to modify `@flowkit/themes`: just build a compatible `Theme` object and pass
+No need to modify `@flowkit-io/themes`: just build a compatible `Theme` object and pass
 it to `FlowRunner`.
 
 ```ts
-import type { Theme } from "@flowkit/themes"
+import type { Theme } from "@flowkit-io/themes"
 
 export const brandTheme: Theme = {
   name: "brand",
@@ -541,7 +541,7 @@ set CSS variables by hand on a container around `FlowRunner`:
 </div>
 ```
 
-### Helpers available in `@flowkit/themes`
+### Helpers available in `@flowkit-io/themes`
 
 ```ts
 themeToCssVars(theme, mode)      // -> Record<"--fk-...", string>, useful for inline style
@@ -558,7 +558,7 @@ injectThemeFontLinks(theme, mode) // -> string[] of font URLs to inject (see abo
 | `midnight-ink` | Midnight Ink | Purple-ish neutral, indigo accent `#6753E0` |
 
 ```ts
-import { themes, notionClean, mintFresh, midnightInk } from "@flowkit/themes"
+import { themes, notionClean, mintFresh, midnightInk } from "@flowkit-io/themes"
 
 Object.entries(themes) // [["notion-clean", notionClean], ["mint-fresh", mintFresh], ["midnight-ink", midnightInk]]
 ```
@@ -568,7 +568,7 @@ Object.entries(themes) // [["notion-clean", notionClean], ["mint-fresh", mintFre
 A `Flow` is built with `parseFlow` (validates with zod and applies defaults):
 
 ```ts
-import { parseFlow, type Flow } from "@flowkit/core"
+import { parseFlow, type Flow } from "@flowkit-io/core"
 
 export const myFlow: Flow = parseFlow({
   id: "my-flow",       // unique id, used by adapters to group answers
@@ -949,7 +949,7 @@ distinct both from "not answered" (`null`) and from a real connection.
 **Completing the login** after the redirect, on the host app side:
 
 ```ts
-import { completeOAuthCallback } from "@flowkit/core"
+import { completeOAuthCallback } from "@flowkit-io/core"
 
 // on the return page (redirectUri), reading the query string or hash:
 const result = completeOAuthCallback("google", window.location.search)
@@ -962,7 +962,7 @@ const result = completeOAuthCallback("google", window.location.search)
 ```
 
 `generatePkcePair()`/`buildAuthorizeUrl(provider, pkce?)` are exported from
-`@flowkit/core` if you need to build the URL manually outside the step.
+`@flowkit-io/core` if you need to build the URL manually outside the step.
 
 ## Map step (maplibre-gl / Leaflet)
 
@@ -1009,7 +1009,7 @@ type SelectionMode =
   internally uses `LocationStepView` and passes it direct props:
 
 ```tsx
-import { registerStepComponent, LocationStepView } from "@flowkit/react"
+import { registerStepComponent, LocationStepView } from "@flowkit-io/react"
 
 function CustomLocationView(props) {
   // add non-serializable logic/hooks here, then delegate to the default:
@@ -1030,12 +1030,12 @@ the maplibre-gl dependency.
 { id: "pick-spot-leaflet", type: "location-leaflet", title: "Pick a spot on the map" }
 ```
 
-**Both map variants are opt-in**: `@flowkit/react` registers neither `location` nor
+**Both map variants are opt-in**: `@flowkit-io/react` registers neither `location` nor
 `location-leaflet` by default. Import only the entry point you need:
 
 ```ts
-import "@flowkit/react/map-maplibre"  // registers "location" (+ maplibre-gl peer dependency)
-import "@flowkit/react/map-leaflet"   // registers "location-leaflet" (+ leaflet peer dependency)
+import "@flowkit-io/react/map-maplibre"  // registers "location" (+ maplibre-gl peer dependency)
+import "@flowkit-io/react/map-leaflet"   // registers "location-leaflet" (+ leaflet peer dependency)
 ```
 
 This avoids downloading both map libraries in projects that don't use a map step. The
@@ -1119,14 +1119,14 @@ resultActions?: {
   (`navigator.share`); the button is only shown if the API is available
   (feature-detected), no custom fallback.
 - **`resultLink`** and **`emailApi`** require a function injected into the config
-  (`createLink`/`sendEmail`): this keeps `@flowkit/react` decoupled from
-  `@flowkit/adapters` (same pattern as the Notion adapter's `mapAnswersToProperties`
+  (`createLink`/`sendEmail`): this keeps `@flowkit-io/react` decoupled from
+  `@flowkit-io/adapters` (same pattern as the Notion adapter's `mapAnswersToProperties`
   callback). **Limitation**: being functions, these two fields aren't
   JSON-serializable — a flow using them must be built as a TS/JS object, not loaded
   from plain JSON.
 
 ```ts
-import { createLocalAdapter, createReceiptEmailAdapter } from "@flowkit/adapters"
+import { createLocalAdapter, createReceiptEmailAdapter } from "@flowkit-io/adapters"
 
 const adapter = createLocalAdapter({ namespace: "my-app" })
 const receiptEmailAdapter = createReceiptEmailAdapter({ baseUrl: "/api" })
@@ -1148,14 +1148,14 @@ resultActions: {
 
 `createReceiptEmailAdapter` calls `POST {baseUrl}/flows/{flowId}/receipt-email` with
 body `{ email, answers }`: your backend is the one that actually sends the email. As a
-starting point for the HTML to send, `@flowkit/react` exports
+starting point for the HTML to send, `@flowkit-io/react` exports
 `renderReceiptEmailHtml({ title, message?, answers })`, a template with inline styles
 matching the notion-clean look — a reference function for the consumer's backend, not
 called from any client-side code in this repo.
 
 ## Persisting answers (adapters)
 
-`@flowkit/adapters` exposes the same interface (`FlowAdapter`) for four different
+`@flowkit-io/adapters` exposes the same interface (`FlowAdapter`) for four different
 backends:
 
 ```ts
@@ -1173,7 +1173,7 @@ export interface FlowAdapter {
 ### `createLocalAdapter` — localStorage
 
 ```ts
-import { createLocalAdapter } from "@flowkit/adapters"
+import { createLocalAdapter } from "@flowkit-io/adapters"
 
 const adapter = createLocalAdapter({
   namespace: "flowkit-playground", // storage key prefix, default "flowkit"
@@ -1184,7 +1184,7 @@ const adapter = createLocalAdapter({
 ### `createRestAdapter` — HTTP endpoint
 
 ```ts
-import { createRestAdapter } from "@flowkit/adapters"
+import { createRestAdapter } from "@flowkit-io/adapters"
 
 const adapter = createRestAdapter({
   baseUrl: "https://api.your-domain.com",
@@ -1201,7 +1201,7 @@ your backend.
 ### `createSupabaseAdapter` — Supabase stub
 
 ```ts
-import { createSupabaseAdapter } from "@flowkit/adapters"
+import { createSupabaseAdapter } from "@flowkit-io/adapters"
 import { createClient } from "@supabase/supabase-js"
 
 const client = createClient(url, key)
@@ -1214,7 +1214,7 @@ initialized client that satisfies the minimal `SupabaseClientLike` interface.
 ### `createNotionAdapter` — pages in a Notion database
 
 ```ts
-import { createNotionAdapter } from "@flowkit/adapters"
+import { createNotionAdapter } from "@flowkit-io/adapters"
 
 const adapter = createNotionAdapter({
   token: process.env.NOTION_TOKEN!,   // integration token, never hardcoded
@@ -1236,7 +1236,7 @@ The target Notion database must have (at least) the `flowId` (text) and `draft`
 ### Writing a custom adapter
 
 ```ts
-import type { FlowAdapter } from "@flowkit/adapters"
+import type { FlowAdapter } from "@flowkit-io/adapters"
 
 export function createMyAdapter(): FlowAdapter {
   return {
@@ -1249,10 +1249,10 @@ export function createMyAdapter(): FlowAdapter {
 
 ## i18n
 
-`@flowkit/core` exposes a small dictionary for generic navigation strings:
+`@flowkit-io/core` exposes a small dictionary for generic navigation strings:
 
 ```ts
-import { t } from "@flowkit/core"
+import { t } from "@flowkit-io/core"
 
 t("it", "next")     // "Avanti"
 t("en", "back")     // "Back"
@@ -1264,7 +1264,7 @@ Covers only `next`, `back`, `submit`, `required` (locale `it`/`en`, falling back
 
 ## Included presets
 
-`@flowkit/presets` contains three ready-made flows, useful both as demos and as an
+`@flowkit-io/presets` contains three ready-made flows, useful both as demos and as an
 example of how to compose every step type:
 
 - **`odoriFlow`** (`packages/presets/src/odori.ts`) — reporting a bad smell:
@@ -1282,7 +1282,7 @@ example of how to compose every step type:
   `confirmation` (with `resultActions.pdfExport`/`nativeShare`).
 
 ```ts
-import { odoriFlow, feedbackFlow, restaurantFlow } from "@flowkit/presets"
+import { odoriFlow, feedbackFlow, restaurantFlow } from "@flowkit-io/presets"
 ```
 
 The playground also includes additional demos (not standalone packages, just examples
@@ -1309,13 +1309,13 @@ CI, in a dedicated workflow) because it involves building+previewing the playgro
 and launching a browser: slower, not meant for `verify`'s fast cycle.
 
 **Note for anyone developing inside this monorepo**: `apps/playground` imports the
-`@flowkit/*` packages from their respective `dist/` output (not from sources via HMR).
+`@flowkit-io/*` packages from their respective `dist/` output (not from sources via HMR).
 If you change `packages/react`, `packages/core`, `packages/themes` etc. and want to see
 the effect in the playground in dev, you need to rebuild the touched package before
 reloading the page:
 
 ```bash
-npm run build --workspace=@flowkit/react --workspace=@flowkit/core
+npm run build --workspace=@flowkit-io/react --workspace=@flowkit-io/core
 ```
 
 (`packages/react/src/style.css` is an exception: it's imported by direct path, so CSS
@@ -1358,7 +1358,7 @@ target for now:
   variants), and inspects the generated files.
 
 ```bash
-npm run build --workspace=@flowkit/create-flowkit   # required before cli-scaffold.spec.ts
+npm run build --workspace=@flowkit-io/create-flowkit   # required before cli-scaffold.spec.ts
 npx playwright install chromium                     # one-time
 npm run test:e2e
 ```
@@ -1377,8 +1377,8 @@ Also runs in CI (`.github/workflows/e2e.yml`), separate from the `verify` gate
   `FlowRunner` without touching this repo.
 - **New adapter**: implement `FlowAdapter` (see above), no changes to the core or
   renderer required.
-- **New framework renderer** (Vue/Svelte/vanilla, planned): reuse `@flowkit/core`/
-  `@flowkit/themes`/`@flowkit/adapters` unchanged; replicate the `StepComponentProps`
+- **New framework renderer** (Vue/Svelte/vanilla, planned): reuse `@flowkit-io/core`/
+  `@flowkit-io/themes`/`@flowkit-io/adapters` unchanged; replicate the `StepComponentProps`
   contract (`step`/`value`/`onChange` or equivalent/`flow`/`answers`) and the registry
   pattern (`registerStepComponent`/`getStepComponent`) seen in
   `packages/react/src/registry.tsx`.

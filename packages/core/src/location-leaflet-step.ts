@@ -8,8 +8,8 @@ import { z } from "zod"
  * the rendering engine (v2.15). The exact same config as the extended
  * "location" step (location-step.ts): only the type changes (so it can be
  * registered as a separate, opt-in React component, see
- * @flowkit/react/map-leaflet) along with the rendering engine on the
- * @flowkit/react side.
+ * @flowkit-io/react/map-leaflet) along with the rendering engine on the
+ * @flowkit-io/react side.
  */
 export const locationLeafletStepConfigSchema = locationStepSchema.extend({
   type: z.literal("location-leaflet"),

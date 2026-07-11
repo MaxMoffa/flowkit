@@ -1,4 +1,4 @@
-import type { AnswerValue, Answers } from "@flowkit/core"
+import type { AnswerValue, Answers } from "@flowkit-io/core"
 import type { FlowAdapter } from "./types"
 
 const NOTION_API_BASE = "https://api.notion.com/v1"

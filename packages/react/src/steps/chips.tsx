@@ -1,4 +1,4 @@
-import type { ChipsStep } from "@flowkit/core"
+import type { ChipsStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 export function ChipsStepView({ step, value, onChange }: StepComponentProps<ChipsStep>) {

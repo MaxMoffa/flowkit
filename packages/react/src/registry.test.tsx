@@ -28,12 +28,12 @@ describe("react step component registry", () => {
     expect(getStepComponent("location-leaflet")).toBeUndefined()
   })
 
-  it("registers 'location' after importing @flowkit/react/map-maplibre", async () => {
+  it("registers 'location' after importing @flowkit-io/react/map-maplibre", async () => {
     await import("./map-maplibre")
     expect(getStepComponent("location")).toBeTypeOf("function")
   })
 
-  it("registers 'location-leaflet' after importing @flowkit/react/map-leaflet", async () => {
+  it("registers 'location-leaflet' after importing @flowkit-io/react/map-leaflet", async () => {
     await import("./map-leaflet")
     expect(getStepComponent("location-leaflet")).toBeTypeOf("function")
   })

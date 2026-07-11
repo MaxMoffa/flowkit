@@ -1,5 +1,5 @@
 {
-  "name": "@flowkit/create-flowkit",
+  "name": "@flowkit-io/create-flowkit",
   "version": "0.1.0",
   "description": "CLI to scaffold a new Flowkit app or add Flowkit to an existing project.",
   "license": "MIT",

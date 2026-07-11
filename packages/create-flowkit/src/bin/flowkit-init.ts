@@ -6,7 +6,7 @@ import { detectPackageManager, installCommand } from "../detect-package-manager"
 import { templatesRoot } from "../copy-template"
 
 const FRAMEWORK_PACKAGES: Record<string, string[]> = {
-  react: ["@flowkit/core", "@flowkit/themes", "@flowkit/adapters", "@flowkit/react"],
+  react: ["@flowkit-io/core", "@flowkit-io/themes", "@flowkit-io/adapters", "@flowkit-io/react"],
 }
 
 const STEP_GROUP_PACKAGES: Record<OptionalStepGroup, string> = {
@@ -15,8 +15,8 @@ const STEP_GROUP_PACKAGES: Record<OptionalStepGroup, string> = {
 }
 
 const STEP_GROUP_IMPORTS: Record<OptionalStepGroup, string> = {
-  "map-maplibre": "@flowkit/react/map-maplibre",
-  "map-leaflet": "@flowkit/react/map-leaflet",
+  "map-maplibre": "@flowkit-io/react/map-maplibre",
+  "map-leaflet": "@flowkit-io/react/map-leaflet",
 }
 
 async function main() {
@@ -55,8 +55,8 @@ async function main() {
     const template = readFileSync(templateFile, "utf8")
     const extraImports = steps.map((s) => `import "${STEP_GROUP_IMPORTS[s]}"\n`).join("")
     const withImports = template.replace(
-      'import "@flowkit/react/style.css"\n',
-      `import "@flowkit/react/style.css"\n${extraImports}`,
+      'import "@flowkit-io/react/style.css"\n',
+      `import "@flowkit-io/react/style.css"\n${extraImports}`,
     )
     writeFileSync(targetFile, withImports)
     clack.log.success(`Created ${path.relative(process.cwd(), targetFile)}`)

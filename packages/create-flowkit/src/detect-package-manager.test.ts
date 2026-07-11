@@ -37,9 +37,9 @@ describe("detectPackageManager", () => {
 
 describe("installCommand / runScriptCommand", () => {
   it("builds the right install command per package manager", () => {
-    expect(installCommand("pnpm", ["@flowkit/core"])).toBe("pnpm add @flowkit/core")
-    expect(installCommand("yarn", ["@flowkit/core"])).toBe("yarn add @flowkit/core")
-    expect(installCommand("npm", ["@flowkit/core"])).toBe("npm install @flowkit/core")
+    expect(installCommand("pnpm", ["@flowkit-io/core"])).toBe("pnpm add @flowkit-io/core")
+    expect(installCommand("yarn", ["@flowkit-io/core"])).toBe("yarn add @flowkit-io/core")
+    expect(installCommand("npm", ["@flowkit-io/core"])).toBe("npm install @flowkit-io/core")
   })
 
   it("builds the right run-script command per package manager", () => {

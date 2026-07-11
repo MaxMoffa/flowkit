@@ -1,4 +1,4 @@
-import type { NotesStep } from "@flowkit/core"
+import type { NotesStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 export function NotesStepView({ step, value, onChange }: StepComponentProps<NotesStep>) {

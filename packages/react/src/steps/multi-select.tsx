@@ -1,4 +1,4 @@
-import type { MultiSelectStep } from "@flowkit/core"
+import type { MultiSelectStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 export function MultiSelectStepView({ step, value, onChange }: StepComponentProps<MultiSelectStep>) {

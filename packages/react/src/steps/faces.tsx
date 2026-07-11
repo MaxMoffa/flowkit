@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import type { FacesStep } from "@flowkit/core"
+import type { FacesStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 export function FacesStepView({ step, value, onChange }: StepComponentProps<FacesStep>) {

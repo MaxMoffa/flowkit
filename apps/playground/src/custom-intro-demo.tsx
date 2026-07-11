@@ -1,6 +1,6 @@
 import { z } from "zod"
-import { registerStepType, parseFlow, type Flow } from "@flowkit/core"
-import { registerStepComponent, type StepComponentProps } from "@flowkit/react"
+import { registerStepType, parseFlow, type Flow } from "@flowkit-io/core"
+import { registerStepComponent, type StepComponentProps } from "@flowkit-io/react"
 
 /**
  * Esempio end-to-end di intro/confirmation completamente custom (v2.9): nuovi
@@ -26,7 +26,7 @@ const introHeroStepSchema = z.object({
 
 export type IntroHeroStep = z.infer<typeof introHeroStepSchema>
 
-declare module "@flowkit/core" {
+declare module "@flowkit-io/core" {
   interface StepTypeMap {
     "intro-hero": IntroHeroStep
   }
@@ -68,7 +68,7 @@ const confirmationHeroStepSchema = z.object({
 
 export type ConfirmationHeroStep = z.infer<typeof confirmationHeroStepSchema>
 
-declare module "@flowkit/core" {
+declare module "@flowkit-io/core" {
   interface StepTypeMap {
     "confirmation-hero": ConfirmationHeroStep
   }

@@ -13,8 +13,8 @@ const baseStepFields = {
   /**
    * Theme override (v2.10) limited to this step: a subset of colors, radii
    * and images applied only while the step is shown. Not typed against
-   * ThemeTokens: core doesn't depend on @flowkit/themes, the validation/CSS
-   * var mapping happens on the @flowkit/react side.
+   * ThemeTokens: core doesn't depend on @flowkit-io/themes, the validation/CSS
+   * var mapping happens on the @flowkit-io/react side.
    */
   themeOverride: z.record(z.string(), z.unknown()).optional(),
 }
@@ -235,7 +235,7 @@ export type ConfirmationStep = z.infer<typeof confirmationStepSchema>
  * registering a custom type with registerStepType can get full static
  * narrowing by augmenting this interface via module augmentation:
  *
- *   declare module "@flowkit/core" {
+ *   declare module "@flowkit-io/core" {
  *     interface StepTypeMap {
  *       "rating-stars": RatingStarsStep
  *     }

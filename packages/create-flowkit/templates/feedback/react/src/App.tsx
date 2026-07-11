@@ -1,7 +1,7 @@
-import { FlowRunner } from "@flowkit/react"
-import { themes } from "@flowkit/themes"
-import { createLocalAdapter } from "@flowkit/adapters"
-import { feedbackFlow } from "@flowkit/presets"
+import { FlowRunner } from "@flowkit-io/react"
+import { themes } from "@flowkit-io/themes"
+import { createLocalAdapter } from "@flowkit-io/adapters"
+import { feedbackFlow } from "@flowkit-io/presets"
 
 const adapter = createLocalAdapter({ namespace: "my-flowkit-app" })
 

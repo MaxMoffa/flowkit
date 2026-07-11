@@ -1,4 +1,4 @@
-import { buildAuthorizeUrl, generatePkcePair, type OAuthResult, type OAuthStep } from "@flowkit/core"
+import { buildAuthorizeUrl, generatePkcePair, type OAuthResult, type OAuthStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 const providerIcons: Record<string, string> = {

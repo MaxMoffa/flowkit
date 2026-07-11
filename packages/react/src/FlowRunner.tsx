@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react"
 import { useMemo, useState } from "react"
-import type { Answers, Flow } from "@flowkit/core"
+import type { Answers, Flow } from "@flowkit-io/core"
 import {
   canGoNext,
   createFlowState,
@@ -12,9 +12,9 @@ import {
   prev as prevState,
   progress as flowProgress,
   setAnswer,
-} from "@flowkit/core"
-import type { Theme, ThemeMode, ThemeTokens } from "@flowkit/themes"
-import { notionClean, partialTokensToCssVars } from "@flowkit/themes"
+} from "@flowkit-io/core"
+import type { Theme, ThemeMode, ThemeTokens } from "@flowkit-io/themes"
+import { notionClean, partialTokensToCssVars } from "@flowkit-io/themes"
 import { getStepComponent } from "./registry"
 import { getProgressComponent } from "./progress-registry"
 import { BarProgress } from "./progress/BarProgress"

@@ -1,5 +1,5 @@
 import type { ComponentType } from "react"
-import type { Step } from "@flowkit/core"
+import type { Step } from "@flowkit-io/core"
 import type { StepComponentProps } from "./types"
 
 /**

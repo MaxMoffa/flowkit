@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import type { ScaleStep } from "@flowkit/core"
+import type { ScaleStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 const defaultColors = ["#7D7A75", "#46A171", "#46A171", "#D5803B", "#D5803B", "#E56458", "#E56458"]

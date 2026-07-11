@@ -1,4 +1,4 @@
-import type { IntroStep } from "@flowkit/core"
+import type { IntroStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 export function IntroStepView({ step }: StepComponentProps<IntroStep>) {

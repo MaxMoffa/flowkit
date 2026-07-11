@@ -1,4 +1,4 @@
-import type { ReviewStep, Step } from "@flowkit/core"
+import type { ReviewStep, Step } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 function optionLabel(step: Step, rawValue: string): string {

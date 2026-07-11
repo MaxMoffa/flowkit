@@ -1,4 +1,4 @@
-import type { Answers } from "@flowkit/core"
+import type { Answers } from "@flowkit-io/core"
 
 export interface FlowAdapter {
   /** Persists a flow's answers. */
@@ -12,7 +12,7 @@ export interface FlowAdapter {
    * link. Additive with respect to submit/loadDraft/saveDraft — only
    * adapters that want to support the "resultLink" resultAction implement
    * it; wiring it to confirmation.resultActions.resultLink.createLink is
-   * the consumer's responsibility, not @flowkit/react's.
+   * the consumer's responsibility, not @flowkit-io/react's.
    */
   createResultLink?(flowId: string, answers: Answers): Promise<{ id: string; url: string }>
 }

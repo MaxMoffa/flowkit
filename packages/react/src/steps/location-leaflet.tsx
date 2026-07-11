@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import type leaflet from "leaflet"
-import { geocode, reverseGeocode, type GeocodingResult, type LocationLeafletStepConfig } from "@flowkit/core"
+import { geocode, reverseGeocode, type GeocodingResult, type LocationLeafletStepConfig } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 const DEFAULT_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

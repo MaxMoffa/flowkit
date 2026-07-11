@@ -1,5 +1,5 @@
 {
-  "name": "@flowkit/core",
+  "name": "@flowkit-io/core",
   "version": "0.1.0",
   "description": "Headless config schema, flow state machine, validation and i18n for Flowkit.",
   "license": "MIT",

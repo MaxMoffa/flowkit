@@ -1,4 +1,4 @@
-import type { AnswerValue, GroupStep } from "@flowkit/core"
+import type { AnswerValue, GroupStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { getStepComponent } from "../registry"
 

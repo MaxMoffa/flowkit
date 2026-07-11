@@ -1,4 +1,4 @@
-import type { PhotoStep } from "@flowkit/core"
+import type { PhotoStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 export function PhotoStepView({ step, value, onChange }: StepComponentProps<PhotoStep>) {

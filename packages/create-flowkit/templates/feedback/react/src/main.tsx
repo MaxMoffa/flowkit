@@ -1,6 +1,6 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
-import "@flowkit/react/style.css"
+import "@flowkit-io/react/style.css"
 import { App } from "./App"
 
 createRoot(document.getElementById("root")!).render(

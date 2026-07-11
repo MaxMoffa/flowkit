@@ -1,5 +1,5 @@
 {
-  "name": "@flowkit/themes",
+  "name": "@flowkit-io/themes",
   "version": "0.1.0",
   "description": "Design tokens and CSS variables themes for Flowkit (default: notion-clean).",
   "license": "MIT",

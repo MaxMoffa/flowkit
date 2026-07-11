@@ -1,4 +1,4 @@
-import { parseFlow, type Flow } from "@flowkit/core"
+import { parseFlow, type Flow } from "@flowkit-io/core"
 
 /**
  * Demo end-to-end delle feature v2.7 (step OAuth) e v2.8 (step mappa reale

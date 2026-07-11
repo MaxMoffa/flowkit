@@ -1,4 +1,4 @@
-import type { AnswerValue, Answers, Flow, Step } from "@flowkit/core"
+import type { AnswerValue, Answers, Flow, Step } from "@flowkit-io/core"
 
 export interface StepComponentProps<T extends Step = Step> {
   step: T

@@ -1,4 +1,4 @@
-import { parseFlow, type Flow } from "@flowkit/core"
+import { parseFlow, type Flow } from "@flowkit-io/core"
 
 /** Preset for booking a restaurant table. */
 export const restaurantFlow: Flow = parseFlow({

@@ -1,4 +1,4 @@
-import type { DateTimeStep } from "@flowkit/core"
+import type { DateTimeStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 const inputTypeByMode = {

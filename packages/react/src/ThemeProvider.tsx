@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react"
-import type { Theme, ThemeMode } from "@flowkit/themes"
-import { notionClean, themeToCssVars } from "@flowkit/themes"
+import type { Theme, ThemeMode } from "@flowkit-io/themes"
+import { notionClean, themeToCssVars } from "@flowkit-io/themes"
 
 export interface ThemeProviderProps {
   theme?: Theme

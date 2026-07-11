@@ -1,5 +1,5 @@
-import { odoriFlow, feedbackFlow, restaurantFlow } from "@flowkit/presets"
-import type { Flow } from "@flowkit/core"
+import { odoriFlow, feedbackFlow, restaurantFlow } from "@flowkit-io/presets"
+import type { Flow } from "@flowkit-io/core"
 import { customStepDemoFlow } from "./custom-step-demo"
 import { featuresDemoFlow } from "./features-demo"
 import { customIntroDemoFlow } from "./custom-intro-demo"

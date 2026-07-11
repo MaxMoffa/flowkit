@@ -1,4 +1,4 @@
-import type { TextStep } from "@flowkit/core"
+import type { TextStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 export function TextStepView({ step, value, onChange }: StepComponentProps<TextStep>) {
