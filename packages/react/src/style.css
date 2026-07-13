@@ -35,6 +35,42 @@
   }
 }
 
+/* Desktop: center header/step/footer content in a readable column, bars stay full-bleed */
+.fk-header-inner,
+.fk-footer-inner,
+.fk-scroll-inner {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  .fk-header-inner,
+  .fk-footer-inner,
+  .fk-scroll-inner {
+    width: 100%;
+    max-width: var(--fk-content-max-width, 640px);
+    align-self: center;
+  }
+
+  .fk-header-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--fk-space-md);
+  }
+
+  .fk-footer-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .fk-scroll-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+}
+
 /* Header: back button + progress + step counter */
 .fk-header {
   display: flex;

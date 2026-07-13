@@ -122,58 +122,66 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
       <div className="fk-root" style={rootStyle}>
         {showHeader && (
           <div className="fk-header" style={{ order: headerOrder }}>
-            <button
-              type="button"
-              className="fk-back"
-              onClick={handlePrev}
-              disabled={first}
-              aria-label="Indietro"
-            >
-              ←
-            </button>
-            {ProgressComponent && (
-              <ProgressComponent pct={pct} currentIndex={middleIndex} total={middleSteps.length} />
-            )}
-            <span className="fk-stepno">
-              {middleIndex + 1}/{middleSteps.length}
-            </span>
+            <div className="fk-header-inner">
+              <button
+                type="button"
+                className="fk-back"
+                onClick={handlePrev}
+                disabled={first}
+                aria-label="Indietro"
+              >
+                ←
+              </button>
+              {ProgressComponent && (
+                <ProgressComponent pct={pct} currentIndex={middleIndex} total={middleSteps.length} />
+              )}
+              <span className="fk-stepno">
+                {middleIndex + 1}/{middleSteps.length}
+              </span>
+            </div>
           </div>
         )}
         <div className="fk-body" style={{ order: 2 }}>
-          <div className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}`}>
-            <div key={step.id} className={`fk-step-theme-scope${animationClass}`} style={scopeStyle}>
-              <StepView
-                step={step}
-                value={state.answers[step.id] ?? null}
-                onChange={handleChange}
-                flow={flow}
-                answers={state.answers}
-              />
+          <div className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}${step.type === "location" || step.type === "location-leaflet" ? " fk-scroll-location" : ""}`}>
+            <div className="fk-scroll-inner">
+              <div key={step.id} className={`fk-step-theme-scope${animationClass}`} style={scopeStyle}>
+                <StepView
+                  step={step}
+                  value={state.answers[step.id] ?? null}
+                  onChange={handleChange}
+                  flow={flow}
+                  answers={state.answers}
+                />
+              </div>
             </div>
           </div>
         </div>
         {!last && (
           <div className="fk-footer" style={{ order: footerOrder }}>
-            <div className="fk-footer-row">
-              <button
-                type="button"
-                className={`fk-btn-primary ${step.type === "review" ? "fk-btn-success" : ""}`}
-                disabled={!valid}
-                onClick={handleNext}
-              >
-                {primaryLabel}
-              </button>
+            <div className="fk-footer-inner">
+              <div className="fk-footer-row">
+                <button
+                  type="button"
+                  className={`fk-btn-primary ${step.type === "review" ? "fk-btn-success" : ""}`}
+                  disabled={!valid}
+                  onClick={handleNext}
+                >
+                  {primaryLabel}
+                </button>
+              </div>
             </div>
           </div>
         )}
         {last && isConfirmation && (
           <div className="fk-footer" style={{ order: footerOrder }}>
-            <button type="button" className="fk-btn-secondary" onClick={handleRestart}>
-              {(step as StepWithConfirmationFields).secondaryCta ?? "Nuova segnalazione"}
-            </button>
-            <button type="button" className="fk-btn-primary" onClick={handleRestart}>
-              {(step as StepWithConfirmationFields).primaryCta ?? "Torna alla home"}
-            </button>
+            <div className="fk-footer-inner">
+              <button type="button" className="fk-btn-secondary" onClick={handleRestart}>
+                {(step as StepWithConfirmationFields).secondaryCta ?? "Nuova segnalazione"}
+              </button>
+              <button type="button" className="fk-btn-primary" onClick={handleRestart}>
+                {(step as StepWithConfirmationFields).primaryCta ?? "Torna alla home"}
+              </button>
+            </div>
           </div>
         )}
       </div>
