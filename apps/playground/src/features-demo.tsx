@@ -89,6 +89,14 @@ export const featuresDemoFlow: Flow = parseFlow({
       required: false,
     },
     {
+      id: "pick-leaflet-full",
+      type: "location-leaflet",
+      title: "Mappa a schermo intero",
+      subtitle: "fullContainer: true — la mappa riempie tutto lo step.",
+      required: false,
+      fullContainer: true,
+    },
+    {
       id: "quick-group",
       type: "group",
       themeOverride: { accent: "#E56458" },

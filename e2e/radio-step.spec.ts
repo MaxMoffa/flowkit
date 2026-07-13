@@ -4,7 +4,7 @@ test("radio step: single-select list, one option per row", async ({ page }) => {
   await page.goto("/")
   await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
   await page.getByRole("button", { name: "Prova" }).click()
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 8; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()
   }
 

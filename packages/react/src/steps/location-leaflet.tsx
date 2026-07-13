@@ -35,6 +35,7 @@ export function LocationLeafletStepView({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<leaflet.Map | null>(null)
   const markerRef = useRef<leaflet.Marker | null>(null)
+  const resizeObserverRef = useRef<ResizeObserver | null>(null)
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<GeocodingResult[]>([])
   const [searching, setSearching] = useState(false)
@@ -69,6 +70,12 @@ export function LocationLeafletStepView({
       )
       L.tileLayer(DEFAULT_TILE_URL, { attribution: DEFAULT_TILE_ATTRIBUTION }).addTo(map)
       mapRef.current = map
+
+      // The container's size isn't final yet on first paint (e.g. fullContainer
+      // mode, layout still settling): re-measure whenever it actually changes,
+      // otherwise Leaflet renders tiles for a stale/zero size.
+      resizeObserverRef.current = new ResizeObserver(() => map.invalidateSize())
+      resizeObserverRef.current.observe(containerRef.current)
 
       function placeDraggableMarker(lat: number, lng: number) {
         if (!markerRef.current) {
@@ -127,6 +134,8 @@ export function LocationLeafletStepView({
 
     return () => {
       cancelled = true
+      resizeObserverRef.current?.disconnect()
+      resizeObserverRef.current = null
       mapRef.current?.remove()
       mapRef.current = null
       markerRef.current = null
@@ -248,79 +257,108 @@ export function LocationLeafletStepView({
     )
   }
 
+  const searchBlock = step.showSearch !== false && (
+    <div className="fk-map-search">
+      <input
+        className="fk-input"
+        type="text"
+        placeholder={step.placeholder ?? "Cerca un indirizzo"}
+        value={query}
+        onChange={(e) => void runSearch(e.target.value)}
+      />
+      {searching && <span className="fk-map-search-loading">Cerco…</span>}
+      {results.length > 0 && (
+        <ul className="fk-map-search-results">
+          {results.map((r, i) => (
+            <li key={i}>
+              <button type="button" onClick={() => selectResult(r)}>
+                {r.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+
+  const gpsButton = step.enableGps !== false && (
+    <button
+      type="button"
+      className="fk-btn-neutral fk-gps-btn"
+      onClick={() => void requestGpsLocation()}
+      disabled={gpsLoading}
+    >
+      📍 {gpsLoading ? "Rilevo la posizione…" : (step.gpsButtonLabel ?? "Usa la mia posizione")}
+    </button>
+  )
+
+  const resultRow = (current.address || (current.lat !== undefined && current.lng !== undefined)) && (
+    <div className="fk-loc-row">
+      <div className="fk-loc-ic">📍</div>
+      <div>
+        <div className="fk-loc-title">
+          {current.address ?? `${current.lat?.toFixed(5)}, ${current.lng?.toFixed(5)}`}
+        </div>
+        {step.detectedSubLabel && <div className="fk-loc-detail">{step.detectedSubLabel}</div>}
+      </div>
+    </div>
+  )
+
+  const gpsGuideOverlay = showGpsGuide && (
+    <div className="fk-gps-guide-overlay" role="dialog" aria-modal="true">
+      <div className="fk-gps-guide">
+        <div className="fk-gps-guide-ic">📍</div>
+        <div className="fk-gps-guide-title">{step.gpsGuideTitle ?? "Permesso di posizione bloccato"}</div>
+        <p className="fk-gps-guide-text">
+          {step.gpsGuideText ??
+            "Il browser ha bloccato l'accesso alla posizione. Apri le impostazioni del sito (icona 🔒/ⓘ accanto all'indirizzo), consenti \"Posizione\" e riprova."}
+        </p>
+        <button type="button" className="fk-btn fk-btn-primary" onClick={() => setShowGpsGuide(false)}>
+          Ho capito
+        </button>
+      </div>
+    </div>
+  )
+
+  if (step.fullContainer) {
+    return (
+      <div className="fk-step fk-step-location fk-step-location--full">
+        <div className="fk-map-overlay-top">
+          {step.title && <h2 className="fk-title">{step.title}</h2>}
+          {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+          {searchBlock}
+        </div>
+
+        {step.showMap !== false && <div ref={containerRef} className="fk-map-canvas fk-map-canvas--full" />}
+
+        <div className="fk-map-overlay-bottom">
+          {gpsButton}
+          {gpsError && <p className="fk-gps-error">{gpsError}</p>}
+          {resultRow}
+          {reverseLoading && <span className="fk-map-search-loading">Cerco indirizzo…</span>}
+        </div>
+
+        {gpsGuideOverlay}
+      </div>
+    )
+  }
+
   return (
     <div className="fk-step fk-step-location">
       {step.title && <h2 className="fk-title">{step.title}</h2>}
       {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
 
-      {step.showSearch !== false && (
-        <div className="fk-map-search">
-          <input
-            className="fk-input"
-            type="text"
-            placeholder={step.placeholder ?? "Cerca un indirizzo"}
-            value={query}
-            onChange={(e) => void runSearch(e.target.value)}
-          />
-          {searching && <span className="fk-map-search-loading">Cerco…</span>}
-          {results.length > 0 && (
-            <ul className="fk-map-search-results">
-              {results.map((r, i) => (
-                <li key={i}>
-                  <button type="button" onClick={() => selectResult(r)}>
-                    {r.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      {searchBlock}
 
       {step.showMap !== false && <div ref={containerRef} className="fk-map-canvas" />}
 
-      {step.enableGps !== false && (
-        <button
-          type="button"
-          className="fk-btn-neutral fk-gps-btn"
-          onClick={() => void requestGpsLocation()}
-          disabled={gpsLoading}
-        >
-          📍 {gpsLoading ? "Rilevo la posizione…" : (step.gpsButtonLabel ?? "Usa la mia posizione")}
-        </button>
-      )}
+      {gpsButton}
       {gpsError && <p className="fk-gps-error">{gpsError}</p>}
 
-      {(current.address || (current.lat !== undefined && current.lng !== undefined)) && (
-        <div className="fk-loc-row">
-          <div className="fk-loc-ic">📍</div>
-          <div>
-            <div className="fk-loc-title">
-              {current.address ?? `${current.lat?.toFixed(5)}, ${current.lng?.toFixed(5)}`}
-            </div>
-            {step.detectedSubLabel && <div className="fk-loc-detail">{step.detectedSubLabel}</div>}
-          </div>
-        </div>
-      )}
+      {resultRow}
       {reverseLoading && <span className="fk-map-search-loading">Cerco indirizzo…</span>}
 
-      {showGpsGuide && (
-        <div className="fk-gps-guide-overlay" role="dialog" aria-modal="true">
-          <div className="fk-gps-guide">
-            <div className="fk-gps-guide-ic">📍</div>
-            <div className="fk-gps-guide-title">
-              {step.gpsGuideTitle ?? "Permesso di posizione bloccato"}
-            </div>
-            <p className="fk-gps-guide-text">
-              {step.gpsGuideText ??
-                "Il browser ha bloccato l'accesso alla posizione. Apri le impostazioni del sito (icona 🔒/ⓘ accanto all'indirizzo), consenti \"Posizione\" e riprova."}
-            </p>
-            <button type="button" className="fk-btn fk-btn-primary" onClick={() => setShowGpsGuide(false)}>
-              Ho capito
-            </button>
-          </div>
-        </div>
-      )}
+      {gpsGuideOverlay}
     </div>
   )
 }

@@ -43,7 +43,7 @@ test("per-step themeOverride: group step accent differs from the flow's theme ac
   await page.goto("/")
   await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
   await page.getByRole("button", { name: "Prova" }).click()
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 8; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()
   }
   await expect(page.getByRole("heading", { name: "Un paio di domande veloci" })).toBeVisible()
