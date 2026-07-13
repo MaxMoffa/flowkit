@@ -82,6 +82,14 @@ export const featuresDemoFlow: Flow = parseFlow({
       showSearch: false,
     },
     {
+      id: "pick-full-container",
+      type: "location",
+      title: "Mappa a schermo intero (maplibre)",
+      subtitle: "fullContainer: true — la mappa riempie tutto lo step.",
+      required: false,
+      fullContainer: true,
+    },
+    {
       id: "pick-leaflet-spot",
       type: "location-leaflet",
       title: "Scegli un punto sulla mappa (Leaflet)",

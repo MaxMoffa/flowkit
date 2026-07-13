@@ -4,7 +4,7 @@ test("location-leaflet step: renders map and sets a value on click", async ({ pa
   await page.goto("/")
   await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
   await page.getByRole("button", { name: "Prova" }).click()
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()
   }
 
