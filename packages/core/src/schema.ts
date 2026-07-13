@@ -135,6 +135,14 @@ export const multiSelectStepSchema = z.object({
   max: z.number().optional(),
 })
 
+export const radioStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("radio"),
+  options: z
+    .array(z.object({ value: z.string(), label: z.string() }))
+    .min(1),
+})
+
 export const textStepSchema = z.object({
   ...baseStepFields,
   type: z.literal("text"),
@@ -226,6 +234,7 @@ export type PhotoStep = z.infer<typeof photoStepSchema>
 export type DateTimeStep = z.infer<typeof dateTimeStepSchema>
 export type NpsStep = z.infer<typeof npsStepSchema>
 export type MultiSelectStep = z.infer<typeof multiSelectStepSchema>
+export type RadioStep = z.infer<typeof radioStepSchema>
 export type TextStep = z.infer<typeof textStepSchema>
 export type ReviewStep = z.infer<typeof reviewStepSchema>
 export type ConfirmationStep = z.infer<typeof confirmationStepSchema>
@@ -259,6 +268,7 @@ export interface StepTypeMap {
   "date-time": DateTimeStep
   nps: NpsStep
   "multi-select": MultiSelectStep
+  radio: RadioStep
   text: TextStep
   review: ReviewStep
   confirmation: ConfirmationStep
@@ -279,6 +289,7 @@ export type BuiltinStepType =
   | "date-time"
   | "nps"
   | "multi-select"
+  | "radio"
   | "text"
   | "review"
   | "confirmation"

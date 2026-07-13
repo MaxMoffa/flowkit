@@ -11,6 +11,7 @@ import {
   dateTimeStepSchema,
   npsStepSchema,
   multiSelectStepSchema,
+  radioStepSchema,
   textStepSchema,
   reviewStepSchema,
   confirmationStepSchema,
@@ -102,6 +103,12 @@ registerStepType({
     if (step.max !== undefined && arr.length > step.max) return false
     return step.min > 0 ? arr.length > 0 : true
   },
+})
+
+registerStepType({
+  type: "radio",
+  schema: radioStepSchema,
+  validate: (_step, value) => typeof value === "string" && value.length > 0,
 })
 
 registerStepType({
