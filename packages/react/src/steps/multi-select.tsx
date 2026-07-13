@@ -3,6 +3,7 @@ import type { StepComponentProps } from "../types"
 
 export function MultiSelectStepView({ step, value, onChange }: StepComponentProps<MultiSelectStep>) {
   const selected = Array.isArray(value) ? value : []
+  const maxReached = step.max !== undefined && selected.length >= step.max
 
   function toggle(optionValue: string) {
     const isSelected = selected.includes(optionValue)
@@ -19,16 +20,24 @@ export function MultiSelectStepView({ step, value, onChange }: StepComponentProp
       {step.title && <h2 className="fk-title">{step.title}</h2>}
       {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
       <div className="fk-list">
-        {step.options.map((opt) => (
-          <label key={opt.value} className="fk-list-item">
-            <input
-              type="checkbox"
-              checked={selected.includes(opt.value)}
-              onChange={() => toggle(opt.value)}
-            />
-            <span>{opt.label}</span>
-          </label>
-        ))}
+        {step.options.map((opt) => {
+          const isSelected = selected.includes(opt.value)
+          return (
+            <label
+              key={opt.value}
+              className={`fk-list-item${isSelected ? " fk-list-item-selected" : ""}`}
+            >
+              <input
+                type="checkbox"
+                className="fk-list-input"
+                checked={isSelected}
+                onChange={() => toggle(opt.value)}
+                disabled={maxReached && !isSelected}
+              />
+              <span className="fk-list-label">{opt.label}</span>
+            </label>
+          )
+        })}
       </div>
     </div>
   )

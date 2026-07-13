@@ -212,6 +212,56 @@
   min-width: 0;
 }
 
+/* Option list: multi-select checkboxes, radio */
+.fk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: var(--fk-space-xl);
+}
+
+.fk-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-md);
+  min-height: 44px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--fk-border);
+  border-radius: var(--fk-radius-md);
+  background: var(--fk-canvas);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.fk-list-item:active {
+  background: var(--fk-soft);
+}
+
+.fk-list-item-selected {
+  border-color: var(--fk-accent);
+  background: var(--fk-accent-soft);
+}
+
+.fk-list-input {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  accent-color: var(--fk-accent);
+  cursor: pointer;
+}
+
+.fk-list-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.fk-list-label {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--fk-text);
+}
+
 .fk-title {
   font-size: 26px;
   line-height: 1.2;
