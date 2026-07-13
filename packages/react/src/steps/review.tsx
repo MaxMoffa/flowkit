@@ -2,7 +2,12 @@ import type { ReviewStep, Step } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
 function optionLabel(step: Step, rawValue: string): string {
-  if (step.type === "select-cards" || step.type === "chips" || step.type === "multi-select") {
+  if (
+    step.type === "select-cards" ||
+    step.type === "chips" ||
+    step.type === "multi-select" ||
+    step.type === "radio"
+  ) {
     return step.options.find((o) => o.value === rawValue)?.label ?? rawValue
   }
   if (step.type === "faces") {
@@ -41,6 +46,8 @@ function defaultIcon(step: Step): string {
       return "📊"
     case "chips":
       return "⏱️"
+    case "radio":
+      return "🔘"
     case "faces":
       return "🙂"
     case "notes":
