@@ -69,6 +69,11 @@
     flex: 1;
     min-height: 0;
   }
+
+  /* Map steps get a wider column: room for the controls + map 2-column layout below */
+  .fk-scroll-location:not(:has(.fk-step-location--full)) > .fk-scroll-inner {
+    max-width: 1040px;
+  }
 }
 
 /* Header: back button + progress + step counter */
@@ -473,6 +478,29 @@
   margin-bottom: var(--fk-space-lg);
   flex: none;
   background: var(--fk-soft);
+}
+
+@media (min-width: 1024px) {
+  /* Desktop, non-fullContainer: controls in the left column, map spans the right column */
+  .fk-step-location:not(.fk-step-location--full) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--fk-space-xxl);
+    align-items: start;
+  }
+
+  .fk-step-location:not(.fk-step-location--full) > * {
+    grid-column: 1;
+  }
+
+  .fk-step-location:not(.fk-step-location--full) > .fk-map-canvas {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    height: auto;
+    min-height: 340px;
+    align-self: stretch;
+    margin-bottom: 0;
+  }
 }
 
 .fk-map-search {
