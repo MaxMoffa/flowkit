@@ -823,6 +823,24 @@ Generic multi-selection (checklist), with min/max constraints. Answer value:
   ] }
 ```
 
+#### `radio`
+
+Single-selection list (radio buttons), one option per row. Answer value:
+`string`. Component: `RadioStepView`. Same list layout as `multi-select`, but
+renders a native `<input type="radio">` (single selection) instead of a
+checkbox.
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `options` | `{ value, label }[]` | — (min 1) | Options |
+
+```ts
+{ id: "contact-method", type: "radio", title: "How should we contact you?",
+  options: [
+    { value: "email", label: "Email" }, { value: "phone", label: "Phone" },
+  ] }
+```
+
 #### `text`
 
 Free text/number/email input. Answer value: `string`. Component: `TextStepView`.

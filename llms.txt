@@ -42,7 +42,7 @@ const flow = parseFlow({
 Campi comuni a ogni step: `id` (obbligatorio), `type` (obbligatorio), `title`,
 `subtitle`, `required` (default `true`), `icon` (emoji, usata nel riepilogo di `review`).
 
-## Step built-in (12)
+## Step built-in (13)
 
 | Tipo | Scopo | Campi chiave |
 |---|---|---|
@@ -55,6 +55,7 @@ Campi comuni a ogni step: `id` (obbligatorio), `type` (obbligatorio), `title`,
 | `notes-photo` | Testo libero + foto opzionale | `allowPhoto`, `placeholder` |
 | `nps` | Net Promoter Score | `question` |
 | `multi-select` | Selezione multipla con min/max | `options[]`, `min`, `max` |
+| `radio` | Selezione singola a lista (radio button) | `options[]` |
 | `text` | Testo/numero/email | `variant` (`text`\|`number`\|`email`), `multiline` |
 | `review` | Riepilogo prima dell'invio | `meta` |
 | `confirmation` | Schermata finale | `stats[]`, `emailShare`, `primaryCta`, `secondaryCta` |
