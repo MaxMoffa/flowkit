@@ -35,6 +35,8 @@ export const locationStepSchema = z.object({
   detectedLabel: z.string().optional(),
   detectedSubLabel: z.string().optional(),
   manualEntryLabel: z.string().optional(),
+  /** Map fills the entire step viewport; title/search/GPS/result float as overlays on top. Default: false. */
+  fullContainer: z.boolean().default(false),
 })
 
 export const selectCardsStepSchema = z.object({
