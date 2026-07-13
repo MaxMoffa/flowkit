@@ -9,6 +9,7 @@ import { PhotoStepView } from "./photo"
 import { DateTimeStepView } from "./date-time"
 import { NpsStepView } from "./nps"
 import { MultiSelectStepView } from "./multi-select"
+import { RadioStepView } from "./radio"
 import { TextStepView } from "./text"
 import { ReviewStepView } from "./review"
 import { ConfirmationStepView } from "./confirmation"
@@ -25,6 +26,7 @@ registerStepComponent("photo", PhotoStepView)
 registerStepComponent("date-time", DateTimeStepView)
 registerStepComponent("nps", NpsStepView)
 registerStepComponent("multi-select", MultiSelectStepView)
+registerStepComponent("radio", RadioStepView)
 registerStepComponent("text", TextStepView)
 registerStepComponent("review", ReviewStepView)
 registerStepComponent("confirmation", ConfirmationStepView)
