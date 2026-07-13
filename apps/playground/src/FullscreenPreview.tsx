@@ -5,7 +5,7 @@ import { createLocalAdapter } from "@flowkit-io/adapters"
 import type { Answers } from "@flowkit-io/core"
 import { presets } from "./presets-registry"
 
-type SimWidth = 390 | 768 | null
+type SimWidth = 390 | 768 | 1024 | null
 
 const adapter = createLocalAdapter({ namespace: "flowkit-playground" })
 
@@ -52,6 +52,13 @@ export function FullscreenPreview() {
             onClick={() => setSimWidth(768)}
           >
             Tablet 768px
+          </button>
+          <button
+            type="button"
+            className={`pg-btn ${simWidth === 1024 ? "pg-sim-active" : ""}`}
+            onClick={() => setSimWidth(1024)}
+          >
+            Desktop 1024px
           </button>
           <button
             type="button"

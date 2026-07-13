@@ -149,6 +149,7 @@ body {
 
 .pg-fullscreen-sim {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
