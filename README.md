@@ -642,10 +642,15 @@ map style, geocoding).
 | `selectionMode` | see [Map step](#map-step-maplibre-gl--leaflet) | `{ kind: "point" }` | What "selecting" means on the map (ignored if `showMap: false`) |
 | `initialCenter` | `{ lat, lng, zoom? }` | Rome, zoom 11 | Initial map center/zoom |
 | `extraMarkers` | `{ lat, lng, label? }[]` | — | Additional decorative, non-selectable markers |
+| `fullContainer` | `boolean` | `false` | Map fills the entire step viewport, edge-to-edge; title/subtitle/search collapse into a floating scrim bar on top, and the GPS button/result/errors collapse into a floating card at the bottom. Also available on `location-leaflet`. |
 
 `showMap`, `showSearch` and `enableGps` are independent: combine them however you like
 (search-only, map-only, GPS-only, or any combination) to adapt the step to different
 cases without having to choose among several step types.
+
+On desktop (≥1024px), a `location`/`location-leaflet` step not using `fullContainer`
+automatically switches to a 2-column layout: search/GPS/result controls on the left,
+map on the right — no config needed, it's chrome-level responsiveness.
 
 ```ts
 { id: "location", type: "location", title: "Where do you smell it?",
@@ -653,6 +658,9 @@ cases without having to choose among several step types.
 
 // GPS-only, no map or search:
 { id: "location-gps-only", type: "location", showMap: false, showSearch: false }
+
+// Map fills the whole step, controls float on top:
+{ id: "location-full", type: "location", fullContainer: true }
 ```
 
 #### `select-cards`
