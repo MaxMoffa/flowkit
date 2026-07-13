@@ -115,6 +115,17 @@ export const featuresDemoFlow: Flow = parseFlow({
         },
       ],
     },
+    {
+      id: "pick-radio",
+      type: "radio",
+      title: "Come preferisci essere ricontattato?",
+      subtitle: "Selezione singola",
+      options: [
+        { value: "email", label: "Email" },
+        { value: "phone", label: "Telefono" },
+        { value: "sms", label: "SMS" },
+      ],
+    },
     { id: "end", type: "confirmation", title: "Grazie!" },
   ],
 })
