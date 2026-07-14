@@ -160,6 +160,16 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
           <div className="fk-footer" style={{ order: footerOrder }}>
             <div className="fk-footer-inner">
               <div className="fk-footer-row">
+                {showHeader && (
+                  <button
+                    type="button"
+                    className="fk-footer-back"
+                    onClick={handlePrev}
+                    disabled={first}
+                  >
+                    ← Indietro
+                  </button>
+                )}
                 <button
                   type="button"
                   className={`fk-btn-primary ${step.type === "review" ? "fk-btn-success" : ""}`}

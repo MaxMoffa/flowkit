@@ -297,14 +297,18 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
     </div>
   )
 
+  const gpsLabel = gpsLoading ? "Rilevo la posizione…" : (step.gpsButtonLabel ?? "Usa la mia posizione")
+
   const gpsButton = step.enableGps !== false && (
     <button
       type="button"
-      className="fk-btn-neutral fk-gps-btn"
+      className={`fk-btn-neutral fk-gps-btn${step.fullContainer ? " fk-gps-btn--icon" : ""}`}
       onClick={() => void requestGpsLocation()}
       disabled={gpsLoading}
+      aria-label={step.fullContainer ? gpsLabel : undefined}
     >
-      📍 {gpsLoading ? "Rilevo la posizione…" : (step.gpsButtonLabel ?? "Usa la mia posizione")}
+      <span aria-hidden="true">📍</span>
+      <span className="fk-gps-btn-label">{gpsLabel}</span>
     </button>
   )
 
@@ -348,9 +352,11 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
         {step.showMap !== false && <div ref={containerRef} className="fk-map-canvas fk-map-canvas--full" />}
 
         <div className="fk-map-overlay-bottom">
-          {gpsButton}
+          <div className="fk-map-bottom-actions">
+            {gpsButton}
+            {resultRow}
+          </div>
           {gpsError && <p className="fk-gps-error">{gpsError}</p>}
-          {resultRow}
           {reverseLoading && <span className="fk-map-search-loading">Cerco indirizzo…</span>}
         </div>
 
