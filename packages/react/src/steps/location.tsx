@@ -367,18 +367,20 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
 
   return (
     <div className="fk-step fk-step-location">
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      <div className="fk-location-controls">
+        {step.title && <h2 className="fk-title">{step.title}</h2>}
+        {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
 
-      {searchBlock}
+        {searchBlock}
+
+        {gpsButton}
+        {gpsError && <p className="fk-gps-error">{gpsError}</p>}
+
+        {resultRow}
+        {reverseLoading && <span className="fk-map-search-loading">Cerco indirizzo…</span>}
+      </div>
 
       {step.showMap !== false && <div ref={containerRef} className="fk-map-canvas" />}
-
-      {gpsButton}
-      {gpsError && <p className="fk-gps-error">{gpsError}</p>}
-
-      {resultRow}
-      {reverseLoading && <span className="fk-map-search-loading">Cerco indirizzo…</span>}
 
       {gpsGuideOverlay}
     </div>
