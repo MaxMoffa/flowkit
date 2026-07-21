@@ -22,6 +22,9 @@ export interface ThemeLayoutTokens {
   footerPosition?: "top" | "bottom"
   /** Progress bar variant: solid bar, dots, hidden, or the key of a registered custom component. Default: "bar". */
   progressVariant?: "bar" | "dots" | "hidden" | string
+  /** Where the progress bar itself renders: inside the header (default), or above the
+   *  back/continue row in the footer, merging progress + navigation into one footer block. */
+  progressPosition?: "header" | "footer"
 }
 
 export interface ThemeAnimationTokens {

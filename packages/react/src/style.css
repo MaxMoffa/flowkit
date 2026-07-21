@@ -386,6 +386,10 @@
   flex: none;
 }
 
+.fk-footer-progress {
+  margin-bottom: var(--fk-space-sm);
+}
+
 .fk-footer-row {
   display: flex;
   gap: var(--fk-space-sm);

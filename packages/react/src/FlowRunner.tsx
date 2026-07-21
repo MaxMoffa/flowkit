@@ -77,6 +77,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const progressVariant = resolvedTokens.layout?.progressVariant ?? "bar"
   const ProgressComponent =
     progressVariant === "hidden" ? null : (getProgressComponent(progressVariant) ?? BarProgress)
+  const progressPosition = resolvedTokens.layout?.progressPosition ?? "header"
 
   const animationName = resolvedTokens.animation?.name ?? "none"
   const animationClass = animationName === "none" ? "" : ` fk-anim-${animationName} fk-anim-dir-${direction}`
@@ -132,7 +133,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
               >
                 ←
               </button>
-              {ProgressComponent && (
+              {ProgressComponent && progressPosition === "header" && (
                 <ProgressComponent pct={pct} currentIndex={middleIndex} total={middleSteps.length} />
               )}
               <span className="fk-stepno">
@@ -159,6 +160,11 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
         {!last && (
           <div className="fk-footer" style={{ order: footerOrder }}>
             <div className="fk-footer-inner">
+              {ProgressComponent && progressPosition === "footer" && (
+                <div className="fk-footer-progress">
+                  <ProgressComponent pct={pct} currentIndex={middleIndex} total={middleSteps.length} />
+                </div>
+              )}
               <div className="fk-footer-row">
                 {showHeader && (
                   <button
