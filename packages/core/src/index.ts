@@ -13,6 +13,7 @@ import "./group-step"
 
 export * from "./schema"
 export * from "./machine"
+export * from "./upload-item"
 export * from "./i18n"
 export * from "./registry"
 export * from "./oauth-providers"

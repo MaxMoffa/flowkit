@@ -104,10 +104,38 @@ export const notesStepSchema = z.object({
   placeholder: z.string().optional(),
 })
 
-export const photoStepSchema = z.object({
+export const fileFormatPresetSchema = z.enum(["any", "images", "documents", "pdf", "spreadsheets", "archives"])
+
+export const mediaStepSchema = z.object({
   ...baseStepFields,
-  type: z.literal("photo"),
+  type: z.literal("media"),
   placeholder: z.string().optional(),
+  /** Allow selecting/capturing more than one item. Default: true. */
+  multiple: z.boolean().default(true),
+  /** Accept image files. Default: true. */
+  acceptImages: z.boolean().default(true),
+  /** Accept video files. Default: false. */
+  acceptVideos: z.boolean().default(false),
+  /** Restrict accepted image MIME types/extensions (e.g. ["image/jpeg","image/png"]). Unset = any image. */
+  imageFormats: z.array(z.string()).optional(),
+  /** Restrict accepted video MIME types/extensions (e.g. ["video/mp4"]). Unset = any video. */
+  videoFormats: z.array(z.string()).optional(),
+  /** Maximum number of items the user can add. Unset = no limit. */
+  maxItems: z.number().int().positive().optional(),
+})
+
+export const fileStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("file"),
+  placeholder: z.string().optional(),
+  /** Allow selecting more than one file. Default: true. */
+  multiple: z.boolean().default(true),
+  /** Standard accepted-format preset. Default: "any". */
+  formatPreset: fileFormatPresetSchema.default("any"),
+  /** Free-form accept string (extensions and/or MIME types, e.g. ".csv,.zip"), combined with formatPreset. */
+  customAccept: z.string().optional(),
+  /** Maximum number of files the user can add. Unset = no limit. */
+  maxItems: z.number().int().positive().optional(),
 })
 
 export const dateTimeStepSchema = z.object({
@@ -232,7 +260,8 @@ export type ScaleStep = z.infer<typeof scaleStepSchema>
 export type ChipsStep = z.infer<typeof chipsStepSchema>
 export type FacesStep = z.infer<typeof facesStepSchema>
 export type NotesStep = z.infer<typeof notesStepSchema>
-export type PhotoStep = z.infer<typeof photoStepSchema>
+export type MediaStep = z.infer<typeof mediaStepSchema>
+export type FileStep = z.infer<typeof fileStepSchema>
 export type DateTimeStep = z.infer<typeof dateTimeStepSchema>
 export type NpsStep = z.infer<typeof npsStepSchema>
 export type MultiSelectStep = z.infer<typeof multiSelectStepSchema>
@@ -266,7 +295,8 @@ export interface StepTypeMap {
   chips: ChipsStep
   faces: FacesStep
   notes: NotesStep
-  photo: PhotoStep
+  media: MediaStep
+  file: FileStep
   "date-time": DateTimeStep
   nps: NpsStep
   "multi-select": MultiSelectStep
@@ -287,7 +317,8 @@ export type BuiltinStepType =
   | "chips"
   | "faces"
   | "notes"
-  | "photo"
+  | "media"
+  | "file"
   | "date-time"
   | "nps"
   | "multi-select"

@@ -4,6 +4,7 @@ import { customStepDemoFlow } from "./custom-step-demo"
 import { featuresDemoFlow } from "./features-demo"
 import { customIntroDemoFlow } from "./custom-intro-demo"
 import { resultActionsDemoFlow } from "./result-actions-demo"
+import { fileStepDemoFlow } from "./file-step-demo"
 
 export const presets: Record<string, Flow> = {
   odori: odoriFlow,
@@ -13,6 +14,7 @@ export const presets: Record<string, Flow> = {
   "features-demo": featuresDemoFlow,
   "custom-intro": customIntroDemoFlow,
   "result-actions-demo": resultActionsDemoFlow,
+  "file-step-demo": fileStepDemoFlow,
 }
 
 export const presetLabels: Record<string, string> = {
@@ -23,4 +25,5 @@ export const presetLabels: Record<string, string> = {
   "features-demo": "OAuth + Mappa (demo)",
   "custom-intro": "Intro & conferma custom (demo)",
   "result-actions-demo": "Azioni sul risultato (demo)",
+  "file-step-demo": "Step file (demo)",
 }

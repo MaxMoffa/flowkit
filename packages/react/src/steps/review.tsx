@@ -18,6 +18,11 @@ function optionLabel(step: Step, rawValue: string): string {
 
 function formatAnswer(step: Step, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—"
+  if (step.type === "media" || step.type === "file") {
+    const items = Array.isArray(value) ? value : []
+    if (items.length === 0) return "—"
+    return `${step.type === "media" ? "📷" : "📎"}×${items.length}`
+  }
   if (Array.isArray(value)) return value.map((v) => optionLabel(step, String(v))).join(", ")
   if ((step.type as string) === "group") {
     const children = (step as unknown as { steps: Step[] }).steps
@@ -29,7 +34,6 @@ function formatAnswer(step: Step, value: unknown): string {
         .join(", ") || "—"
     )
   }
-  if (step.type === "photo") return value ? "📷" : "—"
   if (typeof value === "object") return "—"
   return optionLabel(step, String(value))
 }
@@ -51,9 +55,12 @@ function defaultIcon(step: Step): string {
     case "faces":
       return "🙂"
     case "notes":
-    case "photo":
     case "group":
       return "📝"
+    case "media":
+      return "📷"
+    case "file":
+      return "📎"
     case "date-time":
       return "🗓️"
     default:

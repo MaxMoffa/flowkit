@@ -1,3 +1,4 @@
+import { isUploadedItemArray } from "@flowkit-io/core"
 import type { Answers } from "@flowkit-io/core"
 
 export interface ReceiptEmailTemplateOptions {
@@ -17,6 +18,13 @@ function escapeHtml(value: string): string {
 function formatAnswerValue(value: unknown): string {
   if (value === null || value === undefined) return ""
   if (typeof value === "string" && value.startsWith("data:")) return "📷"
+  if (isUploadedItemArray(value)) {
+    if (value.length === 0) return ""
+    return value
+      .filter((item) => item.kind === "image")
+      .map((item) => `<img src="${item.dataUrl}" alt="" width="96" style="border-radius:8px;margin:0 6px 6px 0;" />`)
+      .join("") || escapeHtml(`${value.length} allegato/i`)
+  }
   if (Array.isArray(value)) return escapeHtml(value.map(String).join(", "))
   if (typeof value === "object") {
     return escapeHtml(

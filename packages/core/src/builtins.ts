@@ -7,7 +7,8 @@ import {
   chipsStepSchema,
   facesStepSchema,
   notesStepSchema,
-  photoStepSchema,
+  mediaStepSchema,
+  fileStepSchema,
   dateTimeStepSchema,
   npsStepSchema,
   multiSelectStepSchema,
@@ -72,9 +73,15 @@ registerStepType({
 })
 
 registerStepType({
-  type: "photo",
-  schema: photoStepSchema,
-  validate: (_step, value) => typeof value === "string" && value.length > 0,
+  type: "media",
+  schema: mediaStepSchema,
+  validate: (_step, value) => Array.isArray(value) && value.length > 0,
+})
+
+registerStepType({
+  type: "file",
+  schema: fileStepSchema,
+  validate: (_step, value) => Array.isArray(value) && value.length > 0,
 })
 
 registerStepType({

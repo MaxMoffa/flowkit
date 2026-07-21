@@ -108,9 +108,12 @@ export const odoriFlow: Flow = parseFlow({
         },
         {
           id: "photo",
-          type: "photo",
+          type: "media",
           required: false,
           placeholder: "Aggiungi una foto",
+          acceptImages: true,
+          acceptVideos: false,
+          multiple: true,
         },
       ],
     },
