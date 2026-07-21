@@ -1062,12 +1062,14 @@
 .fk-faces-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: var(--fk-space-sm);
 }
 
 .fk-face {
-  flex: 1;
+  flex: 1 1 70px;
+  min-width: 60px;
   text-align: center;
   padding: 12px 4px;
   border: 1.5px solid var(--fk-border);
