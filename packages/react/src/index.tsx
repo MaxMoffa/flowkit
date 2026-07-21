@@ -7,5 +7,7 @@ export { registerProgressComponent, getProgressComponent } from "./progress-regi
 export type { ProgressComponentProps } from "./progress-registry"
 export { renderReceiptEmailHtml } from "./email-templates/receipt-email"
 export type { ReceiptEmailTemplateOptions } from "./email-templates/receipt-email"
+export { renderAnswersReportHtml } from "./report"
+export type { RenderAnswersReportHtmlOptions } from "./report"
 import "./steps/builtins"
 import "./progress/builtins"

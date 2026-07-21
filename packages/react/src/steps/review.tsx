@@ -1,77 +1,9 @@
-import type { ReviewStep, Step } from "@flowkit-io/core"
+import { buildReportRows } from "@flowkit-io/core"
+import type { ReviewStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
-function optionLabel(step: Step, rawValue: string): string {
-  if (
-    step.type === "select-cards" ||
-    step.type === "chips" ||
-    step.type === "multi-select" ||
-    step.type === "radio"
-  ) {
-    return step.options.find((o) => o.value === rawValue)?.label ?? rawValue
-  }
-  if (step.type === "faces") {
-    return step.faces.find((f) => f.value === rawValue)?.label ?? step.faces.find((f) => f.value === rawValue)?.emoji ?? rawValue
-  }
-  return rawValue
-}
-
-function formatAnswer(step: Step, value: unknown): string {
-  if (value === null || value === undefined || value === "") return "—"
-  if (step.type === "media" || step.type === "file") {
-    const items = Array.isArray(value) ? value : []
-    if (items.length === 0) return "—"
-    return `${step.type === "media" ? "📷" : "📎"}×${items.length}`
-  }
-  if (Array.isArray(value)) return value.map((v) => optionLabel(step, String(v))).join(", ")
-  if ((step.type as string) === "group") {
-    const children = (step as unknown as { steps: Step[] }).steps
-    const answers = value as Record<string, unknown>
-    return (
-      children
-        .map((child) => formatAnswer(child, answers[child.id]))
-        .filter((v) => v && v !== "—")
-        .join(", ") || "—"
-    )
-  }
-  if (typeof value === "object") return "—"
-  return optionLabel(step, String(value))
-}
-
-function defaultIcon(step: Step): string {
-  if (step.icon) return step.icon
-  switch (step.type as string) {
-    case "location":
-    case "location-leaflet":
-      return "📍"
-    case "select-cards":
-      return "🏷️"
-    case "scale":
-      return "📊"
-    case "chips":
-      return "⏱️"
-    case "radio":
-      return "🔘"
-    case "faces":
-      return "🙂"
-    case "notes":
-    case "group":
-      return "📝"
-    case "media":
-      return "📷"
-    case "file":
-      return "📎"
-    case "date-time":
-      return "🗓️"
-    default:
-      return "•"
-  }
-}
-
 export function ReviewStepView({ step, flow, answers }: StepComponentProps<ReviewStep>) {
-  const reviewable = flow.steps.filter(
-    (s) => s.type !== "intro" && s.type !== "review" && s.type !== "confirmation",
-  )
+  const rows = buildReportRows(flow, answers)
   return (
     <div className="fk-step fk-step-review">
       {step.title && <h2 className="fk-title">{step.title}</h2>}
@@ -79,12 +11,19 @@ export function ReviewStepView({ step, flow, answers }: StepComponentProps<Revie
       {step.meta && <div className="fk-review-meta">{step.meta}</div>}
       <div className="fk-review-box">
         <dl className="fk-review-list">
-          {reviewable.map((s) => (
-            <div key={s.id} className="fk-review-row">
-              <span className="fk-review-icon">{defaultIcon(s)}</span>
+          {rows.map((row, i) => (
+            <div key={i} className="fk-review-row">
+              <span className="fk-review-icon">{row.icon}</span>
               <div>
-                <dt>{s.title ?? s.id}</dt>
-                <dd>{formatAnswer(s, answers[s.id])}</dd>
+                <dt>{row.title}</dt>
+                <dd>{row.value}</dd>
+                {row.media && row.media.length > 0 && (
+                  <div className="fk-review-media">
+                    {row.media.map((item) => (
+                      <img key={item.id} src={item.dataUrl} alt="" />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}

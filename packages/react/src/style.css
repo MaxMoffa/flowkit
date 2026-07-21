@@ -1376,6 +1376,21 @@
   text-align: left;
 }
 
+.fk-review-media {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.fk-review-media img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--fk-radius-sm);
+  border: 1px solid var(--fk-border);
+}
+
 /* Confirmation */
 .fk-step-confirmation {
   align-items: center;
@@ -1506,6 +1521,16 @@
   .fk-print-recap pre {
     white-space: pre-wrap;
     font-family: inherit;
+  }
+  .fk-print-recap .fk-review-box {
+    background: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0;
+  }
+  .fk-print-recap .fk-review-row {
+    border-color: #000 !important;
+    break-inside: avoid;
   }
 }
 

@@ -11,7 +11,11 @@ test.describe("confirmation resultActions", () => {
     await expect(page.getByRole("heading", { name: "Grazie!" })).toBeVisible()
     const printRecap = page.locator(".fk-print-recap")
     await expect(printRecap).toHaveCount(1)
-    await expect(printRecap).toContainText("feedback: 5")
+    // the recap reuses the review step's styled row markup (icon + dt/dd), not plain text
+    const row = printRecap.locator(".fk-review-row")
+    await expect(row).toHaveCount(1)
+    await expect(row.locator("dt")).toHaveText("Quanto sei soddisfatto?")
+    await expect(row.locator("dd")).toHaveText("5")
 
     await expect(page.getByRole("button", { name: "Scarica PDF" })).toBeVisible()
   })

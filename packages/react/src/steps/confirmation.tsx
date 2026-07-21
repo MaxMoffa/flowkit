@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { isUploadedItemArray } from "@flowkit-io/core"
+import { buildReportRows, isUploadedItemArray } from "@flowkit-io/core"
 import type { ConfirmationStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 
@@ -23,7 +23,7 @@ function answersToText(answers: Record<string, unknown>, prefix = ""): string {
     .join("\n")
 }
 
-export function ConfirmationStepView({ step, answers }: StepComponentProps<ConfirmationStep>) {
+export function ConfirmationStepView({ step, flow, answers }: StepComponentProps<ConfirmationStep>) {
   const [email, setEmail] = useState("")
   const [sent, setSent] = useState(false)
   const canNativeShare = typeof navigator !== "undefined" && "share" in navigator
@@ -142,7 +142,26 @@ export function ConfirmationStepView({ step, answers }: StepComponentProps<Confi
           </button>
           <div className="fk-print-recap">
             <h1>{step.resultActions.pdfExport.documentTitle ?? step.title}</h1>
-            <pre>{answersToText(answers)}</pre>
+            <div className="fk-review-box">
+              <dl className="fk-review-list">
+                {buildReportRows(flow, answers).map((row, i) => (
+                  <div key={i} className="fk-review-row">
+                    <span className="fk-review-icon">{row.icon}</span>
+                    <div>
+                      <dt>{row.title}</dt>
+                      <dd>{row.value}</dd>
+                      {row.media && row.media.length > 0 && (
+                        <div className="fk-review-media">
+                          {row.media.map((item) => (
+                            <img key={item.id} src={item.dataUrl} alt="" />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </dl>
+            </div>
           </div>
         </>
       )}
