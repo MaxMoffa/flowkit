@@ -1,6 +1,6 @@
 {
   "name": "@flowkit-io/presets",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ready-made Flowkit flow configs (surveys, feedback, etc).",
   "license": "MIT",
   "author": "Massimo Moffa",
@@ -28,7 +28,7 @@
     "build": "tsup src/index.ts --format esm --dts --clean"
   },
   "dependencies": {
-    "@flowkit-io/core": "^0.1.0"
+    "@flowkit-io/core": "^0.2.0"
   },
   "devDependencies": {
     "tsup": "^8.3.5"
