@@ -248,7 +248,12 @@
 .fk-group-items {
   display: flex;
   flex-direction: column;
-  gap: var(--fk-space-xl);
+  gap: var(--fk-space-lg);
+}
+
+.fk-group-item .fk-textarea {
+  /* avoid compounding with the group's own item gap (already provides the spacing) */
+  margin-bottom: 0;
 }
 
 .fk-group-columns .fk-group-items {
