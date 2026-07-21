@@ -70,12 +70,14 @@
   }
 
   .fk-footer-row {
-    justify-content: space-between;
     align-items: center;
   }
 
+  /* Back and continue split the row evenly instead of shrinking to content, so
+     each occupies one side (back stays left, continue stays right). */
   .fk-btn-primary,
   .fk-btn-secondary {
+    flex: 1;
     width: auto;
     /* Padding, not a fixed min-width: the playground's own preview keeps a ~390px
        mobile frame even when the browser window is desktop-sized, so this still
@@ -394,15 +396,18 @@
 .fk-footer-back {
   display: none;
   align-items: center;
+  justify-content: center;
   height: 52px;
   padding: 0 var(--fk-space-md);
-  border: none;
+  border: 1.5px solid var(--fk-border);
+  border-radius: var(--fk-radius-md);
   background: none;
   color: var(--fk-text2);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   flex: none;
+  box-sizing: border-box;
 }
 
 .fk-footer-back:hover {
@@ -417,6 +422,9 @@
 @media (min-width: 1024px) {
   .fk-footer-back {
     display: inline-flex;
+    flex: 1;
+    width: auto;
+    padding: 0 32px;
   }
 }
 

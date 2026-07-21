@@ -74,6 +74,10 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
     const primaryBox = (await primary.boundingBox())!
     expect(Math.abs(backBox.y - primaryBox.y)).toBeLessThan(4) // same row
     expect(backBox.x).toBeLessThan(primaryBox.x) // secondary left, primary right
+    expect(Math.abs(backBox.width - primaryBox.width)).toBeLessThanOrEqual(3) // equal width
+
+    const backBorder = await footerBack.evaluate((el) => getComputedStyle(el).borderWidth)
+    expect(backBorder).not.toBe("0px") // recognizable as a button, not a bare text link
 
     // the progress bar spans (essentially) the full header width, not a narrow column
     const track = frame.locator(".fk-progress-track")
