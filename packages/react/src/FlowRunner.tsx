@@ -23,7 +23,12 @@ import type { FlowSubmitHandler } from "./types"
 
 /** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
 type StepWithIntroFields = { cta?: string }
-type StepWithConfirmationFields = { secondaryCta?: string; primaryCta?: string }
+type StepWithConfirmationFields = {
+  secondaryCta?: string
+  primaryCta?: string
+  showHomeButton?: boolean
+  homeUrl?: string
+}
 
 export interface FlowRunnerProps {
   flow: Flow
@@ -111,6 +116,15 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     setState(createFlowState())
   }
 
+  function handleGoHome() {
+    const homeUrl = (step as StepWithConfirmationFields).homeUrl
+    if (homeUrl) {
+      window.location.href = homeUrl
+      return
+    }
+    handleRestart()
+  }
+
   const primaryLabel =
     step.type === "review"
       ? "Invia segnalazione ✓"
@@ -191,12 +205,16 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
         {last && isConfirmation && (
           <div className="fk-footer" style={{ order: footerOrder }}>
             <div className="fk-footer-inner">
-              <button type="button" className="fk-btn-secondary" onClick={handleRestart}>
-                {(step as StepWithConfirmationFields).secondaryCta ?? "Nuova segnalazione"}
-              </button>
-              <button type="button" className="fk-btn-primary" onClick={handleRestart}>
-                {(step as StepWithConfirmationFields).primaryCta ?? "Torna alla home"}
-              </button>
+              <div className="fk-footer-row">
+                <button type="button" className="fk-btn-secondary" onClick={handleRestart}>
+                  {(step as StepWithConfirmationFields).secondaryCta ?? "Nuova segnalazione"}
+                </button>
+                {(step as StepWithConfirmationFields).showHomeButton !== false && (
+                  <button type="button" className="fk-btn-primary" onClick={handleGoHome}>
+                    {(step as StepWithConfirmationFields).primaryCta ?? "Torna alla home"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

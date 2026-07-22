@@ -198,6 +198,14 @@ export const confirmationStepSchema = z.object({
     .optional(),
   primaryCta: z.string().optional(),
   secondaryCta: z.string().optional(),
+  /** Show/hide the primary "torna alla home" button. Default: true (current behavior). */
+  showHomeButton: z.boolean().default(true),
+  /**
+   * When set, the primary button navigates to this URL (window.location.href)
+   * instead of resetting the in-memory flow state. Unset = current behavior
+   * (acts as an in-app "start over"/home).
+   */
+  homeUrl: z.string().optional(),
   emailShare: z
     .object({
       enabled: z.boolean().default(false),

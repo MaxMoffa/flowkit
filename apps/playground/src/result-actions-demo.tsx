@@ -36,6 +36,7 @@ export const resultActionsDemoFlow: Flow = parseFlow({
       type: "confirmation",
       title: "Grazie!",
       message: "Scegli come vuoi gestire il risultato.",
+      homeUrl: "/?home=1",
       resultActions: {
         pdfExport: { enabled: true, buttonLabel: "Scarica PDF" },
         nativeShare: { enabled: true, buttonLabel: "Condividi" },

@@ -71,6 +71,7 @@
 
   .fk-footer-row {
     align-items: center;
+    flex-direction: row;
   }
 
   /* Back and continue split the row evenly instead of shrinking to content, so
@@ -392,6 +393,7 @@
 
 .fk-footer-row {
   display: flex;
+  flex-direction: column;
   gap: var(--fk-space-sm);
 }
 
