@@ -94,7 +94,7 @@
   }
 
   /* Map steps get a wider column: room for the controls + map 2-column layout below */
-  .fk-scroll-location:not(:has(.fk-step-location--full)) > .fk-scroll-inner {
+  .fk-scroll-location:has(.fk-step-location--columns) > .fk-scroll-inner {
     max-width: 1040px;
   }
 
@@ -393,8 +393,17 @@
 
 .fk-footer-row {
   display: flex;
-  flex-direction: column;
   gap: var(--fk-space-sm);
+}
+
+/* Scoped to max-width (not a bare, unconditional rule): this file declares the
+   >=1024px override for .fk-footer-row earlier (near the top), so an unconditional
+   flex-direction here would win the cascade by source order and silently break the
+   desktop row layout despite the media query matching. */
+@media (max-width: 1023px) {
+  .fk-footer-row {
+    flex-direction: column;
+  }
 }
 
 /* Desktop-only secondary "back" action, shown next to the primary button in the
@@ -597,24 +606,26 @@
 }
 
 @media (min-width: 1024px) {
-  /* Desktop, non-fullContainer: controls in the left column, map in the right column.
-     Both are direct children on a single explicit grid row so the row's height is the
-     natural max of the two columns' content, and the map stretches to match it exactly
-     (a spanning grid item does not drive individual row-track sizing, so it must share
-     the same single row rather than spanning multiple implicit rows). */
-  .fk-step-location:not(.fk-step-location--full) {
+  /* Desktop, enough content (search and/or GPS enabled): controls in the left column,
+     map in the right column. Both are direct children on a single explicit grid row so
+     the row's height is the natural max of the two columns' content, and the map
+     stretches to match it exactly (a spanning grid item does not drive individual
+     row-track sizing, so it must share the same single row rather than spanning
+     multiple implicit rows). Steps with only a bare title/map (no search, no GPS) stay
+     single-column even on desktop — see hasEnoughContent in location.tsx/location-leaflet.tsx. */
+  .fk-step-location--columns {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     column-gap: var(--fk-space-xxl);
     align-items: stretch;
   }
 
-  .fk-step-location:not(.fk-step-location--full) > .fk-location-controls {
+  .fk-step-location--columns > .fk-location-controls {
     grid-column: 1;
     grid-row: 1;
   }
 
-  .fk-step-location:not(.fk-step-location--full) > .fk-map-canvas {
+  .fk-step-location--columns > .fk-map-canvas {
     grid-column: 2;
     grid-row: 1;
     height: 100%;

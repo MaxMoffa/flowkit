@@ -109,7 +109,7 @@ export const featuresDemoFlow: Flow = parseFlow({
       type: "group",
       themeOverride: { accent: "#E56458" },
       title: "Un paio di domande veloci",
-      layout: "stack",
+      layout: "columns",
       required: true,
       steps: [
         {
@@ -141,6 +141,24 @@ export const featuresDemoFlow: Flow = parseFlow({
         { value: "phone", label: "Telefono" },
         { value: "sms", label: "SMS" },
       ],
+    },
+    {
+      id: "pick-title-only",
+      type: "location",
+      title: "Solo titolo, niente ricerca né GPS",
+      subtitle: "showSearch: false, enableGps: false — resta a colonna singola anche da desktop.",
+      required: false,
+      showSearch: false,
+      enableGps: false,
+    },
+    {
+      id: "solo-group",
+      type: "group",
+      title: "Un solo campo",
+      subtitle: "layout: columns, ma con un solo figlio resta a colonna singola.",
+      layout: "columns",
+      required: false,
+      steps: [{ id: "solo-notes", type: "notes", title: "Note", required: false }],
     },
     { id: "end", type: "confirmation", title: "Grazie!" },
   ],

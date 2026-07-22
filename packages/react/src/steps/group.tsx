@@ -15,9 +15,12 @@ export function GroupStepView({ step, value, onChange, flow, answers }: StepComp
     string,
     AnswerValue
   >
+  // "columns" only makes sense with enough content to actually split; a single child
+  // falls back to "stack" regardless of the configured layout.
+  const effectiveLayout = groupStep.layout === "columns" && groupStep.steps.length >= 2 ? "columns" : "stack"
 
   return (
-    <div className={`fk-step fk-step-group fk-group-${groupStep.layout}`}>
+    <div className={`fk-step fk-step-group fk-group-${effectiveLayout}`}>
       {groupStep.title && <h2 className="fk-title">{groupStep.title}</h2>}
       {groupStep.subtitle && <p className="fk-subtitle">{groupStep.subtitle}</p>}
       <div className="fk-group-items">
