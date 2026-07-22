@@ -16,7 +16,7 @@ export const showcaseLight: ThemeTokens = {
   accent: "#8C5CD8",
   accentSoft: "#EDE4FA",
   images: { ...notionCleanLight.images, background: showcaseBackground },
-  layout: { footerPosition: "top", progressVariant: "dots", progressPosition: "footer" },
+  layout: { footerPosition: "top", progressVariant: "dots", progressPosition: "footer", contentAlign: "center" },
   animation: { name: "slide", duration: 220 },
 }
 
@@ -25,6 +25,6 @@ export const showcaseDark: ThemeTokens = {
   accent: "#A57CE8",
   accentSoft: "#332047",
   images: { ...notionCleanDark.images, background: showcaseBackground },
-  layout: { footerPosition: "top", progressVariant: "dots", progressPosition: "footer" },
+  layout: { footerPosition: "top", progressVariant: "dots", progressPosition: "footer", contentAlign: "center" },
   animation: { name: "slide", duration: 220 },
 }

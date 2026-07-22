@@ -93,6 +93,24 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const scopeStyle: CSSProperties | undefined =
     stepThemeVars || animationVars ? { ...stepThemeVars, ...animationVars } : undefined
 
+  // fullContainer map steps need .fk-step-theme-scope to keep filling the viewport, so
+  // they always stay "top" (i.e. unaligned/unshrunk) regardless of theme/step config.
+  const isFullContainerLocation = (step as { fullContainer?: boolean }).fullContainer === true
+  const alignMap: Record<"top" | "center" | "bottom", string> = {
+    top: "flex-start",
+    center: "center",
+    bottom: "flex-end",
+  }
+  const resolvedContentAlign = isFullContainerLocation
+    ? "top"
+    : ((step as { contentAlign?: "top" | "center" | "bottom" }).contentAlign ??
+      resolvedTokens.layout?.contentAlign ??
+      "top")
+  const scrollInnerStyle = {
+    "--fk-content-align": alignMap[resolvedContentAlign],
+    "--fk-content-flex": resolvedContentAlign === "top" ? "1" : "none",
+  } as CSSProperties
+
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
     const nextAnswers = setAnswer(state, step.id, value)
     setState(nextAnswers)
@@ -158,7 +176,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
         )}
         <div className="fk-body" style={{ order: 2 }}>
           <div className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}${step.type === "location" || step.type === "location-leaflet" ? " fk-scroll-location" : ""}`}>
-            <div className="fk-scroll-inner">
+            <div className="fk-scroll-inner" style={scrollInnerStyle}>
               <div key={step.id} className={`fk-step-theme-scope${animationClass}`} style={scopeStyle}>
                 <StepView
                   step={step}

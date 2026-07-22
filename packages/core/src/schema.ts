@@ -17,6 +17,11 @@ const baseStepFields = {
    * var mapping happens on the @flowkit-io/react side.
    */
   themeOverride: z.record(z.string(), z.unknown()).optional(),
+  /**
+   * Per-step override of the theme's layout.contentAlign, desktop-only
+   * (>=1024px). Unset = falls back to the theme's value (default "top").
+   */
+  contentAlign: z.enum(["top", "center", "bottom"]).optional(),
 }
 
 export const introStepSchema = z.object({

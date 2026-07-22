@@ -34,6 +34,9 @@ export const featuresDemoFlow: Flow = parseFlow({
       title: "Scegli un punto sulla mappa",
       subtitle: "Cerca un indirizzo o clicca direttamente sulla mappa.",
       required: false,
+      // Per-step override: stays top-aligned even under the "showcase" theme's
+      // layout.contentAlign: "center" default.
+      contentAlign: "top",
     },
     {
       id: "pick-preset-point",

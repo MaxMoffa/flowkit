@@ -25,6 +25,10 @@ export interface ThemeLayoutTokens {
   /** Where the progress bar itself renders: inside the header (default), or above the
    *  back/continue row in the footer, merging progress + navigation into one footer block. */
   progressPosition?: "header" | "footer"
+  /** Desktop-only (>=1024px) vertical alignment of step content within the scroll
+   *  viewport. Default: "top" (current behavior). Mobile is always top-aligned;
+   *  a step's own `contentAlign` (if set) overrides this. */
+  contentAlign?: "top" | "center" | "bottom"
 }
 
 export interface ThemeAnimationTokens {

@@ -19,6 +19,7 @@ export const groupStepSchema = z
     required: z.boolean().default(true),
     icon: z.string().optional(),
     themeOverride: z.record(z.string(), z.unknown()).optional(),
+    contentAlign: z.enum(["top", "center", "bottom"]).optional(),
     layout: z.enum(["stack", "columns"]).default("stack"),
     steps: z.array(z.unknown()).min(1),
   })
