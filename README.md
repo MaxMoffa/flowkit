@@ -66,6 +66,34 @@ function App() {
 }
 ```
 
+### Shipping only the steps you use
+
+`@flowkit-io/react` registers all 18 built-in step components, so the snippet above
+downloads every one of them even if your flow uses three. When bundle size matters,
+`@flowkit-io/react/lean` exposes the same API and registers nothing: you import the
+steps you actually need.
+
+```tsx
+import { FlowRunner } from "@flowkit-io/react/lean"
+import "@flowkit-io/react/steps/intro"
+import "@flowkit-io/react/steps/text"
+import "@flowkit-io/react/steps/confirmation"
+```
+
+Measured on the built output: 11.9 KB gzip for the full entry, 6.0 KB for the lean one
+plus those three steps, 4.3 KB with two. `FlowRunner` throws a descriptive error if it
+meets a step type nobody registered, so a forgotten import fails loudly rather than
+rendering an empty screen. The main entry is unchanged — this is opt-in.
+
+The map and payment steps were already opt-in for the same reason, since they pull in
+maplibre-gl, leaflet or Stripe.js:
+
+```tsx
+import "@flowkit-io/react/map-maplibre"   // "location"
+import "@flowkit-io/react/map-leaflet"    // "location-leaflet"
+import "@flowkit-io/react/payment-stripe" // "payment-stripe"
+```
+
 ## Documentation
 
 Full docs live in [`docs/`](./docs/README.md):

@@ -1,38 +1,22 @@
-import { registerStepComponent } from "../registry"
-import { IntroStepView } from "./intro"
-import { SelectCardsStepView } from "./select-cards"
-import { ScaleStepView } from "./scale"
-import { ChipsStepView } from "./chips"
-import { FacesStepView } from "./faces"
-import { NotesStepView } from "./notes"
-import { MediaStepView } from "./media"
-import { FileStepView } from "./file"
-import { DateTimeStepView } from "./date-time"
-import { NpsStepView } from "./nps"
-import { MultiSelectStepView } from "./multi-select"
-import { RadioStepView } from "./radio"
-import { TextStepView } from "./text"
-import { ReviewStepView } from "./review"
-import { ConfirmationStepView } from "./confirmation"
-import { OAuthStepView } from "./oauth"
-import { GroupStepView } from "./group"
-import { SignatureStepView } from "./signature"
-
-registerStepComponent("intro", IntroStepView)
-registerStepComponent("select-cards", SelectCardsStepView)
-registerStepComponent("scale", ScaleStepView)
-registerStepComponent("chips", ChipsStepView)
-registerStepComponent("faces", FacesStepView)
-registerStepComponent("notes", NotesStepView)
-registerStepComponent("media", MediaStepView)
-registerStepComponent("file", FileStepView)
-registerStepComponent("date-time", DateTimeStepView)
-registerStepComponent("nps", NpsStepView)
-registerStepComponent("multi-select", MultiSelectStepView)
-registerStepComponent("radio", RadioStepView)
-registerStepComponent("text", TextStepView)
-registerStepComponent("review", ReviewStepView)
-registerStepComponent("confirmation", ConfirmationStepView)
-registerStepComponent("oauth", OAuthStepView)
-registerStepComponent("group", GroupStepView)
-registerStepComponent("signature", SignatureStepView)
+// Registers every built-in step component, which is what makes "@flowkit-io/react"
+// work with no further imports. Each line is the very module published as
+// "@flowkit-io/react/steps/<type>", so the batteries-included entry and the opt-in
+// ones share a single registration site instead of two that can drift apart.
+import "./entries/intro"
+import "./entries/select-cards"
+import "./entries/scale"
+import "./entries/chips"
+import "./entries/faces"
+import "./entries/notes"
+import "./entries/media"
+import "./entries/file"
+import "./entries/date-time"
+import "./entries/nps"
+import "./entries/multi-select"
+import "./entries/radio"
+import "./entries/text"
+import "./entries/review"
+import "./entries/confirmation"
+import "./entries/oauth"
+import "./entries/group"
+import "./entries/signature"
