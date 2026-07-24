@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 const onePixelPng = {
   name: "test.png",
@@ -10,9 +11,7 @@ const onePixelPng = {
 }
 
 async function goToNotesMediaGroup(page: import("@playwright/test").Page) {
-  await page.goto("/")
-  // odori is selected by default
-  await page.getByRole("button", { name: "Segnala un odore →" }).click()
+  await openPreset(page, { cta: "Segnala un odore →" })
 
   await page.getByRole("region", { name: "Map" }).click()
   await page.getByRole("button", { name: "Continua", exact: true }).click()

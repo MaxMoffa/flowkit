@@ -1,9 +1,8 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test("location-leaflet step: renders map and sets a value on click", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "features-demo" })
   for (let i = 0; i < 7; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()
   }

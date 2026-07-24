@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test("date-time step: datetime-local input with disablePast min", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("restaurant")
+  await openPreset(page, { preset: "restaurant", start: false })
   await page.getByRole("button", { name: "Prenota un tavolo →" }).click()
 
   // branch (select-cards)

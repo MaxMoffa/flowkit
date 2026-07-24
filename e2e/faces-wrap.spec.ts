@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test.use({ viewport: { width: 320, height: 640 } })
 
 test("faces step: options wrap onto a new row on very narrow screens", async ({ page }) => {
-  await page.goto("/")
-  await page.getByRole("button", { name: "Segnala un odore →" }).click()
+  await openPreset(page, { cta: "Segnala un odore →" })
 
   await page.getByRole("region", { name: "Map" }).click()
   await page.getByRole("button", { name: "Continua", exact: true }).click()

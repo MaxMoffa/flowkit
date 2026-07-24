@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test.use({ viewport: { width: 320, height: 800 } })
 
@@ -12,8 +13,7 @@ async function assertNoHorizontalOverflow(page: Page, locator: Locator) {
 }
 
 test("review step: long custom submitLabel wraps instead of overflowing at 320px", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("button-overflow-demo")
+  await openPreset(page, { preset: "button-overflow-demo", start: false })
   await page.getByRole("button", { name: "Inizia" }).click()
   await page.getByRole("button", { name: "Continua", exact: true }).click() // skip note
 
@@ -24,8 +24,7 @@ test("review step: long custom submitLabel wraps instead of overflowing at 320px
 test("confirmation footer: long custom primaryCta/secondaryCta wrap instead of overflowing at 320px", async ({
   page,
 }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("button-overflow-demo")
+  await openPreset(page, { preset: "button-overflow-demo", start: false })
   await page.getByRole("button", { name: "Inizia" }).click()
   await page.getByRole("button", { name: "Continua", exact: true }).click() // skip note
   await page.locator(".fk-btn-primary.fk-btn-success").click() // submit review

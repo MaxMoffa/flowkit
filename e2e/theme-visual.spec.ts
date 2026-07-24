@@ -1,11 +1,11 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 const themes = ["notion-clean", "mint-fresh", "midnight-ink", "sunset-clay", "rose-quartz"] as const
 
 for (const theme of themes) {
   test(`intro screen renders consistently for theme "${theme}"`, async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Tema", { exact: true }).selectOption(theme)
+    await openPreset(page, { theme, start: false })
     await expect(page.locator(".pg-phone")).toHaveScreenshot(`odori-intro-${theme}.png`, {
       maxDiffPixelRatio: 0.02,
     })
@@ -13,10 +13,7 @@ for (const theme of themes) {
 }
 
 test("showcase theme: page background, dotted progress, footer on top", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByLabel("Tema", { exact: true }).selectOption("showcase")
-  await page.getByRole("button", { name: "Prova" }).click() // step successivo mostra header/progress/footer
+  await openPreset(page, { preset: "features-demo", theme: "showcase" })
 
   const bg = await page
     .locator(".pg-frame .fk-root")
@@ -32,17 +29,12 @@ test("showcase theme: page background, dotted progress, footer on top", async ({
 })
 
 test("showcase theme: step transition applies a slide animation class", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByLabel("Tema", { exact: true }).selectOption("showcase")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "features-demo", theme: "showcase" })
   await expect(page.locator(".fk-step-theme-scope")).toHaveClass(/fk-anim-slide/)
 })
 
 test("per-step themeOverride: group step accent differs from the flow's theme accent", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "features-demo" })
   for (let i = 0; i < 9; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()
   }

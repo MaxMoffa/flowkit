@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test.use({ viewport: { width: 1280, height: 900 } })
 
@@ -28,10 +29,7 @@ test.describe("location step: columns only with enough content", () => {
     // This is the exact bug the container-query fix (v2.25) targets: an embedder can render
     // the flow inside a narrow frame even on a wide desktop browser window — columns must not
     // activate just because the viewport is wide when the flow's own container isn't.
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
-    await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
+    await openPreset(page, { preset: "features-demo", skip: ["oauth"] })
 
     await expect(page.getByRole("heading", { name: "Scegli un punto sulla mappa" })).toBeVisible()
     // The modifier class stays (it just reflects the opted-in config, step.layout === "columns"),
@@ -48,9 +46,7 @@ test.describe("location step: columns only with enough content", () => {
   })
 
   test("pick-title-only (no search, no gps): stays single column even on desktop", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "features-demo" })
     for (let i = 0; i < 9; i++) {
       await page.getByRole("button", { name: "Continua", exact: true }).click()
     }
@@ -75,9 +71,7 @@ test.describe("location step: columns only with enough content", () => {
 
 test.describe("group step: columns only with >=2 children", () => {
   test("quick-group (layout columns, 2 children): items split into columns", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "features-demo" })
     for (let i = 0; i < 9; i++) {
       await page.getByRole("button", { name: "Continua", exact: true }).click()
     }
@@ -87,9 +81,7 @@ test.describe("group step: columns only with >=2 children", () => {
   })
 
   test("solo-group (layout columns, 1 child): falls back to stack", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "features-demo" })
     for (let i = 0; i < 9; i++) {
       await page.getByRole("button", { name: "Continua", exact: true }).click()
     }

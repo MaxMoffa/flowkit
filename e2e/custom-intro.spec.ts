@@ -1,9 +1,9 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test.describe("custom-intro preset (role intro/confirmation)", () => {
   test("renders custom intro/confirmation bodies with the standard sticky CTA/footer", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("custom-intro")
+    await openPreset(page, { preset: "custom-intro", start: false })
 
     // custom intro body renders, header hidden, CTA label comes from the custom step's own field
     await expect(page.locator(".fk-step-intro-hero")).toBeVisible()

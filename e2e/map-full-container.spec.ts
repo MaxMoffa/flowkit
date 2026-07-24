@@ -1,11 +1,10 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test("map step: fullContainer (maplibre) renders map edge-to-edge with floating overlays", async ({
   page,
 }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "features-demo" })
   for (let i = 0; i < 6; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()
   }
@@ -36,9 +35,7 @@ test("map step: fullContainer (maplibre) renders map edge-to-edge with floating 
 test("map step: fullContainer (leaflet) renders map edge-to-edge with floating overlays", async ({
   page,
 }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "features-demo" })
   for (let i = 0; i < 8; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()
   }

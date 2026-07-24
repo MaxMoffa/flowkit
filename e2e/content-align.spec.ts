@@ -1,14 +1,10 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test.use({ viewport: { width: 1280, height: 900 } })
 
 test("showcase theme (layout.contentAlign: center): step content sits away from the top", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByLabel("Tema", { exact: true }).selectOption("showcase")
-  await page.getByRole("button", { name: "Prova" }).click()
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip pick-spot (has its own "top" override)
+  await openPreset(page, { preset: "features-demo", theme: "showcase", skip: ["oauth", "pick-spot (has its own top override)"] })
   // pick-preset-point (search+map+gps) got taller now that columns are container-based rather
   // than viewport-forced (v2.25) — the 390px playground frame no longer squishes it into two
   // columns, so it can fill the frame's height with no room left to center. Use a short-content
@@ -28,11 +24,7 @@ test("showcase theme (layout.contentAlign: center): step content sits away from 
 })
 
 test("per-step contentAlign: 'top' overrides the theme's 'center' default", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByLabel("Tema", { exact: true }).selectOption("showcase")
-  await page.getByRole("button", { name: "Prova" }).click()
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
+  await openPreset(page, { preset: "features-demo", theme: "showcase", skip: ["oauth"] })
 
   await expect(page.getByRole("heading", { name: "Scegli un punto sulla mappa" })).toBeVisible()
 
@@ -44,11 +36,7 @@ test("per-step contentAlign: 'top' overrides the theme's 'center' default", asyn
 })
 
 test("default theme (no contentAlign): step content stays top-aligned as before", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip pick-spot
+  await openPreset(page, { preset: "features-demo", skip: ["oauth", "pick-spot"] })
 
   await expect(page.getByRole("heading", { name: "Oppure scegli tra i punti suggeriti" })).toBeVisible()
 

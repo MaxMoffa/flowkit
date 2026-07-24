@@ -1,11 +1,8 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test("map step: point selection via click", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
-  // skip oauth (optional)
-  await page.getByRole("button", { name: "Continua", exact: true }).click()
+  await openPreset(page, { preset: "features-demo", skip: ["oauth (optional)"] })
 
   await expect(page.getByRole("heading", { name: "Scegli un punto sulla mappa" })).toBeVisible()
   await page.getByRole("region", { name: "Map" }).click()
@@ -15,11 +12,7 @@ test("map step: point selection via click", async ({ page }) => {
 })
 
 test("map step: preset-points selection via marker click", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip point map
+  await openPreset(page, { preset: "features-demo", skip: ["oauth", "point map"] })
 
   await expect(page.getByRole("heading", { name: "Oppure scegli tra i punti suggeriti" })).toBeVisible()
   await page.getByRole("button", { name: "Map marker" }).first().click()
@@ -28,10 +21,7 @@ test("map step: preset-points selection via marker click", async ({ page }) => {
 })
 
 test("map step: address search returns real geocoding results", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
+  await openPreset(page, { preset: "features-demo", skip: ["oauth"] })
 
   await page.getByPlaceholder("Cerca un indirizzo").fill("Milano")
   await expect(page.locator(".fk-map-search-results li button").first()).toBeVisible({
@@ -40,10 +30,7 @@ test("map step: address search returns real geocoding results", async ({ page })
 })
 
 test("map step: GPS button renders above the map (single column, narrow frame), styled neutral", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
+  await openPreset(page, { preset: "features-demo", skip: ["oauth"] })
 
   await expect(page.getByRole("heading", { name: "Scegli un punto sulla mappa" })).toBeVisible()
   const gpsBtn = page.locator(".fk-gps-btn")
@@ -57,9 +44,7 @@ test("map step: GPS button renders above the map (single column, narrow frame), 
 })
 
 test("map step: showMap=false and enableGps=false renders search-only", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "features-demo" })
   for (let i = 0; i < 3; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()
   }
@@ -70,9 +55,7 @@ test("map step: showMap=false and enableGps=false renders search-only", async ({
 })
 
 test("map step: showSearch=false and enableGps=false renders map-only", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "features-demo" })
   for (let i = 0; i < 4; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()
   }
@@ -83,9 +66,7 @@ test("map step: showSearch=false and enableGps=false renders map-only", async ({
 })
 
 test("map step: showMap=false and showSearch=false renders gps-only", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "features-demo" })
   for (let i = 0; i < 5; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()
   }
@@ -104,10 +85,7 @@ test("map step: reverse geocoding populates a human label after a map click", as
     }),
   )
 
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
+  await openPreset(page, { preset: "features-demo", skip: ["oauth"] })
 
   await expect(page.getByRole("heading", { name: "Scegli un punto sulla mappa" })).toBeVisible()
   await page.getByRole("region", { name: "Map" }).click()
@@ -122,10 +100,7 @@ test("map step: reverse geocoding failure falls back to raw coordinates", async 
     route.fulfill({ status: 500, contentType: "text/plain", body: "error" }),
   )
 
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
-  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
+  await openPreset(page, { preset: "features-demo", skip: ["oauth"] })
 
   await expect(page.getByRole("heading", { name: "Scegli un punto sulla mappa" })).toBeVisible()
   await page.getByRole("region", { name: "Map" }).click()

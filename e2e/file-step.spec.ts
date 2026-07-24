@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 const textFile = (name: string) => ({
   name,
@@ -7,9 +8,7 @@ const textFile = (name: string) => ({
 })
 
 test("file step: accepts multiple files, shows chips, removes and previews them", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("file-step-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "file-step-demo" })
 
   await expect(page.getByRole("heading", { name: "Carica un documento" })).toBeVisible()
 

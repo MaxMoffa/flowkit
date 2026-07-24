@@ -1,9 +1,8 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test("oauth step builds a correct authorize URL and redirects on click", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "features-demo" })
 
   await expect(page.getByRole("heading", { name: "Accedi per continuare" })).toBeVisible()
   const providerButton = page.getByRole("button", { name: /Continua con generic/ })

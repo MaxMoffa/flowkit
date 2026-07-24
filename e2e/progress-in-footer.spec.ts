@@ -1,12 +1,10 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test("theme with layout.progressPosition: 'footer' renders the progress bar above the nav row, not in the header", async ({
   page,
 }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
-  await page.getByLabel("Tema", { exact: true }).selectOption("showcase")
-  await page.getByRole("button", { name: "Prova" }).click()
+  await openPreset(page, { preset: "features-demo", theme: "showcase" })
 
   await expect(page.locator(".fk-footer .fk-progress-dots")).toBeVisible()
   await expect(page.locator(".fk-header .fk-progress-dots")).toHaveCount(0)

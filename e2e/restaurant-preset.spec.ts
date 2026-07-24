@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test("restaurant preset: completes the full flow end to end", async ({ page }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("restaurant")
+  await openPreset(page, { preset: "restaurant", start: false })
   await page.getByRole("button", { name: "Prenota un tavolo →" }).click()
 
   // branch

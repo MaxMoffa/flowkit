@@ -1,12 +1,11 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test.describe("confirmation footer buttons", () => {
   test.use({ viewport: { width: 1280, height: 900 } })
 
   test("desktop: secondary and primary buttons sit side by side in one row", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("result-actions-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "result-actions-demo" })
     await page.locator(".fk-scale-pill", { hasText: "5" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
@@ -26,10 +25,7 @@ test.describe("confirmation footer buttons", () => {
   })
 
   test("showHomeButton: false hides the primary button, secondary fills the row", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("file-step-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
-    await page.getByRole("button", { name: "Continua", exact: true }).click()
+    await openPreset(page, { preset: "file-step-demo", skip: ["step"] })
 
     await expect(page.getByRole("heading", { name: "Grazie!" })).toBeVisible()
     await expect(page.locator(".fk-footer .fk-btn-secondary")).toBeVisible()
@@ -37,9 +33,7 @@ test.describe("confirmation footer buttons", () => {
   })
 
   test("homeUrl: primary button navigates instead of resetting in-app state", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("result-actions-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "result-actions-demo" })
     await page.locator(".fk-scale-pill", { hasText: "5" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
@@ -53,9 +47,7 @@ test.describe("confirmation footer buttons (mobile)", () => {
   test.use({ viewport: { width: 390, height: 844 } })
 
   test("mobile: buttons stack vertically with full height", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("result-actions-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "result-actions-demo" })
     await page.locator(".fk-scale-pill", { hasText: "5" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 

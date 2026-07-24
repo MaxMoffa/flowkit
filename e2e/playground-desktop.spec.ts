@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test.describe("playground desktop layout", () => {
   test.use({ viewport: { width: 1280, height: 800 } })
@@ -20,8 +21,7 @@ test.describe("playground desktop layout", () => {
   })
 
   test("footer stays pinned to the bottom while content scrolls, mobile and desktop", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
+    await openPreset(page, { preset: "features-demo", start: false })
 
     const themeEl = page.locator(".pg-frame .fk-theme")
     const footer = page.locator(".pg-frame .fk-footer")
@@ -34,8 +34,7 @@ test.describe("playground desktop layout", () => {
   test("the footer's back+primary row never overflows the frame, even at a desktop viewport", async ({
     page,
   }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
+    await openPreset(page, { preset: "features-demo", start: false })
     await page.locator(".pg-frame .fk-footer .fk-btn-primary").click()
 
     const frame = page.locator(".pg-frame")

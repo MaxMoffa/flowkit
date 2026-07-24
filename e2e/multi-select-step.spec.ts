@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test("multi-select step: one option per row, large tap targets, independent toggling", async ({
   page,
 }) => {
-  await page.goto("/")
-  await page.getByLabel("Preset", { exact: true }).selectOption("feedback")
+  await openPreset(page, { preset: "feedback", start: false })
   await page.getByRole("button", { name: "Inizia" }).click()
   await page.getByRole("button", { name: "Continua", exact: true }).click() // faces (mood)
   await page.locator(".fk-nps-cell").nth(8).click()

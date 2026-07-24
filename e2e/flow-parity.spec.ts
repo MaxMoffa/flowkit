@@ -1,10 +1,9 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test.describe("odori preset", () => {
   test("completes the full flow end to end", async ({ page }) => {
-    await page.goto("/")
-    // odori is selected by default
-    await page.getByRole("button", { name: "Segnala un odore →" }).click()
+    await openPreset(page, { cta: "Segnala un odore →" })
 
     // location: click on the map to pick a point
     await page.getByRole("region", { name: "Map" }).click()
@@ -44,8 +43,7 @@ test.describe("odori preset", () => {
 
 test.describe("feedback preset", () => {
   test("completes the full flow end to end", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("feedback")
+    await openPreset(page, { preset: "feedback", start: false })
     await page.getByRole("button", { name: "Inizia" }).click()
 
     // faces (mood)

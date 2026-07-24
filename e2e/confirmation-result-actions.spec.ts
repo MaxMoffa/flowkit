@@ -1,10 +1,9 @@
 import { test, expect } from "@playwright/test"
+import { openPreset } from "./helpers/open-preset"
 
 test.describe("confirmation resultActions", () => {
   test("pdfExport: renders a hidden print recap and a download button", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("result-actions-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "result-actions-demo" })
     await page.locator(".fk-scale-pill", { hasText: "5" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
@@ -21,9 +20,7 @@ test.describe("confirmation resultActions", () => {
   })
 
   test("nativeShare: button only renders when navigator.share is available", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("result-actions-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "result-actions-demo" })
     await page.locator(".fk-scale-pill", { hasText: "5" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
@@ -36,9 +33,7 @@ test.describe("confirmation resultActions", () => {
       // @ts-expect-error test shim
       window.navigator.share = () => Promise.resolve()
     })
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("result-actions-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "result-actions-demo" })
     await page.locator(".fk-scale-pill", { hasText: "5" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
@@ -49,9 +44,7 @@ test.describe("confirmation resultActions", () => {
 
   test("resultLink: generates a copyable link", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-write", "clipboard-read"])
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("result-actions-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "result-actions-demo" })
     await page.locator(".fk-scale-pill", { hasText: "5" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
@@ -64,9 +57,7 @@ test.describe("confirmation resultActions", () => {
   })
 
   test("emailApi: success and error states", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("result-actions-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "result-actions-demo" })
     await page.locator(".fk-scale-pill", { hasText: "5" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
@@ -77,9 +68,7 @@ test.describe("confirmation resultActions", () => {
   })
 
   test("emailApi: shows an error message on failure", async ({ page }) => {
-    await page.goto("/")
-    await page.getByLabel("Preset", { exact: true }).selectOption("result-actions-demo")
-    await page.getByRole("button", { name: "Prova" }).click()
+    await openPreset(page, { preset: "result-actions-demo" })
     await page.locator(".fk-scale-pill", { hasText: "5" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
