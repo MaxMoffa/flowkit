@@ -27,6 +27,10 @@
     "./map-leaflet": {
       "types": "./dist/map-leaflet.d.ts",
       "import": "./dist/map-leaflet.js"
+    },
+    "./payment-stripe": {
+      "types": "./dist/payment-stripe.d.ts",
+      "import": "./dist/payment-stripe.js"
     }
   },
   "files": ["dist", "src/style.css"],
@@ -34,23 +38,29 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.tsx src/map-maplibre.ts src/map-leaflet.ts --format esm --dts --clean --external react --external react-dom"
+    "build": "tsup src/index.tsx src/map-maplibre.ts src/map-leaflet.ts src/payment-stripe.ts --format esm --dts --clean --external react --external react-dom"
   },
   "peerDependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "maplibre-gl": "^4.7.1",
-    "leaflet": "^1.9.4"
+    "leaflet": "^1.9.4",
+    "@stripe/stripe-js": "^9.0.0",
+    "@stripe/react-stripe-js": "^6.0.0"
   },
   "peerDependenciesMeta": {
     "maplibre-gl": { "optional": true },
-    "leaflet": { "optional": true }
+    "leaflet": { "optional": true },
+    "@stripe/stripe-js": { "optional": true },
+    "@stripe/react-stripe-js": { "optional": true }
   },
   "dependencies": {
-    "@flowkit-io/core": "^0.3.0",
+    "@flowkit-io/core": "^0.4.0",
     "@flowkit-io/themes": "^0.3.0"
   },
   "devDependencies": {
+    "@stripe/react-stripe-js": "^6.8.0",
+    "@stripe/stripe-js": "^9.12.0",
     "@types/leaflet": "^1.9.21",
     "@types/react": "^18.3.17",
     "@types/react-dom": "^18.3.5",
