@@ -9,11 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@flowkit-io/core": "^0.4.0",
-    "@flowkit-io/react": "^0.5.0",
-    "@flowkit-io/themes": "^0.3.0",
-    "@flowkit-io/adapters": "^0.2.0",
-    "@flowkit-io/presets": "^0.2.0",
+    "@flowkit-io/core": "^0.5.0",
+    "@flowkit-io/react": "^0.6.0",
+    "@flowkit-io/themes": "^0.4.0",
+    "@flowkit-io/adapters": "^0.2.1",
+    "@flowkit-io/presets": "^0.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

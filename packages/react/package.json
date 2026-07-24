@@ -1,6 +1,6 @@
 {
   "name": "@flowkit-io/react",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "React renderer and step components for Flowkit.",
   "license": "MIT",
   "author": "Massimo Moffa",
@@ -79,8 +79,8 @@
     }
   },
   "dependencies": {
-    "@flowkit-io/core": "^0.4.0",
-    "@flowkit-io/themes": "^0.3.0"
+    "@flowkit-io/core": "^0.5.0",
+    "@flowkit-io/themes": "^0.4.0"
   },
   "devDependencies": {
     "@stripe/react-stripe-js": "^6.8.0",
