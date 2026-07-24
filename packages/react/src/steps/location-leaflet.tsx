@@ -1,7 +1,7 @@
 import type leaflet from "leaflet"
 import type { LocationLeafletStepConfig } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
-import { LocationStepLayout } from "./shared/location/LocationStepLayout"
+import { LocationStepLayout } from "./shared/location/location-step-layout"
 import { regionIdAt } from "./shared/location/geometry"
 import { DEFAULT_CENTER, SELECTED_ZOOM, type MapEngine } from "./shared/location/types"
 import { useLocationStep } from "./shared/location/use-location-step"

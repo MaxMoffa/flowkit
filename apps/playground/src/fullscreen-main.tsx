@@ -5,7 +5,7 @@ import "@flowkit-io/react/map-maplibre"
 import "@flowkit-io/react/map-leaflet"
 import "@flowkit-io/react/payment-stripe"
 import "./playground.css"
-import { FullscreenPreview } from "./FullscreenPreview"
+import { FullscreenPreview } from "./fullscreen-preview"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

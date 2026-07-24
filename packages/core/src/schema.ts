@@ -2,7 +2,7 @@ import { z } from "zod"
 import { getStepTypeDefinition } from "./registry"
 import type { LocationStepConfig } from "./location-step"
 import type { LocationLeafletStepConfig } from "./location-leaflet-step"
-import type { OAuthStep } from "./oauth"
+import type { OAuthStep } from "./oauth-step"
 import type { SignatureStep } from "./signature-step"
 import type { PaymentStripeStep } from "./payment-stripe-step"
 

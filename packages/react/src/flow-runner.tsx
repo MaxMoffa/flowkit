@@ -13,9 +13,9 @@ import {
   setAnswer,
 } from "@flowkit-io/core"
 import type { Theme, ThemeMode } from "@flowkit-io/themes"
-import { ConfirmationFooter, StepFooter } from "./FlowFooter"
+import { ConfirmationFooter, StepFooter } from "./flow-footer"
 import { getStepComponent } from "./registry"
-import { ThemeProvider } from "./ThemeProvider"
+import { ThemeProvider } from "./theme-provider"
 import { useFlowRunnerLayout } from "./use-flow-runner-layout"
 import type { FlowSubmitHandler } from "./types"
 

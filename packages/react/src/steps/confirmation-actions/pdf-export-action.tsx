@@ -1,6 +1,6 @@
 import { buildReportRows } from "@flowkit-io/core"
 import type { Answers, Flow } from "@flowkit-io/core"
-import { ReportRows } from "../shared/ReportRows"
+import { ReportRows } from "../shared/report-rows"
 import type { PdfExportConfig } from "./types"
 
 interface PdfExportActionProps {

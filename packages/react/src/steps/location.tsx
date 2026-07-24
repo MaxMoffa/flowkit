@@ -1,6 +1,6 @@
 import type { LocationStepConfig } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
-import { LocationStepLayout } from "./shared/location/LocationStepLayout"
+import { LocationStepLayout } from "./shared/location/location-step-layout"
 import { regionIdAt } from "./shared/location/geometry"
 import {
   DEFAULT_CENTER,

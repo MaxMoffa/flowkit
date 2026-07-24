@@ -1,10 +1,10 @@
 import type { ConfirmationStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
-import { EmailApiAction } from "./confirmation-actions/EmailApiAction"
-import { EmailShareAction } from "./confirmation-actions/EmailShareAction"
-import { NativeShareAction, canNativeShare } from "./confirmation-actions/NativeShareAction"
-import { PdfExportAction } from "./confirmation-actions/PdfExportAction"
-import { ResultLinkAction } from "./confirmation-actions/ResultLinkAction"
+import { EmailApiAction } from "./confirmation-actions/email-api-action"
+import { EmailShareAction } from "./confirmation-actions/email-share-action"
+import { NativeShareAction, canNativeShare } from "./confirmation-actions/native-share-action"
+import { PdfExportAction } from "./confirmation-actions/pdf-export-action"
+import { ResultLinkAction } from "./confirmation-actions/result-link-action"
 
 /**
  * Final screen: confirmation mark, message, optional stats, and whichever result actions

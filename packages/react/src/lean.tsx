@@ -14,9 +14,9 @@
  * The progress components stay bundled: they are part of the chrome, not of any step,
  * and FlowRunner falls back to the bar variant.
  */
-export { FlowRunner } from "./FlowRunner"
-export type { FlowRunnerProps } from "./FlowRunner"
-export { ThemeProvider } from "./ThemeProvider"
+export { FlowRunner } from "./flow-runner"
+export type { FlowRunnerProps } from "./flow-runner"
+export { ThemeProvider } from "./theme-provider"
 export { stepRegistry, registerStepComponent, getStepComponent } from "./registry"
 export type { StepComponentProps, FlowSubmitHandler } from "./types"
 export { registerProgressComponent, getProgressComponent } from "./progress-registry"

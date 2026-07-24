@@ -3,7 +3,7 @@ import type { Step } from "@flowkit-io/core"
 import type { Theme, ThemeMode, ThemeTokens } from "@flowkit-io/themes"
 import { notionClean, partialTokensToCssVars } from "@flowkit-io/themes"
 import { getProgressComponent, type ProgressComponentProps } from "./progress-registry"
-import { BarProgress } from "./progress/BarProgress"
+import { BarProgress } from "./progress/bar-progress"
 
 const CONTENT_ALIGN_TO_FLEX: Record<"top" | "center" | "bottom", string> = {
   top: "flex-start",

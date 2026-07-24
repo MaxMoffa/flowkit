@@ -1,6 +1,6 @@
 import type { RadioStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
-import { OptionList } from "./shared/OptionList"
+import { OptionList } from "./shared/option-list"
 
 export function RadioStepView({ step, value, onChange }: StepComponentProps<RadioStep>) {
   const selected = typeof value === "string" ? value : undefined

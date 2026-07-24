@@ -1,7 +1,7 @@
 import { buildReportRows } from "@flowkit-io/core"
 import type { ReviewStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
-import { ReportRows } from "./shared/ReportRows"
+import { ReportRows } from "./shared/report-rows"
 
 export function ReviewStepView({ step, flow, answers }: StepComponentProps<ReviewStep>) {
   return (

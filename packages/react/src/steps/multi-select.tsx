@@ -1,6 +1,6 @@
 import type { MultiSelectStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
-import { OptionList } from "./shared/OptionList"
+import { OptionList } from "./shared/option-list"
 import { useToggleSelection } from "./shared/selection"
 
 export function MultiSelectStepView({ step, value, onChange }: StepComponentProps<MultiSelectStep>) {
