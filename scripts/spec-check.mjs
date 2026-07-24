@@ -21,7 +21,7 @@ const frameworkPackages = [
   { dir: "packages/vanilla/src/steps", ext: "ts" },
 ].filter((fw) => existsSync(fw.dir))
 
-// I tipi di step registrati da @flowkit/core (build già eseguita da `pnpm build`).
+// I tipi di step registrati da @flowkit-io/core (build già eseguita da `npm run build`).
 const { listRegisteredStepTypes } = await import("../packages/core/dist/index.js")
 const steps = listRegisteredStepTypes()
 

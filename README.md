@@ -28,8 +28,8 @@ npm monorepo (workspaces) made up of:
 ```
 packages/core            # Flow/Step schema (zod), open step registry, state machine, oauth, geocoding, i18n
 packages/react            # <FlowRunner>, <ThemeProvider>, components for every step type (incl. oauth, real map)
-packages/themes            # notion-clean, mint-fresh, midnight-ink themes (tokens + CSS vars, light/dark, custom fonts/images)
-packages/adapters           # answer persistence: local, rest, supabase (stub), notion
+packages/themes            # notion-clean, mint-fresh, midnight-ink, sunset-clay, rose-quartz, showcase themes (tokens + CSS vars, light/dark, custom fonts/images)
+packages/adapters           # answer persistence: local, rest, notion, receipt-email, supabase (stub)
 packages/presets              # ready-to-use flows: "odori", "feedback", "restaurant"
 packages/create-flowkit         # CLI: `create-flowkit` (scaffold) and `flowkit-init` (installer)
 apps/playground                   # Vite showcase app: preset/theme/dark-mode picker, mobile frame

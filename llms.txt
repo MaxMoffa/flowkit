@@ -19,15 +19,15 @@ basso).
 | `packages/core` | Headless: schema zod, macchina a stati del flow, registry step type, i18n |
 | `packages/react` | Renderer React: `FlowRunner`, componenti degli step, registry componenti, CSS |
 | `packages/themes` | Design token (colori/spacing/radius) → variabili CSS per tema |
-| `packages/adapters` | Destinazioni di submit: `local` (localStorage), `rest`, stub `supabase` |
-| `packages/presets` | Flow config pronti all'uso (`odori`, `feedback`) |
+| `packages/adapters` | Destinazioni di submit: `local` (localStorage), `rest`, `notion`, `receipt-email`, stub `supabase` |
+| `packages/presets` | Flow config pronti all'uso (`odori`, `feedback`, `restaurant`) |
 | `packages/create-flowkit` | CLI: `create-flowkit` (scaffold app) e `flowkit-init` (aggiunge Flowkit a un progetto esistente) |
 | `apps/playground` | App Vite demo: seleziona preset/tema, mock telefono 390px + anteprima fullscreen responsive |
 
 ## Definire un flow (essenziale)
 
 ```ts
-import { parseFlow } from "@flowkit/core"
+import { parseFlow } from "@flowkit-io/core"
 
 const flow = parseFlow({
   id: "my-flow",
@@ -42,26 +42,40 @@ const flow = parseFlow({
 Campi comuni a ogni step: `id` (obbligatorio), `type` (obbligatorio), `title`,
 `subtitle`, `required` (default `true`), `icon` (emoji, usata nel riepilogo di `review`).
 
-## Step built-in (13)
+## Step built-in (21)
+
+Lista autorevole a runtime: `listRegisteredStepTypes()`.
 
 | Tipo | Scopo | Campi chiave |
 |---|---|---|
 | `intro` | Hero iniziale, no header | `emoji`, `cta` (default "Inizia"), `livePill` |
 | `location` | Località con mappa reale (maplibre-gl) | `showMap`, `placeholder`, config estesa in `location-step.ts` |
+| `location-leaflet` | Come `location` ma con motore leaflet | stessa config di `location` |
 | `select-cards` | Selezione card singola/multipla | `multiple`, `options[]` |
 | `scale` | Scala numerica (pills o slider) | `min`, `max`, `variant` |
 | `chips` | Chip singola/multipla | `multiple`, `options[]` |
 | `faces` | Rating a emoji-faccine | `faces[]` |
-| `notes-photo` | Testo libero + foto opzionale | `allowPhoto`, `placeholder` |
+| `notes` | Testo libero | `placeholder`, `maxLength` |
+| `media` | Foto/video da fotocamera o galleria | `acceptImages`, `acceptVideos`, `maxItems` |
+| `file` | Upload di file generici | `formatPreset`, `customAccept`, `maxItems` |
+| `date-time` | Data e/o ora | `variant` (`date`\|`time`\|`datetime`), `min`, `max` |
 | `nps` | Net Promoter Score | `question` |
 | `multi-select` | Selezione multipla con min/max | `options[]`, `min`, `max` |
 | `radio` | Selezione singola a lista (radio button) | `options[]` |
 | `text` | Testo/numero/email | `variant` (`text`\|`number`\|`email`), `multiline` |
-| `review` | Riepilogo prima dell'invio | `meta` |
-| `confirmation` | Schermata finale | `stats[]`, `emailShare`, `primaryCta`, `secondaryCta` |
-| `oauth` | Flow OAuth+PKCE (v2.x) | vedi README § "Step OAuth" |
+| `review` | Riepilogo prima dell'invio | `meta`, `submitLabel` |
+| `confirmation` | Schermata finale | `stats[]`, `emailShare`, `resultActions`, `primaryCta`, `secondaryCta` |
+| `oauth` | Flow OAuth+PKCE | `providers[]`, `allowAnonymous` |
+| `group` | Più step in un'unica schermata | `steps[]`, `layout`, `requiredChildren` |
+| `signature` | Firma su canvas | `penColor`, `allowFullscreen` |
+| `payment-stripe` | Pagamento con Stripe Elements | `createPaymentIntent`, `publishableKey` |
 
-Dettagli completi per ogni tipo: README.md § "Riferimento per tipo di step".
+`location`, `location-leaflet` e `payment-stripe` non sono registrati dalla entry
+principale di `@flowkit-io/react`: vanno importati dai rispettivi entry point
+(`@flowkit-io/react/map-maplibre`, `/map-leaflet`, `/payment-stripe`) per non
+scaricare maplibre-gl, leaflet o Stripe.js a chi non li usa.
+
+Dettagli completi per ogni tipo: `docs/steps-reference.md`.
 
 ## Step personalizzati (registry runtime)
 
@@ -70,20 +84,20 @@ Nessuna union chiusa: registra un tipo nuovo senza toccare `schema.ts`:
 ```ts
 // 1. core: schema + validazione
 import { z } from "zod"
-import { registerStepType } from "@flowkit/core"
+import { registerStepType } from "@flowkit-io/core"
 
 const mySchema = z.object({ id: z.string(), type: z.literal("my-step"), /* ... */ })
 registerStepType({ type: "my-step", schema: mySchema, validate: (_s, v) => Boolean(v) })
 
 // 2. react: componente
-import { registerStepComponent, type StepComponentProps } from "@flowkit/react"
+import { registerStepComponent, type StepComponentProps } from "@flowkit-io/react"
 function MyStepView({ step, value, onChange }: StepComponentProps<z.infer<typeof mySchema>>) {
   return <div className="fk-step">{/* JSX libero */}</div>
 }
 registerStepComponent("my-step", MyStepView)
 
 // 3. opzionale: type-safety completa su Step
-declare module "@flowkit/core" {
+declare module "@flowkit-io/core" {
   interface StepTypeMap { "my-step": z.infer<typeof mySchema> }
 }
 ```
@@ -118,7 +132,7 @@ Il footer sticky resta quello generico di `FlowRunner`; il corpo (`registerStepC
 spacing, radius) convertiti in variabili CSS (`--fk-*`) da `ThemeProvider`
 (usato internamente da `FlowRunner`). Per un tema custom, crea un oggetto con la stessa
 forma di `notion-clean` (`packages/themes/src/notion-clean.ts`) e passalo come prop
-`theme` a `FlowRunner`. Import CSS richiesto una volta: `@flowkit/react/style.css`.
+`theme` a `FlowRunner`. Import CSS richiesto una volta: `@flowkit-io/react/style.css`.
 
 ## Responsive
 
@@ -133,7 +147,7 @@ la resa responsive come verrà davvero incorporata da un consumer.
 
 ```bash
 npm install
-npm run dev --workspace=@flowkit/playground   # playground in dev
+npm run dev --workspace=@flowkit-io/playground   # playground in dev
 npm run verify                                 # lint + typecheck + test + build + spec-check
 npm run test:e2e                               # Playwright (separato da verify)
 ```

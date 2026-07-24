@@ -100,6 +100,30 @@ responsiveness.
 { id: "location-full", type: "location", fullContainer: true }
 ```
 
+#### `location-leaflet`
+
+Same step as `location` — same config fields, same answer value, same 2-column desktop
+layout and `fullContainer` behaviour — rendered with **leaflet** instead of maplibre-gl.
+Component: `LocationLeafletStepView`. Pick it when you want raster tiles or you already
+ship leaflet; pick `location` for vector tiles.
+
+Neither engine is registered by the main entry point, so import the one you use:
+
+```ts
+import "@flowkit-io/react/map-leaflet"   // registers "location-leaflet"
+import "@flowkit-io/react/map-maplibre"  // registers "location"
+```
+
+Every field behaves exactly as documented under `location` above, with one exception:
+`styleUrl` is accepted by the schema but **currently ignored** by the leaflet renderer,
+which always draws the default OpenStreetMap raster tiles
+(`https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`). Use `location` if you need a
+custom basemap.
+
+```ts
+{ id: "location", type: "location-leaflet", title: "Where do you smell it?" }
+```
+
 #### `select-cards`
 
 2-column grid of selectable cards (with emoji + label + optional description). Answer
@@ -400,6 +424,7 @@ top-level `Answers`. The "Continue" button stays disabled until every `required`
 |---|---|---|---|
 | `layout` | `"stack" \| "columns"` | `"stack"` | `"stack"`: children stacked vertically. `"columns"`: children side by side, wrapping on narrow screens |
 | `steps` | `Step[]` | — (min 1) | Child steps, same syntax as flow-level `steps[]` (any registered type, including `group` itself — untested/not recommended) |
+| `requiredChildren` | `{ mode: "all" \| "any" \| "none", ids?: string[] }` | — | Conditional advancing. Unset: every child gates the group according to its own `required` flag (legacy behaviour). Set: only the children in `ids` (all of them if `ids` is omitted) gate it, and their individual `required` flag is **replaced**, not merged — `"all"` requires every one, `"any"` requires at least one, `"none"` never blocks |
 
 ```ts
 { id: "quick-group", type: "group", title: "A couple of quick questions", layout: "stack",
@@ -408,6 +433,62 @@ top-level `Answers`. The "Continue" button stays disabled until every `required`
     { id: "liked", type: "chips", title: "What did you like?", multiple: true,
       options: [{ value: "speed", label: "Speed" }, { value: "ease", label: "Ease of use" }] },
   ] }
+```
+
+#### `signature`
+
+Signature drawn with finger, mouse or stylus on a canvas. Answer value: a
+`data:image/png;base64,...` data URI. Component: `SignatureStepView`. Valid as soon as
+the value is a data URI starting with `data:image/`.
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `padHeight` | `number` | `220` | Height in px of the inline (non-fullscreen) pad |
+| `penColor` | `string` | `"#2C2C2B"` | Stroke color |
+| `backgroundColor` | `string` | `"#FFFFFF"` | Pad background |
+| `showClear` | `boolean` | `true` | Shows the "clear" button |
+| `showUndo` | `boolean` | `true` | Shows the "undo last stroke" button |
+
+```ts
+{ id: "signature", type: "signature", title: "Sign here",
+  subtitle: "Draw your signature in the box.", padHeight: 260 }
+```
+
+#### `payment-stripe`
+
+Payment collected through the Stripe Payment Element. Answer value:
+`{ status: "succeeded" | "processing" | "failed", paymentIntentId? }`; the step is valid
+only when `status` is `"succeeded"`. Component: `PaymentStripeStepView`.
+
+Not registered by the main entry point — Stripe.js is only downloaded if you import it:
+
+```ts
+import "@flowkit-io/react/payment-stripe"
+```
+
+The component never creates the PaymentIntent itself, which would require a secret key in
+the browser. `createPaymentIntent` is your callback: it must call **your** backend, which
+holds the Stripe secret key, and return the client secret it gets back.
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `publishableKey` | `string` | — (required) | Stripe **publishable** key. Never put a secret key here |
+| `amount` | `number` | — (required) | Amount in the currency's minor unit (cents for EUR/USD) |
+| `currency` | `string` | `"eur"` | 3-letter ISO code |
+| `description` | `string` | — | Shown above the payment form |
+| `stripeAccount` | `string` | — | Stripe Connect destination account |
+| `buttonLabel` | `string` | `"Paga ora"` | Pay button text |
+| `createPaymentIntent` | `(params) => Promise<{ clientSecret }>` | — (required) | Called on mount with `{ amount, currency, metadata? }`; must create the PaymentIntent server-side |
+
+```ts
+{ id: "payment", type: "payment-stripe", title: "Complete the payment",
+  publishableKey: "pk_test_…", amount: 1500, currency: "eur",
+  createPaymentIntent: ({ amount, currency }) =>
+    fetch("/api/payment-intent", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ amount, currency }),
+    }).then((r) => r.json()) }
 ```
 
 Back to the [docs index](./README.md).
