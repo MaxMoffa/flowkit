@@ -200,6 +200,8 @@ export const reviewStepSchema = z.object({
   ...baseStepFields,
   type: z.literal("review"),
   meta: z.string().optional(),
+  /** Text of the final submit button. Default preserves the previous hardcoded text. */
+  submitLabel: z.string().default("Invia segnalazione ✓"),
 })
 
 export const confirmationStepSchema = z.object({

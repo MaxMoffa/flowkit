@@ -23,6 +23,7 @@ import type { FlowSubmitHandler } from "./types"
 
 /** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
 type StepWithIntroFields = { cta?: string }
+type StepWithReviewFields = { submitLabel?: string }
 type StepWithConfirmationFields = {
   secondaryCta?: string
   primaryCta?: string
@@ -145,7 +146,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
 
   const primaryLabel =
     step.type === "review"
-      ? "Invia segnalazione ✓"
+      ? ((step as StepWithReviewFields).submitLabel ?? "Invia segnalazione ✓")
       : isIntro
         ? ((step as StepWithIntroFields).cta ?? "Continua")
         : "Continua"
