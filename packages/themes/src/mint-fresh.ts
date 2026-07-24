@@ -1,7 +1,7 @@
 import type { ThemeTokens } from "./notion-clean"
-import { notionCleanLight } from "./notion-clean"
+import { createThemeTokens } from "./create-theme"
 
-export const mintFreshLight: ThemeTokens = {
+export const mintFreshLight: ThemeTokens = createThemeTokens({
   text: "#1E2B27",
   text2: "#5F7A72",
   canvas: "#FFFFFF",
@@ -16,14 +16,9 @@ export const mintFreshLight: ThemeTokens = {
   warningSoft: "#FBF0DC",
   danger: "#E0615A",
   dangerSoft: "#FBE6E4",
-  radiusSm: "10px",
-  radiusMd: "14px",
-  radiusLg: "20px",
-  radiusXl: "28px",
-  spacing: notionCleanLight.spacing,
-}
+})
 
-export const mintFreshDark: ThemeTokens = {
+export const mintFreshDark: ThemeTokens = createThemeTokens({
   text: "#E7F5EE",
   text2: "#8FB3A5",
   canvas: "#0F1C18",
@@ -38,9 +33,4 @@ export const mintFreshDark: ThemeTokens = {
   warningSoft: "#332815",
   danger: "#EC7B74",
   dangerSoft: "#332120",
-  radiusSm: "10px",
-  radiusMd: "14px",
-  radiusLg: "20px",
-  radiusXl: "28px",
-  spacing: notionCleanLight.spacing,
-}
+})

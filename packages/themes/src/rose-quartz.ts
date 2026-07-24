@@ -1,7 +1,7 @@
 import type { ThemeTokens } from "./notion-clean"
-import { notionCleanLight } from "./notion-clean"
+import { createThemeTokens } from "./create-theme"
 
-export const roseQuartzLight: ThemeTokens = {
+export const roseQuartzLight: ThemeTokens = createThemeTokens({
   text: "#2E2228",
   text2: "#8A7480",
   canvas: "#FFFFFF",
@@ -16,14 +16,9 @@ export const roseQuartzLight: ThemeTokens = {
   warningSoft: "#FBEEDD",
   danger: "#DE5C6B",
   dangerSoft: "#FBE3E6",
-  radiusSm: "10px",
-  radiusMd: "14px",
-  radiusLg: "20px",
-  radiusXl: "28px",
-  spacing: notionCleanLight.spacing,
-}
+})
 
-export const roseQuartzDark: ThemeTokens = {
+export const roseQuartzDark: ThemeTokens = createThemeTokens({
   text: "#F5E9EE",
   text2: "#B598A3",
   canvas: "#221A1E",
@@ -38,9 +33,4 @@ export const roseQuartzDark: ThemeTokens = {
   warningSoft: "#3A2E18",
   danger: "#ED7E8B",
   dangerSoft: "#3A2226",
-  radiusSm: "10px",
-  radiusMd: "14px",
-  radiusLg: "20px",
-  radiusXl: "28px",
-  spacing: notionCleanLight.spacing,
-}
+})

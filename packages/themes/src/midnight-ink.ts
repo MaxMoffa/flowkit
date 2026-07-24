@@ -1,7 +1,7 @@
 import type { ThemeTokens } from "./notion-clean"
-import { notionCleanLight } from "./notion-clean"
+import { createThemeTokens } from "./create-theme"
 
-export const midnightInkLight: ThemeTokens = {
+export const midnightInkLight: ThemeTokens = createThemeTokens({
   text: "#211F2E",
   text2: "#6E6A85",
   canvas: "#FFFFFF",
@@ -16,14 +16,9 @@ export const midnightInkLight: ThemeTokens = {
   warningSoft: "#FBEEDD",
   danger: "#DD5C71",
   dangerSoft: "#FAE6EA",
-  radiusSm: "10px",
-  radiusMd: "14px",
-  radiusLg: "20px",
-  radiusXl: "28px",
-  spacing: notionCleanLight.spacing,
-}
+})
 
-export const midnightInkDark: ThemeTokens = {
+export const midnightInkDark: ThemeTokens = createThemeTokens({
   text: "#EDEBFA",
   text2: "#9C97BE",
   canvas: "#171526",
@@ -38,9 +33,4 @@ export const midnightInkDark: ThemeTokens = {
   warningSoft: "#372A18",
   danger: "#EA7C8F",
   dangerSoft: "#372025",
-  radiusSm: "10px",
-  radiusMd: "14px",
-  radiusLg: "20px",
-  radiusXl: "28px",
-  spacing: notionCleanLight.spacing,
-}
+})

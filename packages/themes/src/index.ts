@@ -7,6 +7,7 @@ import { roseQuartzDark, roseQuartzLight } from "./rose-quartz"
 import { showcaseDark, showcaseLight } from "./showcase"
 
 export type { ThemeTokens }
+export { createThemeTokens, type ThemeColors } from "./create-theme"
 export { notionCleanLight, notionCleanDark }
 export { mintFreshLight, mintFreshDark }
 export { midnightInkLight, midnightInkDark }
