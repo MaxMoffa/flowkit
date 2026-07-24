@@ -374,7 +374,42 @@ const flowShapeSchema = z.object({
   steps: z.array(z.unknown()).min(1),
 })
 
+/**
+ * Enforces that every flow starts with a "role: intro" step and ends with a
+ * "role: confirmation" step, with no other step carrying either role in
+ * between. Roles are resolved from the step type registry (registry.ts),
+ * not hardcoded type strings, so custom intro/confirmation replacements
+ * registered via registerStepType are honored too.
+ */
+function assertFlowStepOrder(steps: Step[]): void {
+  const roleOf = (step: Step) => getStepTypeDefinition(step.type)?.role
+  const first = steps[0]!
+  const last = steps[steps.length - 1]!
+
+  if (roleOf(first) !== "intro") {
+    throw new Error(
+      `Invalid flow: the first step (id="${first.id}", type="${first.type}") must be a step type with role "intro".`,
+    )
+  }
+  if (roleOf(last) !== "confirmation") {
+    throw new Error(
+      `Invalid flow: the last step (id="${last.id}", type="${last.type}") must be a step type with role "confirmation".`,
+    )
+  }
+  for (let i = 1; i < steps.length - 1; i++) {
+    const step = steps[i]!
+    const role = roleOf(step)
+    if (role === "intro" || role === "confirmation") {
+      throw new Error(
+        `Invalid flow: step at index ${i} (id="${step.id}", type="${step.type}") has role "${role}" but only the first/last step may have that role.`,
+      )
+    }
+  }
+}
+
 export function parseFlow(input: unknown): Flow {
   const shape = flowShapeSchema.parse(input)
-  return { ...shape, steps: shape.steps.map(parseStep) }
+  const steps = shape.steps.map(parseStep)
+  assertFlowStepOrder(steps)
+  return { ...shape, steps }
 }

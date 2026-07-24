@@ -264,6 +264,12 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  /* Establishes a containment context so step layouts (e.g. the location step's
+     2-column grid below) can react to the actual rendered width of the flow's
+     own container, not the browser viewport — an embedder may render the flow
+     inside a narrow frame on a wide desktop viewport. */
+  container-type: inline-size;
+  container-name: fk-step;
 }
 
 .fk-scroll-noheader {
@@ -610,16 +616,23 @@
   margin-bottom: var(--fk-space-lg);
   flex: none;
   background: var(--fk-soft);
+  /* Without this, the 2-column grid's height:100% (below) computes the CONTENT height as
+     100% of the row track and then adds the border on top, making this column ~2px taller
+     than the controls column it's meant to match exactly. */
+  box-sizing: border-box;
 }
 
-@media (min-width: 1024px) {
-  /* Desktop, enough content (search and/or GPS enabled): controls in the left column,
-     map in the right column. Both are direct children on a single explicit grid row so
-     the row's height is the natural max of the two columns' content, and the map
-     stretches to match it exactly (a spanning grid item does not drive individual
-     row-track sizing, so it must share the same single row rather than spanning
-     multiple implicit rows). Steps with only a bare title/map (no search, no GPS) stay
-     single-column even on desktop — see hasEnoughContent in location.tsx/location-leaflet.tsx. */
+@container fk-step (min-width: 640px) {
+  /* Opt-in (step.layout === "columns") AND the step's actual rendered container is wide
+     enough: controls in the left column, map in the right column. Both are direct
+     children on a single explicit grid row so the row's height is the natural max of
+     the two columns' content, and the map stretches to match it exactly (a spanning
+     grid item does not drive individual row-track sizing, so it must share the same
+     single row rather than spanning multiple implicit rows). This is a container query
+     (not a viewport media query): a flow rendered in a narrow embedder frame never gets
+     squished into two columns just because the browser window itself is wide. Steps with
+     only a bare title/map (no search, no GPS) stay single-column regardless — see
+     hasEnoughContent in location.tsx/location-leaflet.tsx. */
   .fk-step-location--columns {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

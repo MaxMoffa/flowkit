@@ -46,10 +46,14 @@ describe("step type registry", () => {
     const flow = parseFlow({
       id: "custom-demo",
       title: "Custom",
-      steps: [{ id: "rating", type: "rating-stars", maxStars: 3 }],
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "rating", type: "rating-stars", maxStars: 3 },
+        { id: "end", type: "confirmation" },
+      ],
     })
 
-    expect(flow.steps[0]).toMatchObject({ type: "rating-stars", maxStars: 3 })
+    expect(flow.steps[1]).toMatchObject({ type: "rating-stars", maxStars: 3 })
   })
 
   it("rejects an unregistered step type", () => {
