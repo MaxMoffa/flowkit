@@ -89,27 +89,31 @@ export function createNotionAdapter(config: NotionAdapterConfig): FlowAdapter {
     return data.results[0]?.id ?? null
   }
 
+  /** Patches the flow's existing draft page if there is one, creates a page otherwise.
+   *  A submission and a draft save differ only by the `draft` checkbox they carry. */
+  async function upsertPage(flowId: string, answers: Answers, draft: boolean, failure: string) {
+    const properties = mapAnswersToProperties(answers, flowId)
+    properties.draft = { checkbox: draft }
+
+    const existingDraftId = await findDraftPageId(flowId)
+    const url = existingDraftId
+      ? `${NOTION_API_BASE}/pages/${existingDraftId}`
+      : `${NOTION_API_BASE}/pages`
+    const res = await fetchImpl(url, {
+      method: existingDraftId ? "PATCH" : "POST",
+      headers,
+      body: JSON.stringify(
+        existingDraftId ? { properties } : { parent: { database_id: config.databaseId }, properties },
+      ),
+    })
+    if (!res.ok) {
+      throw new Error(`${failure}: ${res.status} ${res.statusText}`)
+    }
+  }
+
   return {
     async submit(flowId, answers) {
-      const properties = mapAnswersToProperties(answers, flowId)
-      properties.draft = { checkbox: false }
-
-      const existingDraftId = await findDraftPageId(flowId)
-      const url = existingDraftId
-        ? `${NOTION_API_BASE}/pages/${existingDraftId}`
-        : `${NOTION_API_BASE}/pages`
-      const res = await fetchImpl(url, {
-        method: existingDraftId ? "PATCH" : "POST",
-        headers,
-        body: JSON.stringify(
-          existingDraftId
-            ? { properties }
-            : { parent: { database_id: config.databaseId }, properties },
-        ),
-      })
-      if (!res.ok) {
-        throw new Error(`Notion submission failed: ${res.status} ${res.statusText}`)
-      }
+      await upsertPage(flowId, answers, false, "Notion submission failed")
     },
 
     async loadDraft(flowId) {
@@ -124,25 +128,7 @@ export function createNotionAdapter(config: NotionAdapterConfig): FlowAdapter {
     },
 
     async saveDraft(flowId, answers) {
-      const properties = mapAnswersToProperties(answers, flowId)
-      properties.draft = { checkbox: true }
-
-      const existingDraftId = await findDraftPageId(flowId)
-      const url = existingDraftId
-        ? `${NOTION_API_BASE}/pages/${existingDraftId}`
-        : `${NOTION_API_BASE}/pages`
-      const res = await fetchImpl(url, {
-        method: existingDraftId ? "PATCH" : "POST",
-        headers,
-        body: JSON.stringify(
-          existingDraftId
-            ? { properties }
-            : { parent: { database_id: config.databaseId }, properties },
-        ),
-      })
-      if (!res.ok) {
-        throw new Error(`Notion draft save failed: ${res.status} ${res.statusText}`)
-      }
+      await upsertPage(flowId, answers, true, "Notion draft save failed")
     },
   }
 }

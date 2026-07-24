@@ -2,6 +2,7 @@ import { useState } from "react"
 import { buildReportRows, isUploadedItemArray } from "@flowkit-io/core"
 import type { ConfirmationStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { ReportRows } from "./shared/ReportRows"
 
 /** Recursively flattens answers (including nested objects from a "group" step) into plain text.
  *  Values that look like data URLs (e.g. base64 photos/files) are omitted or summarized as a
@@ -155,26 +156,7 @@ export function ConfirmationStepView({ step, flow, answers }: StepComponentProps
           </button>
           <div className="fk-print-recap">
             <h1>{step.resultActions.pdfExport.documentTitle ?? step.title}</h1>
-            <div className="fk-review-box">
-              <dl className="fk-review-list">
-                {buildReportRows(flow, answers).map((row, i) => (
-                  <div key={i} className="fk-review-row">
-                    <span className="fk-review-icon">{row.icon}</span>
-                    <div>
-                      <dt>{row.title}</dt>
-                      <dd>{row.value}</dd>
-                      {row.media && row.media.length > 0 && (
-                        <div className="fk-review-media">
-                          {row.media.map((item) => (
-                            <img key={item.id} src={item.dataUrl} alt="" />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </dl>
-            </div>
+            <ReportRows rows={buildReportRows(flow, answers)} />
           </div>
         </>
       )}

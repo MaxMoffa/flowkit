@@ -1,27 +1,17 @@
 import { useState } from "react"
-import type { MediaStep, UploadedItem } from "@flowkit-io/core"
+import type { MediaStep } from "@flowkit-io/core"
 import { resolveMediaAccept } from "@flowkit-io/core"
-import type { AnswerValue } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
-
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
-
-function makeId(): string {
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-}
+import { useFileUpload } from "./shared/use-file-upload"
 
 export function MediaStepView({ step, value, onChange }: StepComponentProps<MediaStep>) {
-  const items: UploadedItem[] = Array.isArray(value) ? (value as unknown as UploadedItem[]) : []
   const [lightboxId, setLightboxId] = useState<string | null>(null)
+  const { items, canAddMore, addFiles, removeItem } = useFileUpload({
+    value,
+    onChange,
+    maxItems: step.maxItems,
+    kindOf: (file) => (file.type.startsWith("video/") ? "video" : "image"),
+  })
 
   const acceptImages = step.acceptImages !== false
   const acceptVideos = step.acceptVideos === true
@@ -31,26 +21,10 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
     imageFormats: step.imageFormats,
     videoFormats: step.videoFormats,
   })
-  const remaining = step.maxItems !== undefined ? Math.max(0, step.maxItems - items.length) : undefined
-  const canAddMore = remaining === undefined || remaining > 0
-
   const captureLabel = acceptImages && acceptVideos ? "📷 Scatta foto/video" : acceptVideos ? "🎥 Registra video" : "📷 Scatta foto"
 
-  async function addFiles(files: FileList | null) {
-    if (!files || files.length === 0) return
-    const list = remaining !== undefined ? Array.from(files).slice(0, remaining) : Array.from(files)
-    const newItems = await Promise.all(
-      list.map(async (file) => {
-        const dataUrl = await readAsDataUrl(file)
-        const kind: UploadedItem["kind"] = file.type.startsWith("video/") ? "video" : "image"
-        return { id: makeId(), name: file.name, mimeType: file.type, size: file.size, dataUrl, kind }
-      }),
-    )
-    onChange([...items, ...newItems] as unknown as AnswerValue)
-  }
-
-  function removeItem(id: string) {
-    onChange(items.filter((i) => i.id !== id) as unknown as AnswerValue)
+  function remove(id: string) {
+    removeItem(id)
     if (lightboxId === id) setLightboxId(null)
   }
 
@@ -102,7 +76,7 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
                 aria-label="Rimuovi"
                 onClick={(e) => {
                   e.stopPropagation()
-                  removeItem(item.id)
+                  remove(item.id)
                 }}
               >
                 ✕
@@ -127,7 +101,7 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
           ) : (
             <img src={lightboxItem.dataUrl} alt="" />
           )}
-          <button type="button" className="fk-media-lightbox-remove" onClick={() => removeItem(lightboxItem.id)}>
+          <button type="button" className="fk-media-lightbox-remove" onClick={() => remove(lightboxItem.id)}>
             Rimuovi
           </button>
         </div>

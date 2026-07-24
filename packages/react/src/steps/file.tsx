@@ -1,23 +1,8 @@
 import { useState } from "react"
-import type { FileStep, UploadedItem } from "@flowkit-io/core"
+import type { FileStep } from "@flowkit-io/core"
 import { resolveFileAccept } from "@flowkit-io/core"
-import type { AnswerValue } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
-
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
-
-function makeId(): string {
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-}
+import { useFileUpload } from "./shared/use-file-upload"
 
 function fileIcon(mimeType: string): string {
   if (mimeType.startsWith("image/")) return "🖼️"
@@ -35,34 +20,18 @@ function formatSize(bytes: number): string {
 }
 
 export function FileStepView({ step, value, onChange }: StepComponentProps<FileStep>) {
-  const items: UploadedItem[] = Array.isArray(value) ? (value as unknown as UploadedItem[]) : []
   const [previewId, setPreviewId] = useState<string | null>(null)
+  const { items, canAddMore, addFiles, removeItem } = useFileUpload({
+    value,
+    onChange,
+    maxItems: step.maxItems,
+    kindOf: () => "file",
+  })
 
   const accept = resolveFileAccept(step.formatPreset ?? "any", step.customAccept)
-  const remaining = step.maxItems !== undefined ? Math.max(0, step.maxItems - items.length) : undefined
-  const canAddMore = remaining === undefined || remaining > 0
 
-  async function addFiles(files: FileList | null) {
-    if (!files || files.length === 0) return
-    const list = remaining !== undefined ? Array.from(files).slice(0, remaining) : Array.from(files)
-    const newItems = await Promise.all(
-      list.map(async (file) => {
-        const dataUrl = await readAsDataUrl(file)
-        return {
-          id: makeId(),
-          name: file.name,
-          mimeType: file.type,
-          size: file.size,
-          dataUrl,
-          kind: "file" as const,
-        }
-      }),
-    )
-    onChange([...items, ...newItems] as unknown as AnswerValue)
-  }
-
-  function removeItem(id: string) {
-    onChange(items.filter((i) => i.id !== id) as unknown as AnswerValue)
+  function remove(id: string) {
+    removeItem(id)
     if (previewId === id) setPreviewId(null)
   }
 
@@ -99,7 +68,7 @@ export function FileStepView({ step, value, onChange }: StepComponentProps<FileS
                 aria-label="Rimuovi"
                 onClick={(e) => {
                   e.stopPropagation()
-                  removeItem(item.id)
+                  remove(item.id)
                 }}
               >
                 ✕
@@ -129,7 +98,7 @@ export function FileStepView({ step, value, onChange }: StepComponentProps<FileS
               Apri / scarica
             </a>
           </div>
-          <button type="button" className="fk-media-lightbox-remove" onClick={() => removeItem(previewItem.id)}>
+          <button type="button" className="fk-media-lightbox-remove" onClick={() => remove(previewItem.id)}>
             Rimuovi
           </button>
         </div>

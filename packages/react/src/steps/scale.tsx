@@ -14,58 +14,53 @@ export function ScaleStepView({ step, value, onChange }: StepComponentProps<Scal
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (isSlider) {
-    const idx = current - step.min
-    const label = step.valueLabels?.[idx] ?? ""
-    const color = step.valueColors?.[idx] ?? defaultColors[idx] ?? "var(--fk-text)"
-    return (
-      <div className="fk-step fk-step-scale fk-step-scale-slider">
-        {step.title && <h2 className="fk-title">{step.title}</h2>}
-        {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
-        <div className="fk-scale-slider-value">
-          <div className="fk-scale-n" style={{ color }}>
-            {current}
-          </div>
-          {label && (
-            <div className="fk-scale-lab" style={{ color }}>
-              {label}
-            </div>
-          )}
-        </div>
-        <input
-          className="fk-scale-range"
-          type="range"
-          min={step.min}
-          max={step.max}
-          value={current}
-          onChange={(e) => onChange(Number(e.target.value))}
-        />
-        {(step.minLabel || step.maxLabel) && (
-          <div className="fk-scale-labels">
-            <span>{step.minLabel}</span>
-            <span>{step.maxLabel}</span>
-          </div>
-        )}
-      </div>
-    )
-  }
+  const idx = current - step.min
+  const sliderLabel = step.valueLabels?.[idx] ?? ""
+  const sliderColor = step.valueColors?.[idx] ?? defaultColors[idx] ?? "var(--fk-text)"
 
+  // Header and min/max labels are identical in both variants: only the control between
+  // them changes, so the two used to be a copy-pasted pair of full returns.
   return (
-    <div className="fk-step fk-step-scale">
+    <div className={`fk-step fk-step-scale${isSlider ? " fk-step-scale-slider" : ""}`}>
       {step.title && <h2 className="fk-title">{step.title}</h2>}
       {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
-      <div className="fk-scale-row">
-        {values.map((n) => (
-          <button
-            key={n}
-            type="button"
-            className={`fk-scale-pill ${value === n ? "fk-scale-pill-selected" : ""}`}
-            onClick={() => onChange(n)}
-          >
-            {n}
-          </button>
-        ))}
-      </div>
+
+      {isSlider ? (
+        <>
+          <div className="fk-scale-slider-value">
+            <div className="fk-scale-n" style={{ color: sliderColor }}>
+              {current}
+            </div>
+            {sliderLabel && (
+              <div className="fk-scale-lab" style={{ color: sliderColor }}>
+                {sliderLabel}
+              </div>
+            )}
+          </div>
+          <input
+            className="fk-scale-range"
+            type="range"
+            min={step.min}
+            max={step.max}
+            value={current}
+            onChange={(e) => onChange(Number(e.target.value))}
+          />
+        </>
+      ) : (
+        <div className="fk-scale-row">
+          {values.map((n) => (
+            <button
+              key={n}
+              type="button"
+              className={`fk-scale-pill ${value === n ? "fk-scale-pill-selected" : ""}`}
+              onClick={() => onChange(n)}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      )}
+
       {(step.minLabel || step.maxLabel) && (
         <div className="fk-scale-labels">
           <span>{step.minLabel}</span>

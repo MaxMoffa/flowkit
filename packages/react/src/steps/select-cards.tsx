@@ -1,25 +1,9 @@
 import type { SelectCardsStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { useToggleSelection } from "./shared/selection"
 
 export function SelectCardsStepView({ step, value, onChange }: StepComponentProps<SelectCardsStep>) {
-  const selected = step.multiple
-    ? Array.isArray(value)
-      ? value
-      : []
-    : typeof value === "string"
-      ? [value]
-      : []
-
-  function toggle(optionValue: string) {
-    if (step.multiple) {
-      const next = selected.includes(optionValue)
-        ? selected.filter((v) => v !== optionValue)
-        : [...selected, optionValue]
-      onChange(next)
-    } else {
-      onChange(optionValue)
-    }
-  }
+  const { selected, toggle } = useToggleSelection({ multiple: step.multiple }, value, onChange)
 
   return (
     <div className="fk-step fk-step-select-cards">

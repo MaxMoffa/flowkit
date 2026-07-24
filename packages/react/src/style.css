@@ -370,15 +370,6 @@
   margin: 0 0 var(--fk-space-xl);
 }
 
-.fk-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fk-text2);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin: var(--fk-space-xl) 0 var(--fk-space-md);
-}
-
 .fk-emoji-xl {
   font-size: 48px;
   line-height: 1;
