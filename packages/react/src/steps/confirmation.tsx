@@ -1,96 +1,18 @@
-import { useState } from "react"
-import { buildReportRows, isUploadedItemArray } from "@flowkit-io/core"
 import type { ConfirmationStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
-import { ReportRows } from "./shared/ReportRows"
+import { EmailApiAction } from "./confirmation-actions/EmailApiAction"
+import { EmailShareAction } from "./confirmation-actions/EmailShareAction"
+import { NativeShareAction, canNativeShare } from "./confirmation-actions/NativeShareAction"
+import { PdfExportAction } from "./confirmation-actions/PdfExportAction"
+import { ResultLinkAction } from "./confirmation-actions/ResultLinkAction"
 
-/** Recursively flattens answers (including nested objects from a "group" step) into plain text.
- *  Values that look like data URLs (e.g. base64 photos/files) are omitted or summarized as a
- *  count: they don't make sense in a text/email summary and would needlessly bloat the message
- *  body. */
-function answersToText(answers: Record<string, unknown>, prefix = ""): string {
-  return Object.entries(answers)
-    .flatMap(([key, value]) => {
-      const label = prefix ? `${prefix}.${key}` : key
-      if (value === null || value === undefined || value === "") return []
-      if (typeof value === "string" && value.startsWith("data:")) return []
-      if (isUploadedItemArray(value)) return value.length ? [`${label}: ${value.length} allegato/i`] : []
-      if (typeof value === "object" && !Array.isArray(value)) {
-        const nested = answersToText(value as Record<string, unknown>, label)
-        return nested ? [nested] : []
-      }
-      return [`${label}: ${Array.isArray(value) ? value.join(", ") : String(value)}`]
-    })
-    .join("\n")
-}
-
+/**
+ * Final screen: confirmation mark, message, optional stats, and whichever result actions
+ * the flow enabled. Each action owns its own state and lives in confirmation-actions/ —
+ * they are independent features that only happen to share this screen.
+ */
 export function ConfirmationStepView({ step, flow, answers }: StepComponentProps<ConfirmationStep>) {
-  const [email, setEmail] = useState("")
-  const [sent, setSent] = useState(false)
-  const canNativeShare = typeof navigator !== "undefined" && "share" in navigator
-  const [resultLink, setResultLink] = useState<string | null>(null)
-  const [linkLoading, setLinkLoading] = useState(false)
-  const [linkCopied, setLinkCopied] = useState(false)
-  const [linkError, setLinkError] = useState<string | null>(null)
-  const [apiEmail, setApiEmail] = useState("")
-  const [apiEmailStatus, setApiEmailStatus] = useState<"idle" | "loading" | "sent" | "error">("idle")
-
-  function sendEmail() {
-    if (!email) return
-    const subject = encodeURIComponent(step.emailShare?.subject ?? step.title)
-    const body = encodeURIComponent(answersToText(answers))
-    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
-    setSent(true)
-  }
-
-  async function createLink() {
-    const createLinkFn = step.resultActions?.resultLink?.createLink
-    if (!createLinkFn) return
-    setLinkLoading(true)
-    setLinkError(null)
-    try {
-      const { url } = await createLinkFn(answers)
-      setResultLink(url)
-    } catch {
-      setLinkError("Non sono riuscito a generare il link. Riprova.")
-    } finally {
-      setLinkLoading(false)
-    }
-  }
-
-  async function copyLink() {
-    if (!resultLink) return
-    try {
-      await navigator.clipboard.writeText(resultLink)
-      setLinkCopied(true)
-    } catch {
-      // Clipboard access can be denied by permissions or a non-secure context.
-      setLinkError("Non sono riuscito a copiare il link. Copialo a mano.")
-    }
-  }
-
-  async function sendViaApi() {
-    const sendEmailFn = step.resultActions?.emailApi?.sendEmail
-    if (!sendEmailFn || !apiEmail) return
-    setApiEmailStatus("loading")
-    try {
-      await sendEmailFn(apiEmail, answers)
-      setApiEmailStatus("sent")
-    } catch {
-      setApiEmailStatus("error")
-    }
-  }
-
-  function shareNatively() {
-    // navigator.share() rejects with AbortError every time the user dismisses the
-    // native sheet, which is normal behaviour and not something to report.
-    navigator
-      .share({
-        title: step.resultActions?.nativeShare?.shareTitle ?? step.title,
-        text: answersToText(answers),
-      })
-      .catch(() => {})
-  }
+  const resultActions = step.resultActions
 
   return (
     <div className="fk-step fk-step-confirmation">
@@ -124,104 +46,32 @@ export function ConfirmationStepView({ step, flow, answers }: StepComponentProps
       )}
 
       {step.emailShare?.enabled && (
-        <div className="fk-email-share">
-          {step.emailShare.helpText && <p className="fk-email-share-help">{step.emailShare.helpText}</p>}
-          <div className="fk-email-share-row">
-            <input
-              className="fk-input"
-              type="email"
-              placeholder="tuo@email.it"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value)
-                setSent(false)
-              }}
-            />
-            <button type="button" className="fk-email-share-btn" onClick={sendEmail}>
-              {step.emailShare.buttonLabel}
-            </button>
-          </div>
-          {sent && <p className="fk-email-share-sent">Email preparata ✓</p>}
-        </div>
+        <EmailShareAction config={step.emailShare} fallbackSubject={step.title} answers={answers} />
       )}
 
-      {step.resultActions?.pdfExport?.enabled && (
-        <>
-          <button
-            type="button"
-            className="fk-btn-neutral fk-pdf-export-btn"
-            onClick={() => window.print()}
-          >
-            {step.resultActions.pdfExport.buttonLabel}
-          </button>
-          <div className="fk-print-recap">
-            <h1>{step.resultActions.pdfExport.documentTitle ?? step.title}</h1>
-            <ReportRows rows={buildReportRows(flow, answers)} />
-          </div>
-        </>
+      {resultActions?.pdfExport?.enabled && (
+        <PdfExportAction
+          config={resultActions.pdfExport}
+          fallbackTitle={step.title}
+          flow={flow}
+          answers={answers}
+        />
       )}
 
-      {step.resultActions?.nativeShare?.enabled && canNativeShare && (
-        <button type="button" className="fk-btn-neutral fk-native-share-btn" onClick={shareNatively}>
-          {step.resultActions.nativeShare.buttonLabel}
-        </button>
+      {resultActions?.nativeShare?.enabled && canNativeShare() && (
+        <NativeShareAction
+          config={resultActions.nativeShare}
+          fallbackTitle={step.title}
+          answers={answers}
+        />
       )}
 
-      {step.resultActions?.resultLink?.enabled && (
-        <div className="fk-result-link">
-          {step.resultActions.resultLink.helpText && (
-            <p className="fk-email-share-help">{step.resultActions.resultLink.helpText}</p>
-          )}
-          {!resultLink ? (
-            <button
-              type="button"
-              className="fk-btn-neutral fk-result-link-btn"
-              onClick={() => void createLink()}
-              disabled={linkLoading}
-            >
-              {linkLoading ? "Genero il link…" : step.resultActions.resultLink.buttonLabel}
-            </button>
-          ) : (
-            <div className="fk-email-share-row">
-              <input className="fk-input" type="text" readOnly value={resultLink} />
-              <button type="button" className="fk-email-share-btn" onClick={() => void copyLink()}>
-                Copia
-              </button>
-            </div>
-          )}
-          {linkCopied && <p className="fk-email-share-sent">Link copiato ✓</p>}
-          {linkError && <p className="fk-email-api-error">{linkError}</p>}
-        </div>
+      {resultActions?.resultLink?.enabled && (
+        <ResultLinkAction config={resultActions.resultLink} answers={answers} />
       )}
 
-      {step.resultActions?.emailApi?.enabled && (
-        <div className="fk-email-share">
-          {step.resultActions.emailApi.helpText && (
-            <p className="fk-email-share-help">{step.resultActions.emailApi.helpText}</p>
-          )}
-          <div className="fk-email-share-row">
-            <input
-              className="fk-input"
-              type="email"
-              placeholder="tuo@email.it"
-              value={apiEmail}
-              onChange={(e) => {
-                setApiEmail(e.target.value)
-                setApiEmailStatus("idle")
-              }}
-            />
-            <button
-              type="button"
-              className="fk-email-share-btn fk-email-api-btn"
-              onClick={() => void sendViaApi()}
-              disabled={apiEmailStatus === "loading"}
-            >
-              {apiEmailStatus === "loading" ? "Invio…" : step.resultActions.emailApi.buttonLabel}
-            </button>
-          </div>
-          {apiEmailStatus === "sent" && <p className="fk-email-share-sent">Email inviata ✓</p>}
-          {apiEmailStatus === "error" && <p className="fk-email-api-error">Invio fallito. Riprova.</p>}
-        </div>
+      {resultActions?.emailApi?.enabled && (
+        <EmailApiAction config={resultActions.emailApi} answers={answers} />
       )}
     </div>
   )

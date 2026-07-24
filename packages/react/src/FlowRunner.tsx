@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react"
 import { useMemo, useState } from "react"
 import type { Answers, Flow } from "@flowkit-io/core"
 import {
@@ -13,12 +12,11 @@ import {
   progress as flowProgress,
   setAnswer,
 } from "@flowkit-io/core"
-import type { Theme, ThemeMode, ThemeTokens } from "@flowkit-io/themes"
-import { notionClean, partialTokensToCssVars } from "@flowkit-io/themes"
+import type { Theme, ThemeMode } from "@flowkit-io/themes"
+import { ConfirmationFooter, StepFooter } from "./FlowFooter"
 import { getStepComponent } from "./registry"
-import { getProgressComponent } from "./progress-registry"
-import { BarProgress } from "./progress/BarProgress"
 import { ThemeProvider } from "./ThemeProvider"
+import { useFlowRunnerLayout } from "./use-flow-runner-layout"
 import type { FlowSubmitHandler } from "./types"
 
 /** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
@@ -63,54 +61,10 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const isIntro = stepRole === "intro"
   const isConfirmation = stepRole === "confirmation"
   const showHeader = !isIntro && !isConfirmation
+  const isReview = step.type === "review"
 
-  const resolvedTheme = theme ?? notionClean
-  const resolvedTokens = mode === "dark" ? resolvedTheme.dark : resolvedTheme.light
-  const stepBgUrl =
-    resolvedTokens.images?.stepBackground?.[step.id] ??
-    resolvedTokens.images?.stepBackground?.[step.type]
-  const rootStyle: CSSProperties | undefined = stepBgUrl
-    ? ({ "--fk-image-step-background": `url(${stepBgUrl})` } as CSSProperties)
-    : undefined
-
-  const themeOverride = (step as { themeOverride?: Partial<ThemeTokens> }).themeOverride
-  const stepThemeVars: CSSProperties | undefined = themeOverride
-    ? (partialTokensToCssVars(themeOverride) as CSSProperties)
-    : undefined
-
-  const headerOrder = resolvedTokens.layout?.headerPosition === "bottom" ? 3 : 1
-  const footerOrder = resolvedTokens.layout?.footerPosition === "top" ? 0 : 4
-  const progressVariant = resolvedTokens.layout?.progressVariant ?? "bar"
-  const ProgressComponent =
-    progressVariant === "hidden" ? null : (getProgressComponent(progressVariant) ?? BarProgress)
-  const progressPosition = resolvedTokens.layout?.progressPosition ?? "header"
-
-  const animationName = resolvedTokens.animation?.name ?? "none"
-  const animationClass = animationName === "none" ? "" : ` fk-anim-${animationName} fk-anim-dir-${direction}`
-  const animationVars: CSSProperties | undefined =
-    animationName === "none"
-      ? undefined
-      : ({ "--fk-anim-duration": `${resolvedTokens.animation?.duration ?? 250}ms` } as CSSProperties)
-  const scopeStyle: CSSProperties | undefined =
-    stepThemeVars || animationVars ? { ...stepThemeVars, ...animationVars } : undefined
-
-  // fullContainer map steps need .fk-step-theme-scope to keep filling the viewport, so
-  // they always stay "top" (i.e. unaligned/unshrunk) regardless of theme/step config.
-  const isFullContainerLocation = (step as { fullContainer?: boolean }).fullContainer === true
-  const alignMap: Record<"top" | "center" | "bottom", string> = {
-    top: "flex-start",
-    center: "center",
-    bottom: "flex-end",
-  }
-  const resolvedContentAlign = isFullContainerLocation
-    ? "top"
-    : ((step as { contentAlign?: "top" | "center" | "bottom" }).contentAlign ??
-      resolvedTokens.layout?.contentAlign ??
-      "top")
-  const scrollInnerStyle = {
-    "--fk-content-align": alignMap[resolvedContentAlign],
-    "--fk-content-flex": resolvedContentAlign === "top" ? "1" : "none",
-  } as CSSProperties
+  const layout = useFlowRunnerLayout(step, theme, mode, direction)
+  const progressProps = { pct, currentIndex: middleIndex, total: middleSteps.length }
 
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
     const nextAnswers = setAnswer(state, step.id, value)
@@ -119,7 +73,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   }
 
   async function handleNext() {
-    if (step.type === "review") {
+    if (isReview) {
       await onSubmit?.(state.answers)
     }
     setDirection("next")
@@ -144,18 +98,19 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     handleRestart()
   }
 
-  const primaryLabel =
-    step.type === "review"
-      ? ((step as StepWithReviewFields).submitLabel ?? "Invia segnalazione ✓")
-      : isIntro
-        ? ((step as StepWithIntroFields).cta ?? "Continua")
-        : "Continua"
+  const primaryLabel = isReview
+    ? ((step as StepWithReviewFields).submitLabel ?? "Invia segnalazione ✓")
+    : isIntro
+      ? ((step as StepWithIntroFields).cta ?? "Continua")
+      : "Continua"
+
+  const isMapStep = step.type === "location" || step.type === "location-leaflet"
 
   return (
     <ThemeProvider theme={theme} mode={mode}>
-      <div className="fk-root" style={rootStyle}>
+      <div className="fk-root" style={layout.rootStyle}>
         {showHeader && (
-          <div className="fk-header" style={{ order: headerOrder }}>
+          <div className="fk-header" style={{ order: layout.headerOrder }}>
             <div className="fk-header-inner">
               <button
                 type="button"
@@ -166,8 +121,8 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
               >
                 ←
               </button>
-              {ProgressComponent && progressPosition === "header" && (
-                <ProgressComponent pct={pct} currentIndex={middleIndex} total={middleSteps.length} />
+              {layout.ProgressComponent && layout.progressPosition === "header" && (
+                <layout.ProgressComponent {...progressProps} />
               )}
               <span className="fk-stepno">
                 {middleIndex + 1}/{middleSteps.length}
@@ -176,9 +131,15 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
           </div>
         )}
         <div className="fk-body" style={{ order: 2 }}>
-          <div className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}${step.type === "location" || step.type === "location-leaflet" ? " fk-scroll-location" : ""}`}>
-            <div className="fk-scroll-inner" style={scrollInnerStyle}>
-              <div key={step.id} className={`fk-step-theme-scope${animationClass}`} style={scopeStyle}>
+          <div
+            className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}${isMapStep ? " fk-scroll-location" : ""}`}
+          >
+            <div className="fk-scroll-inner" style={layout.scrollInnerStyle}>
+              <div
+                key={step.id}
+                className={`fk-step-theme-scope${layout.animationClass}`}
+                style={layout.scopeStyle}
+              >
                 <StepView
                   step={step}
                   value={state.answers[step.id] ?? null}
@@ -191,51 +152,31 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
           </div>
         </div>
         {!last && (
-          <div className="fk-footer" style={{ order: footerOrder }}>
-            <div className="fk-footer-inner">
-              {ProgressComponent && progressPosition === "footer" && (
-                <div className="fk-footer-progress">
-                  <ProgressComponent pct={pct} currentIndex={middleIndex} total={middleSteps.length} />
-                </div>
-              )}
-              <div className="fk-footer-row">
-                {showHeader && (
-                  <button
-                    type="button"
-                    className="fk-footer-back"
-                    onClick={handlePrev}
-                    disabled={first}
-                  >
-                    ← Indietro
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className={`fk-btn-primary ${step.type === "review" ? "fk-btn-success" : ""}`}
-                  disabled={!valid}
-                  onClick={handleNext}
-                >
-                  {primaryLabel}
-                </button>
-              </div>
-            </div>
-          </div>
+          <StepFooter
+            order={layout.footerOrder}
+            showBack={showHeader}
+            backDisabled={first}
+            onBack={handlePrev}
+            primaryLabel={primaryLabel}
+            primaryDisabled={!valid}
+            isSubmit={isReview}
+            onPrimary={handleNext}
+            progress={{
+              Component: layout.ProgressComponent,
+              show: layout.progressPosition === "footer",
+              ...progressProps,
+            }}
+          />
         )}
         {last && isConfirmation && (
-          <div className="fk-footer" style={{ order: footerOrder }}>
-            <div className="fk-footer-inner">
-              <div className="fk-footer-row">
-                <button type="button" className="fk-btn-secondary" onClick={handleRestart}>
-                  {(step as StepWithConfirmationFields).secondaryCta ?? "Nuova segnalazione"}
-                </button>
-                {(step as StepWithConfirmationFields).showHomeButton !== false && (
-                  <button type="button" className="fk-btn-primary" onClick={handleGoHome}>
-                    {(step as StepWithConfirmationFields).primaryCta ?? "Torna alla home"}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+          <ConfirmationFooter
+            order={layout.footerOrder}
+            secondaryLabel={(step as StepWithConfirmationFields).secondaryCta ?? "Nuova segnalazione"}
+            onSecondary={handleRestart}
+            primaryLabel={(step as StepWithConfirmationFields).primaryCta ?? "Torna alla home"}
+            showPrimary={(step as StepWithConfirmationFields).showHomeButton !== false}
+            onPrimary={handleGoHome}
+          />
         )}
       </div>
     </ThemeProvider>
