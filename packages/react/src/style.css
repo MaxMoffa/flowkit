@@ -1,6 +1,13 @@
 @import "maplibre-gl/dist/maplibre-gl.css";
 
 .fk-theme {
+  /* Chrome metrics, not theme tokens: they describe the component's own geometry, so
+     they live here rather than in the theme's CSS vars. A theme can still override them
+     through themeOverride, but no shipped theme needs to. */
+  --fk-control-height: 52px;
+  --fk-control-height-sm: 44px;
+  --fk-border-width: 1.5px;
+
   background: var(--fk-canvas);
   color: var(--fk-text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -158,7 +165,7 @@
   align-items: center;
   gap: var(--fk-space-md);
   padding: var(--fk-space-sm) var(--fk-space-xl) 4px;
-  min-height: 44px;
+  min-height: var(--fk-control-height-sm);
   flex: none;
 }
 
@@ -316,9 +323,9 @@
   display: flex;
   align-items: center;
   gap: var(--fk-space-md);
-  min-height: 44px;
+  min-height: var(--fk-control-height-sm);
   padding: 14px 16px;
-  border: 1.5px solid var(--fk-border);
+  border: var(--fk-border-width) solid var(--fk-border);
   border-radius: var(--fk-radius-md);
   background: var(--fk-canvas);
   cursor: pointer;
@@ -417,9 +424,9 @@
   display: none;
   align-items: center;
   justify-content: center;
-  min-height: 52px;
+  min-height: var(--fk-control-height);
   padding: 0 var(--fk-space-md);
-  border: 1.5px solid var(--fk-border);
+  border: var(--fk-border-width) solid var(--fk-border);
   border-radius: var(--fk-radius-md);
   background: none;
   color: var(--fk-text2);
@@ -452,13 +459,13 @@
   }
 }
 
+/* Shared by the three full-width action buttons. Height stays per-class on purpose:
+   primary/secondary grow with wrapped labels (min-height), neutral is a fixed row. */
 .fk-btn-primary,
-.fk-btn-secondary {
+.fk-btn-secondary,
+.fk-btn-neutral {
   width: 100%;
-  min-height: 52px;
-  border: none;
   border-radius: var(--fk-radius-md);
-  font-size: clamp(14px, 3.6vw, 16px);
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -467,6 +474,19 @@
   gap: 8px;
   transition: transform 0.1s, background 0.2s;
   box-sizing: border-box;
+}
+
+.fk-btn-primary:active,
+.fk-btn-secondary:active,
+.fk-btn-neutral:active {
+  transform: scale(0.98);
+}
+
+.fk-btn-primary,
+.fk-btn-secondary {
+  min-height: var(--fk-control-height);
+  border: none;
+  font-size: clamp(14px, 3.6vw, 16px);
   min-width: 0;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -483,11 +503,6 @@
   .fk-btn-secondary {
     padding: 8px var(--fk-space-lg);
   }
-}
-
-.fk-btn-primary:active,
-.fk-btn-secondary:active {
-  transform: scale(0.98);
 }
 
 .fk-btn-primary {
@@ -512,26 +527,12 @@
 }
 
 .fk-btn-neutral {
-  width: 100%;
-  height: 52px;
+  height: var(--fk-control-height);
   border: 1px solid var(--fk-border);
-  border-radius: var(--fk-radius-md);
   background: var(--fk-soft);
   color: var(--fk-text);
   font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-sizing: border-box;
-  transition: transform 0.1s, background 0.2s;
   margin-bottom: var(--fk-space-sm);
-}
-
-.fk-btn-neutral:active {
-  transform: scale(0.98);
 }
 
 .fk-btn-neutral:disabled {
@@ -847,8 +848,8 @@
 /* Icon-only GPS button (fullContainer map): a floating-map recenter FAB reads better
    than a full-width text bar once it shares a row with the detected-location card. */
 .fk-gps-btn--icon {
-  width: 44px;
-  height: 44px;
+  width: var(--fk-control-height-sm);
+  height: var(--fk-control-height-sm);
   flex: none;
   padding: 0;
   margin: 0;
@@ -963,7 +964,7 @@
 .fk-textarea {
   width: 100%;
   box-sizing: border-box;
-  border: 1.5px solid var(--fk-border);
+  border: var(--fk-border-width) solid var(--fk-border);
   border-radius: var(--fk-radius-md);
   background: var(--fk-canvas);
   color: var(--fk-text);
@@ -992,7 +993,7 @@
 }
 
 .fk-card {
-  border: 1.5px solid var(--fk-border);
+  border: var(--fk-border-width) solid var(--fk-border);
   border-radius: var(--fk-radius-md);
   padding: 16px 14px;
   cursor: pointer;
@@ -1089,7 +1090,7 @@
 .fk-nps-cell {
   flex: 1;
   min-width: 32px;
-  border: 1.5px solid var(--fk-border);
+  border: var(--fk-border-width) solid var(--fk-border);
   border-radius: var(--fk-radius-sm);
   background: var(--fk-canvas);
   padding: var(--fk-space-sm);
@@ -1124,7 +1125,7 @@
 }
 
 .fk-chip {
-  border: 1.5px solid var(--fk-border);
+  border: var(--fk-border-width) solid var(--fk-border);
   background: var(--fk-canvas);
   border-radius: 99px;
   padding: 10px 16px;
@@ -1158,7 +1159,7 @@
   min-width: 60px;
   text-align: center;
   padding: 12px 4px;
-  border: 1.5px solid var(--fk-border);
+  border: var(--fk-border-width) solid var(--fk-border);
   border-radius: var(--fk-radius-md);
   cursor: pointer;
   transition: all 0.15s;
@@ -1193,7 +1194,7 @@
   justify-content: center;
   gap: 8px;
   padding: 12px 16px;
-  border: 1.5px dashed var(--fk-border);
+  border: var(--fk-border-width) dashed var(--fk-border);
   border-radius: var(--fk-radius-md);
   color: var(--fk-text2);
   font-size: 14px;
@@ -1665,7 +1666,7 @@
   z-index: 50;
   background: var(--fk-canvas);
   padding: var(--fk-space-lg);
-  padding-top: calc(var(--fk-space-lg) + 44px);
+  padding-top: calc(var(--fk-space-lg) + var(--fk-control-height-sm));
 }
 
 .fk-step-signature--full .fk-signature-pad {
