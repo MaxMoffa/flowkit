@@ -18,4 +18,14 @@ jobs:
 
       - run: npm ci
 
+      # `verify` now ends with the Playwright suite, so the browser has to be there.
+      - run: npx playwright install --with-deps chromium
+
       - run: npm run verify
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

@@ -34,4 +34,19 @@ for (const fw of frameworkPackages) {
     }
   }
 }
-console.log("Spec-check OK")
+
+// L'esistenza del file non basta: un componente può esistere senza essere registrato,
+// e in quel caso il flow renderizza uno step vuoto a runtime senza che nulla fallisca.
+// Qui si verifica la registrazione vera, entry opzionali incluse.
+const { getStepComponent } = await import("../packages/react/dist/index.js")
+for (const entry of ["map-maplibre", "map-leaflet", "payment-stripe"]) {
+  await import(`../packages/react/dist/${entry}.js`)
+}
+
+const unregistered = steps.filter((s) => !getStepComponent(s))
+if (unregistered.length) {
+  console.error("Spec-check FALLITO, step registrati in core ma senza componente React:", unregistered)
+  process.exit(1)
+}
+
+console.log(`Spec-check OK (${steps.length} step registrati)`)
