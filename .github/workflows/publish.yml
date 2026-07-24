@@ -24,6 +24,9 @@ jobs:
 
       - run: npm ci
 
+      # `verify` ends with the Playwright suite, so the browser has to be there.
+      - run: npx playwright install --with-deps chromium
+
       - run: npm run verify
 
       - run: npm run build
