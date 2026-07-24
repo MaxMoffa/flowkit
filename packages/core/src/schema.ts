@@ -3,6 +3,8 @@ import { getStepTypeDefinition } from "./registry"
 import type { LocationStepConfig } from "./location-step"
 import type { LocationLeafletStepConfig } from "./location-leaflet-step"
 import type { OAuthStep } from "./oauth"
+import type { SignatureStep } from "./signature-step"
+import type { PaymentStripeStep } from "./payment-stripe-step"
 
 const baseStepFields = {
   id: z.string().min(1),
@@ -326,6 +328,8 @@ export interface StepTypeMap {
   review: ReviewStep
   confirmation: ConfirmationStep
   oauth: OAuthStep
+  signature: SignatureStep
+  "payment-stripe": PaymentStripeStep
 }
 
 /** Step types shipped by flowkit out-of-the-box (not counting any custom augmentation). */
@@ -347,6 +351,8 @@ export type BuiltinStepType =
   | "text"
   | "review"
   | "confirmation"
+  | "signature"
+  | "payment-stripe"
 
 export type Step = StepTypeMap[keyof StepTypeMap]
 export type StepType = keyof StepTypeMap

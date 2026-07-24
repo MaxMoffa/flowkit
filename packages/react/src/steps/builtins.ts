@@ -16,6 +16,7 @@ import { ReviewStepView } from "./review"
 import { ConfirmationStepView } from "./confirmation"
 import { OAuthStepView } from "./oauth"
 import { GroupStepView } from "./group"
+import { SignatureStepView } from "./signature"
 
 registerStepComponent("intro", IntroStepView)
 registerStepComponent("select-cards", SelectCardsStepView)
@@ -34,3 +35,4 @@ registerStepComponent("review", ReviewStepView)
 registerStepComponent("confirmation", ConfirmationStepView)
 registerStepComponent("oauth", OAuthStepView)
 registerStepComponent("group", GroupStepView)
+registerStepComponent("signature", SignatureStepView)

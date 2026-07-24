@@ -407,6 +407,7 @@
 .fk-footer-row {
   display: flex;
   gap: var(--fk-space-sm);
+  min-width: 0;
 }
 
 /* Scoped to max-width (not a bare, unconditional rule): this file declares the
@@ -425,7 +426,7 @@
   display: none;
   align-items: center;
   justify-content: center;
-  height: 52px;
+  min-height: 52px;
   padding: 0 var(--fk-space-md);
   border: 1.5px solid var(--fk-border);
   border-radius: var(--fk-radius-md);
@@ -436,6 +437,10 @@
   cursor: pointer;
   flex: none;
   box-sizing: border-box;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 .fk-footer-back:hover {
@@ -459,10 +464,10 @@
 .fk-btn-primary,
 .fk-btn-secondary {
   width: 100%;
-  height: 52px;
+  min-height: 52px;
   border: none;
   border-radius: var(--fk-radius-md);
-  font-size: 16px;
+  font-size: clamp(14px, 3.6vw, 16px);
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -471,6 +476,22 @@
   gap: 8px;
   transition: transform 0.1s, background 0.2s;
   box-sizing: border-box;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+/* Scoped to max-width (not unconditional): the >=1024px block near the top of this
+   file already sets `padding: 0 32px` for these classes — an unconditional padding
+   declared here (after that block, later in source order) would win the cascade at
+   all widths regardless of the media query, per the source-order pitfall noted above
+   for .fk-footer-row/.fk-footer-back. */
+@media (max-width: 1023px) {
+  .fk-btn-primary,
+  .fk-btn-secondary {
+    padding: 8px var(--fk-space-lg);
+  }
 }
 
 .fk-btn-primary:active,
@@ -1607,4 +1628,63 @@
   border-color: var(--fk-success);
   color: var(--fk-success);
   background: var(--fk-success-soft);
+}
+
+/* Signature step */
+.fk-step-signature {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.fk-signature-pad {
+  flex: none;
+  border-radius: var(--fk-radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--fk-border);
+  margin-bottom: var(--fk-space-lg);
+  touch-action: none;
+}
+
+.fk-signature-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.fk-signature-toolbar {
+  display: flex;
+  gap: var(--fk-space-sm);
+  flex-wrap: wrap;
+}
+
+.fk-signature-toolbar .fk-btn-neutral {
+  width: auto;
+  flex: 1 1 auto;
+  margin-bottom: 0;
+  padding: 0 var(--fk-space-md);
+}
+
+/* Fullscreen mode: pad fills the whole step viewport */
+.fk-step-signature--full {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--fk-canvas);
+  padding: var(--fk-space-lg);
+  padding-top: calc(var(--fk-space-lg) + 44px);
+}
+
+.fk-step-signature--full .fk-signature-pad {
+  flex: 1;
+  margin-bottom: var(--fk-space-lg);
+}
+
+.fk-signature-close {
+  position: absolute;
+  top: var(--fk-space-lg);
+  right: var(--fk-space-lg);
+  z-index: 51;
 }
