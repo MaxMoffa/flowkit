@@ -21,11 +21,32 @@ export const groupStepSchema = z
     themeOverride: z.record(z.string(), z.unknown()).optional(),
     contentAlign: z.enum(["top", "center", "bottom"]).optional(),
     layout: z.enum(["stack", "columns"]).default("stack"),
+    /**
+     * Conditional advance logic (v2.25): which children gate the group's own
+     * validity, and whether via AND ("all"), OR ("any"), or never ("none").
+     * Unset = legacy behavior (every child validates per its own `required`
+     * flag). When set, only the children listed in `ids` (all children if
+     * `ids` omitted) participate — children outside `ids` never block
+     * advancing, replacing rather than merging with their individual
+     * `required` flag.
+     */
+    requiredChildren: z
+      .object({
+        mode: z.enum(["all", "any", "none"]).default("all"),
+        ids: z.array(z.string()).optional(),
+      })
+      .optional(),
     steps: z.array(z.unknown()).min(1),
   })
   .transform((val) => ({ ...val, steps: val.steps.map(parseStep) }))
 
 export type GroupStep = z.infer<typeof groupStepSchema> & { steps: Step[] }
+
+function isChildValid(child: Step, aggregate: Record<string, unknown>): boolean {
+  const def = getStepTypeDefinition(child.type)
+  if (!def) return false
+  return def.validate(child, aggregate[child.id], aggregate)
+}
 
 registerStepType({
   type: "group",
@@ -33,11 +54,23 @@ registerStepType({
   validate: (step, value) => {
     const groupStep = step as GroupStep
     const aggregate = (value ?? {}) as Record<string, unknown>
-    return groupStep.steps.every((child) => {
-      const def = getStepTypeDefinition(child.type)
-      if (!def) return false
-      if ((child as { required?: boolean }).required === false) return true
-      return def.validate(child, aggregate[child.id], aggregate)
-    })
+    const requiredChildren = groupStep.requiredChildren
+
+    if (!requiredChildren) {
+      return groupStep.steps.every((child) => {
+        if ((child as { required?: boolean }).required === false) return true
+        return isChildValid(child, aggregate)
+      })
+    }
+
+    if (requiredChildren.mode === "none") return true
+
+    const gatingChildren = requiredChildren.ids
+      ? groupStep.steps.filter((child) => requiredChildren.ids!.includes(child.id))
+      : groupStep.steps
+
+    return requiredChildren.mode === "any"
+      ? gatingChildren.some((child) => isChildValid(child, aggregate))
+      : gatingChildren.every((child) => isChildValid(child, aggregate))
   },
 })
