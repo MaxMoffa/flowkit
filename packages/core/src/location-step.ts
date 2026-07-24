@@ -18,13 +18,11 @@ export const selectionModeSchema = z.discriminatedUnion("kind", [
 export type SelectionMode = z.infer<typeof selectionModeSchema>
 
 /**
- * Extended config for the "location" step (v2.8): real map (maplibre-gl),
- * place search (geocoding, default Nominatim), selection mode. Extends the
- * base schema from location.ts (schema.ts) additively: a flow that doesn't
- * specify anything new behaves like before (selectionMode "point" by
- * default).
+ * Config shared by every map-backed location step, whatever the rendering engine.
+ * "location" (maplibre-gl) and "location-leaflet" differ only in their `type` literal
+ * and in the renderer that picks them up, so the field set lives here once.
  */
-export const locationStepConfigSchema = locationStepSchema.extend({
+export const locationConfigFields = {
   /** Maplibre style URL. Default: public demo style, documented as replaceable. */
   styleUrl: z.string().optional(),
   geocodingEndpoint: z.string().optional(),
@@ -52,7 +50,30 @@ export const locationStepConfigSchema = locationStepSchema.extend({
   /** Automatic reverse geocoding (coordinates -> label) after GPS/click/drag. Default: true. */
   enableReverseGeocode: z.boolean().default(true),
   reverseGeocodingEndpoint: z.string().optional(),
-})
+}
+
+/**
+ * A location answer is valid as a free-text address, as a lat/lng pair, or as the id of
+ * a region/preset point. Shared by every engine: the answer shape does not depend on it.
+ */
+export function isValidLocationValue(value: unknown): boolean {
+  if (typeof value === "string") return value.trim().length > 0
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const v = value as { lat?: number; lng?: number; regionId?: string; pointId?: string }
+    if (typeof v.lat === "number" && typeof v.lng === "number") return true
+    if (v.regionId || v.pointId) return true
+  }
+  return false
+}
+
+/**
+ * Extended config for the "location" step (v2.8): real map (maplibre-gl),
+ * place search (geocoding, default Nominatim), selection mode. Extends the
+ * base schema from location.ts (schema.ts) additively: a flow that doesn't
+ * specify anything new behaves like before (selectionMode "point" by
+ * default).
+ */
+export const locationStepConfigSchema = locationStepSchema.extend(locationConfigFields)
 
 export type LocationStepConfig = z.infer<typeof locationStepConfigSchema>
 
@@ -63,13 +84,5 @@ export type LocationStepConfig = z.infer<typeof locationStepConfigSchema>
 registerStepType({
   type: "location",
   schema: locationStepConfigSchema,
-  validate: (_step, value) => {
-    if (typeof value === "string") return value.trim().length > 0
-    if (value && typeof value === "object" && !Array.isArray(value)) {
-      const v = value as { lat?: number; lng?: number; regionId?: string; pointId?: string }
-      if (typeof v.lat === "number" && typeof v.lng === "number") return true
-      if (v.regionId || v.pointId) return true
-    }
-    return false
-  },
+  validate: (_step, value) => isValidLocationValue(value),
 })

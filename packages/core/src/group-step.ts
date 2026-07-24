@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { registerStepType, getStepTypeDefinition } from "./registry"
-import { parseStep, type Step } from "./schema"
+import { baseStepFields, parseStep, type Step } from "./schema"
 
 /**
  * "group" step (v2.14+): composes multiple steps into a single page, with no
@@ -12,14 +12,8 @@ import { parseStep, type Step } from "./schema"
  */
 export const groupStepSchema = z
   .object({
-    id: z.string().min(1),
+    ...baseStepFields,
     type: z.literal("group"),
-    title: z.string().optional(),
-    subtitle: z.string().optional(),
-    required: z.boolean().default(true),
-    icon: z.string().optional(),
-    themeOverride: z.record(z.string(), z.unknown()).optional(),
-    contentAlign: z.enum(["top", "center", "bottom"]).optional(),
     layout: z.enum(["stack", "columns"]).default("stack"),
     /**
      * Conditional advance logic (v2.25): which children gate the group's own

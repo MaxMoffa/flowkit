@@ -6,7 +6,13 @@ import type { OAuthStep } from "./oauth"
 import type { SignatureStep } from "./signature-step"
 import type { PaymentStripeStep } from "./payment-stripe-step"
 
-const baseStepFields = {
+/**
+ * Fields every step accepts, whatever its `type`. Exported so step definitions living
+ * outside this file (group, oauth, signature, payment-stripe, …) can spread it instead
+ * of retyping it: the copies had already drifted apart once, leaving the oauth step
+ * without `themeOverride`/`contentAlign` while the docs promised them everywhere.
+ */
+export const baseStepFields = {
   id: z.string().min(1),
   title: z.string().optional(),
   subtitle: z.string().optional(),
@@ -334,7 +340,13 @@ export interface StepTypeMap {
   "payment-stripe": PaymentStripeStep
 }
 
-/** Step types shipped by flowkit out-of-the-box (not counting any custom augmentation). */
+/**
+ * Step types shipped by flowkit out-of-the-box (not counting any custom augmentation).
+ * Kept as an explicit union rather than `keyof StepTypeMap`, which would grow with any
+ * consumer augmentation and stop meaning "builtin". `_AssertBuiltinsAreMapped` below
+ * keeps the two in sync. "group" is absent on purpose: it is not in StepTypeMap either,
+ * because typing its `steps: Step[]` there would close a cycle with Step itself.
+ */
 export type BuiltinStepType =
   | "intro"
   | "location"
@@ -353,8 +365,14 @@ export type BuiltinStepType =
   | "text"
   | "review"
   | "confirmation"
+  | "oauth"
   | "signature"
   | "payment-stripe"
+
+/** Compile-time guard: a builtin without an entry in StepTypeMap makes this fail. */
+type _AssertBuiltinsAreMapped = BuiltinStepType extends keyof StepTypeMap ? true : never
+const _assertBuiltinsAreMapped: _AssertBuiltinsAreMapped = true
+void _assertBuiltinsAreMapped
 
 export type Step = StepTypeMap[keyof StepTypeMap]
 export type StepType = keyof StepTypeMap

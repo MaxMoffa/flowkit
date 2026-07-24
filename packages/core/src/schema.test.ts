@@ -48,3 +48,32 @@ describe("parseFlow step order", () => {
     ).toThrow(/step at index 1 .* role "confirmation"/)
   })
 })
+
+describe("base step fields", () => {
+  const stepsWithBaseFields = [
+    { id: "sig", type: "signature" },
+    { id: "grp", type: "group", steps: [{ id: "child", type: "text" }] },
+    {
+      id: "auth",
+      type: "oauth",
+      providers: [{ id: "google", clientId: "c", redirectUri: "https://app.test/cb" }],
+    },
+  ]
+
+  // Every step type accepts the base fields, whatever file its schema lives in.
+  // The oauth schema used to omit themeOverride/contentAlign because its base fields
+  // were retyped by hand instead of spread from schema.ts.
+  it.each(stepsWithBaseFields)("accepts themeOverride and contentAlign on $type", (step) => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        { id: "welcome", type: "intro" },
+        { ...step, themeOverride: { accent: "#FF0000" }, contentAlign: "center" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const parsed = flow.steps[1] as { themeOverride?: Record<string, unknown>; contentAlign?: string }
+    expect(parsed.themeOverride).toEqual({ accent: "#FF0000" })
+    expect(parsed.contentAlign).toBe("center")
+  })
+})

@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { registerStepType } from "./registry"
+import { baseStepFields } from "./schema"
 import type { OAuthResult } from "./machine"
 
 export const oauthProviderConfigSchema = z.object({
@@ -15,12 +16,8 @@ export const oauthProviderConfigSchema = z.object({
 })
 
 export const oauthStepSchema = z.object({
-  id: z.string().min(1),
+  ...baseStepFields,
   type: z.literal("oauth"),
-  title: z.string().optional(),
-  subtitle: z.string().optional(),
-  required: z.boolean().default(true),
-  icon: z.string().optional(),
   providers: z.array(oauthProviderConfigSchema).min(1),
   /** If true, shows an option to proceed without authenticating (anonymous). */
   allowAnonymous: z.boolean().default(false),

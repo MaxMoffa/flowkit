@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { registerStepType } from "./registry"
+import { baseStepFields } from "./schema"
 
 /**
  * "payment-stripe" step (v2.25): collects a Stripe payment via the Payment
@@ -10,14 +11,8 @@ import { registerStepType } from "./registry"
  * call the consumer's own backend, which holds the Stripe secret key.
  */
 export const paymentStripeStepSchema = z.object({
-  id: z.string().min(1),
+  ...baseStepFields,
   type: z.literal("payment-stripe"),
-  title: z.string().optional(),
-  subtitle: z.string().optional(),
-  required: z.boolean().default(true),
-  icon: z.string().optional(),
-  themeOverride: z.record(z.string(), z.unknown()).optional(),
-  contentAlign: z.enum(["top", "center", "bottom"]).optional(),
   /** Stripe PUBLISHABLE key only — never a secret key. Enforced by naming/docs, not by code. */
   publishableKey: z.string().min(1),
   /** Amount in the currency's minor unit (e.g. cents for EUR/USD). */
