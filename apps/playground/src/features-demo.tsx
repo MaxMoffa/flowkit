@@ -37,6 +37,9 @@ export const featuresDemoFlow: Flow = parseFlow({
       // Per-step override: stays top-aligned even under the "showcase" theme's
       // layout.contentAlign: "center" default.
       contentAlign: "top",
+      // Opt-in two columns (v2.25 default is single column): demonstrates the
+      // container-query-driven grid when the step's own container is wide enough.
+      layout: "columns",
     },
     {
       id: "pick-preset-point",
@@ -98,6 +101,7 @@ export const featuresDemoFlow: Flow = parseFlow({
       title: "Scegli un punto sulla mappa (Leaflet)",
       subtitle: "Stessa config di 'location', motore di rendering Leaflet.",
       required: false,
+      layout: "columns",
     },
     {
       id: "pick-leaflet-full",

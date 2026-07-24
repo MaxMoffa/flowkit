@@ -9,8 +9,13 @@ test("showcase theme (layout.contentAlign: center): step content sits away from 
   await page.getByRole("button", { name: "Prova" }).click()
   await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
   await page.getByRole("button", { name: "Continua", exact: true }).click() // skip pick-spot (has its own "top" override)
+  // pick-preset-point (search+map+gps) got taller now that columns are container-based rather
+  // than viewport-forced (v2.25) — the 390px playground frame no longer squishes it into two
+  // columns, so it can fill the frame's height with no room left to center. Use a short-content
+  // step (search-only, no map/gps) instead: centering itself is what's under test here, not layout.
+  await page.getByRole("button", { name: "Continua", exact: true }).click() // skip pick-preset-point
 
-  await expect(page.getByRole("heading", { name: "Oppure scegli tra i punti suggeriti" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Solo ricerca indirizzo" })).toBeVisible()
 
   const scroll = page.locator(".fk-scroll")
   const scope = page.locator(".fk-step-theme-scope")

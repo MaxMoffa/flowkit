@@ -42,6 +42,14 @@ export const locationStepSchema = z.object({
   manualEntryLabel: z.string().optional(),
   /** Map fills the entire step viewport; title/search/GPS/result float as overlays on top. Default: false. */
   fullContainer: z.boolean().default(false),
+  /**
+   * Controls the two-column layout (controls beside the map). Default "stack"
+   * (single column, always safe). "columns" opts in, but only actually
+   * renders as two columns when the step's own rendered container is wide
+   * enough (CSS container query, not viewport-based) — never forced on a
+   * narrow container even on a wide browser window.
+   */
+  layout: z.enum(["stack", "columns"]).default("stack"),
 })
 
 export const selectCardsStepSchema = z.object({

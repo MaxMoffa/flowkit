@@ -48,6 +48,7 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
 
   const selectionMode = step.selectionMode ?? { kind: "point" as const }
   const hasEnoughContent = step.showSearch !== false || step.enableGps !== false
+  const columnsEnabled = step.layout === "columns" && hasEnoughContent
 
   useEffect(() => {
     if (!containerRef.current || step.showMap === false) return
@@ -367,7 +368,7 @@ export function LocationStepView({ step, value, onChange }: StepComponentProps<L
   }
 
   return (
-    <div className={`fk-step fk-step-location${hasEnoughContent ? " fk-step-location--columns" : ""}`}>
+    <div className={`fk-step fk-step-location${columnsEnabled ? " fk-step-location--columns" : ""}`}>
       <div className="fk-location-controls">
         {step.title && <h2 className="fk-title">{step.title}</h2>}
         {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}

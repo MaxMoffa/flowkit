@@ -39,7 +39,7 @@ test("map step: address search returns real geocoding results", async ({ page })
   })
 })
 
-test("map step: GPS button renders below the map, styled neutral", async ({ page }) => {
+test("map step: GPS button renders above the map (single column, narrow frame), styled neutral", async ({ page }) => {
   await page.goto("/")
   await page.getByLabel("Preset", { exact: true }).selectOption("features-demo")
   await page.getByRole("button", { name: "Prova" }).click()
@@ -48,9 +48,12 @@ test("map step: GPS button renders below the map, styled neutral", async ({ page
   await expect(page.getByRole("heading", { name: "Scegli un punto sulla mappa" })).toBeVisible()
   const gpsBtn = page.locator(".fk-gps-btn")
   await expect(gpsBtn).toHaveClass(/fk-btn-neutral/)
+  // pick-spot opts into layout:"columns", but the playground's own preview frame is 390px wide
+  // (below the 640px container-query threshold, v2.25), so it correctly stays single column here:
+  // controls (including the GPS button) render before the map in document order.
   const mapBox = await page.locator(".fk-map-canvas").boundingBox()
   const btnBox = await gpsBtn.boundingBox()
-  expect(btnBox!.y).toBeGreaterThan(mapBox!.y)
+  expect(btnBox!.y).toBeLessThan(mapBox!.y)
 })
 
 test("map step: showMap=false and enableGps=false renders search-only", async ({ page }) => {
