@@ -1,16 +1,9 @@
 import { buildReportRows } from "@flowkit-io/core"
 import type { Answers, Flow } from "@flowkit-io/core"
+import { escapeHtml, safeImageDataUrl } from "./html"
 
 export interface RenderAnswersReportHtmlOptions {
   documentTitle?: string
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
 }
 
 /**
@@ -29,11 +22,12 @@ export function renderAnswersReportHtml(
   const rows = buildReportRows(flow, answers)
   const rowsHtml = rows
     .map((row) => {
-      const mediaHtml = row.media?.length
-        ? `<div class="fk-review-media">${row.media
-            .map((item) => `<img src="${item.dataUrl}" alt="" />`)
-            .join("")}</div>`
-        : ""
+      const images = (row.media ?? [])
+        .map((item) => safeImageDataUrl(item.dataUrl))
+        .filter((src): src is string => src !== null)
+        .map((src) => `<img src="${src}" alt="" />`)
+        .join("")
+      const mediaHtml = images ? `<div class="fk-review-media">${images}</div>` : ""
       return `<div class="fk-review-row"><span class="fk-review-icon">${escapeHtml(row.icon)}</span><div><dt>${escapeHtml(row.title)}</dt><dd>${escapeHtml(row.value)}</dd>${mediaHtml}</div></div>`
     })
     .join("")

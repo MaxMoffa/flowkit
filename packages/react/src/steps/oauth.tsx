@@ -11,8 +11,16 @@ function verifierStorageKey(providerId: string): string {
   return `flowkit:oauth:${providerId}:verifier`
 }
 
+/** `value` is an untyped answer at this boundary (it can be a leftover from another step
+ *  type or a rehydrated draft), so accept it only if it carries the shape this step writes. */
+function asOAuthResult(value: unknown): OAuthResult | null {
+  if (value === null || typeof value !== "object") return null
+  const result = value as OAuthResult
+  return typeof result.providerId === "string" ? result : null
+}
+
 export function OAuthStepView({ step, value, onChange }: StepComponentProps<OAuthStep>) {
-  const connected = value as OAuthResult | null
+  const connected = asOAuthResult(value)
 
   async function connect(provider: (typeof step.providers)[number]) {
     let pkce

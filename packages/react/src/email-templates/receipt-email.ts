@@ -1,5 +1,6 @@
 import { isUploadedItemArray } from "@flowkit-io/core"
 import type { Answers } from "@flowkit-io/core"
+import { escapeHtml, safeImageDataUrl } from "../html"
 
 export interface ReceiptEmailTemplateOptions {
   title: string
@@ -7,23 +8,18 @@ export interface ReceiptEmailTemplateOptions {
   answers: Answers
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-}
-
 function formatAnswerValue(value: unknown): string {
   if (value === null || value === undefined) return ""
   if (typeof value === "string" && value.startsWith("data:")) return "📷"
   if (isUploadedItemArray(value)) {
     if (value.length === 0) return ""
-    return value
+    const images = value
       .filter((item) => item.kind === "image")
-      .map((item) => `<img src="${item.dataUrl}" alt="" width="96" style="border-radius:8px;margin:0 6px 6px 0;" />`)
-      .join("") || escapeHtml(`${value.length} allegato/i`)
+      .map((item) => safeImageDataUrl(item.dataUrl))
+      .filter((src): src is string => src !== null)
+      .map((src) => `<img src="${src}" alt="" width="96" style="border-radius:8px;margin:0 6px 6px 0;" />`)
+      .join("")
+    return images || escapeHtml(`${value.length} allegato/i`)
   }
   if (Array.isArray(value)) return escapeHtml(value.map(String).join(", "))
   if (typeof value === "object") {

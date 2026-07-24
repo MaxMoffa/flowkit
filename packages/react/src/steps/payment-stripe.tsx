@@ -9,6 +9,14 @@ interface PaymentFormProps {
   onChange: (value: PaymentStripeValue) => void
 }
 
+/** `value` is an untyped answer at this boundary, so accept it only if it carries the
+ *  shape this step writes — a stale value must never read as a completed payment. */
+function asPaymentStripeValue(value: unknown): PaymentStripeValue | null {
+  if (value === null || typeof value !== "object") return null
+  const current = value as PaymentStripeValue
+  return typeof current.status === "string" ? current : null
+}
+
 function PaymentForm({ step, onChange }: PaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
@@ -78,8 +86,7 @@ export function PaymentStripeStepView({ step, value, onChange }: StepComponentPr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const current = value as PaymentStripeValue | null
-  const succeeded = current?.status === "succeeded"
+  const succeeded = asPaymentStripeValue(value)?.status === "succeeded"
 
   return (
     <div className="fk-step fk-step-payment-stripe">

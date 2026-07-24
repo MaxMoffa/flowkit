@@ -30,6 +30,7 @@ export function ConfirmationStepView({ step, flow, answers }: StepComponentProps
   const [resultLink, setResultLink] = useState<string | null>(null)
   const [linkLoading, setLinkLoading] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [linkError, setLinkError] = useState<string | null>(null)
   const [apiEmail, setApiEmail] = useState("")
   const [apiEmailStatus, setApiEmailStatus] = useState<"idle" | "loading" | "sent" | "error">("idle")
 
@@ -45,9 +46,12 @@ export function ConfirmationStepView({ step, flow, answers }: StepComponentProps
     const createLinkFn = step.resultActions?.resultLink?.createLink
     if (!createLinkFn) return
     setLinkLoading(true)
+    setLinkError(null)
     try {
       const { url } = await createLinkFn(answers)
       setResultLink(url)
+    } catch {
+      setLinkError("Non sono riuscito a generare il link. Riprova.")
     } finally {
       setLinkLoading(false)
     }
@@ -55,8 +59,13 @@ export function ConfirmationStepView({ step, flow, answers }: StepComponentProps
 
   async function copyLink() {
     if (!resultLink) return
-    await navigator.clipboard.writeText(resultLink)
-    setLinkCopied(true)
+    try {
+      await navigator.clipboard.writeText(resultLink)
+      setLinkCopied(true)
+    } catch {
+      // Clipboard access can be denied by permissions or a non-secure context.
+      setLinkError("Non sono riuscito a copiare il link. Copialo a mano.")
+    }
   }
 
   async function sendViaApi() {
@@ -72,10 +81,14 @@ export function ConfirmationStepView({ step, flow, answers }: StepComponentProps
   }
 
   function shareNatively() {
-    void navigator.share({
-      title: step.resultActions?.nativeShare?.shareTitle ?? step.title,
-      text: answersToText(answers),
-    })
+    // navigator.share() rejects with AbortError every time the user dismisses the
+    // native sheet, which is normal behaviour and not something to report.
+    navigator
+      .share({
+        title: step.resultActions?.nativeShare?.shareTitle ?? step.title,
+        text: answersToText(answers),
+      })
+      .catch(() => {})
   }
 
   return (
@@ -195,6 +208,7 @@ export function ConfirmationStepView({ step, flow, answers }: StepComponentProps
             </div>
           )}
           {linkCopied && <p className="fk-email-share-sent">Link copiato ✓</p>}
+          {linkError && <p className="fk-email-api-error">{linkError}</p>}
         </div>
       )}
 
