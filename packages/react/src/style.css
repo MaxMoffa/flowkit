@@ -921,6 +921,13 @@
   margin: -4px 0 var(--fk-space-sm);
 }
 
+.fk-verification-widget {
+  min-height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .fk-gps-guide-overlay {
   position: fixed;
   inset: 0;

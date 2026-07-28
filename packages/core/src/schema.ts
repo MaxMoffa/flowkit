@@ -5,6 +5,7 @@ import type { LocationLeafletStepConfig } from "./location-leaflet-step"
 import type { OAuthStep } from "./oauth-step"
 import type { SignatureStep } from "./signature-step"
 import type { PaymentStripeStep } from "./payment-stripe-step"
+import type { VerificationStep } from "./verification-step"
 
 /**
  * Fields every step accepts, whatever its `type`. Exported so step definitions living
@@ -344,6 +345,7 @@ export interface StepTypeMap {
   oauth: OAuthStep
   signature: SignatureStep
   "payment-stripe": PaymentStripeStep
+  verification: VerificationStep
 }
 
 /**
@@ -374,6 +376,7 @@ export type BuiltinStepType =
   | "oauth"
   | "signature"
   | "payment-stripe"
+  | "verification"
 
 /** Compile-time guard: a builtin without an entry in StepTypeMap makes this fail. */
 type _AssertBuiltinsAreMapped = BuiltinStepType extends keyof StepTypeMap ? true : never

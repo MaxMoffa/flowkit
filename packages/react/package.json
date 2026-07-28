@@ -44,6 +44,10 @@
     "./payment-stripe": {
       "types": "./dist/payment-stripe.d.ts",
       "import": "./dist/payment-stripe.js"
+    },
+    "./verification": {
+      "types": "./dist/verification.d.ts",
+      "import": "./dist/verification.js"
     }
   },
   "files": [

@@ -39,7 +39,7 @@ for (const fw of frameworkPackages) {
 // e in quel caso il flow renderizza uno step vuoto a runtime senza che nulla fallisca.
 // Qui si verifica la registrazione vera, entry opzionali incluse.
 const { getStepComponent } = await import("../packages/react/dist/index.js")
-for (const entry of ["map-maplibre", "map-leaflet", "payment-stripe"]) {
+for (const entry of ["map-maplibre", "map-leaflet", "payment-stripe", "verification"]) {
   await import(`../packages/react/dist/${entry}.js`)
 }
 
