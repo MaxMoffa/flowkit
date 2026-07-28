@@ -1,6 +1,6 @@
 {
   "name": "@flowkit-io/adapters",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Data adapters (local, rest, supabase stub) for Flowkit flows.",
   "license": "MIT",
   "author": "Massimo Moffa",
@@ -29,7 +29,7 @@
     "build": "tsup src/index.ts --format esm --dts --clean"
   },
   "dependencies": {
-    "@flowkit-io/core": "^0.5.0"
+    "@flowkit-io/core": "^0.6.0"
   },
   "devDependencies": {
     "tsup": "^8.3.5"
