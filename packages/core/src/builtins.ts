@@ -9,6 +9,7 @@ import {
   notesStepSchema,
   mediaStepSchema,
   fileStepSchema,
+  mediaDisplayStepSchema,
   dateTimeStepSchema,
   npsStepSchema,
   multiSelectStepSchema,
@@ -82,6 +83,12 @@ registerStepType({
   type: "file",
   schema: fileStepSchema,
   validate: (_step, value) => Array.isArray(value) && value.length > 0,
+})
+
+registerStepType({
+  type: "media-display",
+  schema: mediaDisplayStepSchema,
+  validate: () => true,
 })
 
 registerStepType({

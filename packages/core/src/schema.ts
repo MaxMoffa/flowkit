@@ -160,6 +160,43 @@ export const fileStepSchema = z.object({
   maxItems: z.number().int().positive().optional(),
 })
 
+/**
+ * "media-display" step: read-only image/video shown before/during a question
+ * (e.g. "what do you think of this?"). Distinct from "media" (upload/capture):
+ * no file picker, no UploadedItem[] answer, just a configured src to render.
+ */
+export const mediaDisplayStepSchema = z
+  .object({
+    ...baseStepFields,
+    type: z.literal("media-display"),
+    kind: z.enum(["image", "video"]).default("image"),
+    src: z.string().min(1),
+    /** Additional responsive sources: <source> children for video, or extra srcSet
+     *  candidates for image. */
+    sources: z
+      .array(z.object({ src: z.string().min(1), type: z.string().optional(), media: z.string().optional() }))
+      .optional(),
+    /** Poster frame shown before playback starts (video only). */
+    poster: z.string().optional(),
+    alt: z.string().optional(),
+    caption: z.string().optional(),
+    /** Video-only playback options. */
+    autoplay: z.boolean().default(false),
+    loop: z.boolean().default(false),
+    muted: z.boolean().default(false),
+    controls: z.boolean().default(true),
+    /** CSS aspect-ratio (e.g. "16/9", "1/1"). Unset = intrinsic media size. */
+    aspectRatio: z.string().optional(),
+    fit: z.enum(["cover", "contain", "fill"]).default("cover"),
+    /** Purely informational: collects no answer, so it must never block advancement
+     *  by default (overrides baseStepFields' required:true default). */
+    required: z.boolean().default(false),
+  })
+  .refine((step) => !(step.autoplay && !step.muted), {
+    message: "autoplay:true requires muted:true (browser autoplay policy).",
+    path: ["muted"],
+  })
+
 export const dateTimeStepSchema = z.object({
   ...baseStepFields,
   type: z.literal("date-time"),
@@ -300,6 +337,7 @@ export type FacesStep = z.infer<typeof facesStepSchema>
 export type NotesStep = z.infer<typeof notesStepSchema>
 export type MediaStep = z.infer<typeof mediaStepSchema>
 export type FileStep = z.infer<typeof fileStepSchema>
+export type MediaDisplayStep = z.infer<typeof mediaDisplayStepSchema>
 export type DateTimeStep = z.infer<typeof dateTimeStepSchema>
 export type NpsStep = z.infer<typeof npsStepSchema>
 export type MultiSelectStep = z.infer<typeof multiSelectStepSchema>
@@ -335,6 +373,7 @@ export interface StepTypeMap {
   notes: NotesStep
   media: MediaStep
   file: FileStep
+  "media-display": MediaDisplayStep
   "date-time": DateTimeStep
   nps: NpsStep
   "multi-select": MultiSelectStep
@@ -366,6 +405,7 @@ export type BuiltinStepType =
   | "notes"
   | "media"
   | "file"
+  | "media-display"
   | "date-time"
   | "nps"
   | "multi-select"

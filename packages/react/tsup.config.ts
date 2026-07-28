@@ -10,6 +10,7 @@ const stepEntries = [
   "notes",
   "media",
   "file",
+  "media-display",
   "date-time",
   "nps",
   "multi-select",

@@ -928,6 +928,25 @@
   justify-content: center;
 }
 
+.fk-media-display-frame {
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--fk-radius-md);
+}
+
+.fk-media-display-image,
+.fk-media-display-video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.fk-media-display-caption {
+  margin-top: var(--fk-space-sm);
+  font-size: 13px;
+  color: var(--fk-text2);
+}
+
 .fk-gps-guide-overlay {
   position: fixed;
   inset: 0;
