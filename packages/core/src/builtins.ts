@@ -133,6 +133,7 @@ registerStepType({
   type: "review",
   schema: reviewStepSchema,
   validate: () => true,
+  role: "review",
 })
 
 registerStepType({

@@ -9,8 +9,11 @@ export interface StepTypeDefinition<TStep = unknown, TValue = unknown> {
   type: string
   schema: z.ZodType<TStep, z.ZodTypeDef, unknown>
   validate: (step: TStep, value: TValue, answers: Record<string, unknown>) => boolean
-  /** Optional role in the wizard: hides the header and drives FlowRunner's CTA/footer. */
-  role?: "intro" | "confirmation"
+  /** Optional role in the wizard: hides the header and drives FlowRunner's CTA/footer.
+   *  "review" marks a recap step; assertFlowStepOrder (schema.ts) allows any number of
+   *  review steps but constrains at most one non-checkpoint ("final") one, which must
+   *  sit immediately before the confirmation step. */
+  role?: "intro" | "review" | "confirmation"
 }
 
 const registry = new Map<string, StepTypeDefinition>()

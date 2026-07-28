@@ -208,6 +208,12 @@ export const reviewStepSchema = z.object({
   meta: z.string().optional(),
   /** Text of the final submit button. Default preserves the previous hardcoded text. */
   submitLabel: z.string().default("Invia segnalazione ✓"),
+  /**
+   * "final" (default): the flow's closing recap, must be the second-to-last step
+   * (immediately before confirmation), at most one per flow. "checkpoint": a mid-flow
+   * partial recap, any number allowed, exempt from the second-to-last positional rule.
+   */
+  mode: z.enum(["final", "checkpoint"]).default("final"),
 })
 
 export const confirmationStepSchema = z.object({
@@ -436,6 +442,33 @@ function assertFlowStepOrder(steps: Step[]): void {
     if (role === "intro" || role === "confirmation") {
       throw new Error(
         `Invalid flow: step at index ${i} (id="${step.id}", type="${step.type}") has role "${role}" but only the first/last step may have that role.`,
+      )
+    }
+  }
+
+  // Hybrid review rule: any number of role:"review" steps are allowed (checkpoints
+  // for partial mid-flow recaps), but at most one may be a "final" recap (mode !==
+  // "checkpoint"), and if present it must sit immediately before confirmation.
+  const reviewEntries = steps
+    .map((step, index) => ({ step, index, role: roleOf(step) }))
+    .filter((entry) => entry.role === "review")
+
+  const finalReviews = reviewEntries.filter(
+    (entry) => (entry.step as { mode?: string }).mode !== "checkpoint",
+  )
+
+  if (finalReviews.length > 1) {
+    throw new Error(
+      `Invalid flow: only one step with role "review" and mode "final" is allowed, found ${finalReviews.length} (ids: ${finalReviews.map((e) => e.step.id).join(", ")}).`,
+    )
+  }
+
+  if (finalReviews.length === 1) {
+    const { step: finalReview, index: finalIndex } = finalReviews[0]!
+    const expectedIndex = steps.length - 2
+    if (finalIndex !== expectedIndex) {
+      throw new Error(
+        `Invalid flow: the final review step (id="${finalReview.id}") must be the second-to-last step (index ${expectedIndex}), found at index ${finalIndex}.`,
       )
     }
   }

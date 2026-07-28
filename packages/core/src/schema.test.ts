@@ -47,6 +47,63 @@ describe("parseFlow step order", () => {
       }),
     ).toThrow(/step at index 1 .* role "confirmation"/)
   })
+
+  it("accepts a checkpoint review step at a mid-flow position", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "midway", type: "review", mode: "checkpoint" },
+        { id: "name", type: "text" },
+        { id: "final", type: "review" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    expect(flow.steps).toHaveLength(5)
+  })
+
+  it("accepts multiple checkpoint review steps", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "checkpoint-1", type: "review", mode: "checkpoint" },
+        { id: "name", type: "text" },
+        { id: "checkpoint-2", type: "review", mode: "checkpoint" },
+        { id: "final", type: "review" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    expect(flow.steps).toHaveLength(6)
+  })
+
+  it("rejects a second final-mode review step", () => {
+    expect(() =>
+      parseFlow({
+        ...baseFlow,
+        steps: [
+          { id: "welcome", type: "intro" },
+          { id: "final-1", type: "review" },
+          { id: "final-2", type: "review", mode: "final" },
+          { id: "end", type: "confirmation" },
+        ],
+      }),
+    ).toThrow(/only one step with role "review" and mode "final" is allowed/)
+  })
+
+  it("rejects a final review step that is not second-to-last", () => {
+    expect(() =>
+      parseFlow({
+        ...baseFlow,
+        steps: [
+          { id: "welcome", type: "intro" },
+          { id: "final", type: "review" },
+          { id: "name", type: "text" },
+          { id: "end", type: "confirmation" },
+        ],
+      }),
+    ).toThrow(/must be the second-to-last step/)
+  })
 })
 
 describe("base step fields", () => {
