@@ -1,5 +1,6 @@
 import type { Flow, Step } from "./schema"
 import type { Answers } from "./machine"
+import { getStepTypeDefinition } from "./registry"
 import { isUploadedItemArray, type UploadedItem } from "./upload-item"
 
 export function optionLabel(step: Step, rawValue: string): string {
@@ -89,6 +90,9 @@ function collectImages(step: Step, value: unknown): UploadedItem[] {
 }
 
 export interface ReportRow {
+  /** Id of the flow step this row was built from — lets consumers (e.g. a clickable
+   *  review row) navigate back to the step that produced the answer. */
+  stepId: string
   icon: string
   title: string
   value: string
@@ -99,13 +103,15 @@ export interface ReportRow {
 /** Framework-agnostic row list for the "resoconto" report, shared by the review step,
  *  the confirmation step's print/PDF recap, and renderAnswersReportHtml. */
 export function buildReportRows(flow: Flow, answers: Answers): ReportRow[] {
-  const reviewable = flow.steps.filter(
-    (s) => s.type !== "intro" && s.type !== "review" && s.type !== "confirmation",
-  )
+  const reviewable = flow.steps.filter((s) => {
+    const role = getStepTypeDefinition(s.type)?.role
+    return role !== "intro" && role !== "review" && role !== "confirmation"
+  })
   return reviewable.map((s) => {
     const value = answers[s.id]
     const media = collectImages(s, value)
     return {
+      stepId: s.id,
       icon: defaultIcon(s),
       title: s.title ?? s.id,
       value: formatAnswer(s, value),

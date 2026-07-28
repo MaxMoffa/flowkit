@@ -73,6 +73,16 @@ export function prev(flow: Flow, state: FlowState): FlowState {
   return { ...state, index: state.index - 1 }
 }
 
+/** Jumps directly to a step by id (unlike next/prev, which move ±1). Used to let a
+ *  clickable review row navigate straight to the step that produced an answer. */
+export function goToStep(flow: Flow, state: FlowState, stepId: string): FlowState {
+  const index = flow.steps.findIndex((s) => s.id === stepId)
+  if (index === -1) {
+    throw new Error(`Flow "${flow.id}" has no step with id "${stepId}"`)
+  }
+  return { ...state, index }
+}
+
 export function canGoNext(flow: Flow, state: FlowState): boolean {
   return isStepValid(getCurrentStep(flow, state), state.answers)
 }

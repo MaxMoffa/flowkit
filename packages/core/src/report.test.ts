@@ -30,6 +30,27 @@ describe("buildReportRows", () => {
     expect(rows.map((r) => r.title)).toEqual(["Come ti senti?", "Note", "Extra"])
   })
 
+  it("carries the originating step's id on every row", () => {
+    const rows = buildReportRows(flow, {})
+    expect(rows.map((r) => r.stepId)).toEqual(["mood", "notes", "extras"])
+  })
+
+  it("excludes a checkpoint review step just like a final one", () => {
+    const withCheckpoint: Flow = parseFlow({
+      id: "demo2",
+      title: "Demo 2",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "mood", type: "faces", title: "Come ti senti?" },
+        { id: "midway", type: "review", mode: "checkpoint" },
+        { id: "notes", type: "text", title: "Note", required: false },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const rows = buildReportRows(withCheckpoint, {})
+    expect(rows.map((r) => r.stepId)).toEqual(["mood", "notes"])
+  })
+
   it("formats a missing/empty answer as an em dash", () => {
     const rows = buildReportRows(flow, {})
     expect(rows.find((r) => r.title === "Note")!.value).toBe("—")

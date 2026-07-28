@@ -5,6 +5,7 @@ import {
   createFlowState,
   getCurrentStep,
   getStepTypeDefinition,
+  goToStep,
   isFirstStep,
   isLastStep,
   next as nextState,
@@ -21,7 +22,7 @@ import type { FlowSubmitHandler } from "./types"
 
 /** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
 type StepWithIntroFields = { cta?: string }
-type StepWithReviewFields = { submitLabel?: string }
+type StepWithReviewFields = { submitLabel?: string; mode?: "final" | "checkpoint" }
 type StepWithConfirmationFields = {
   secondaryCta?: string
   primaryCta?: string
@@ -40,6 +41,9 @@ export interface FlowRunnerProps {
 export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunnerProps) {
   const [state, setState] = useState(createFlowState)
   const [direction, setDirection] = useState<"next" | "prev">("next")
+  /** Set while the user is editing an answer they reached by clicking a review row;
+   *  the next "Continua" jumps back to this index (the review step) instead of +1. */
+  const [returnToIndex, setReturnToIndex] = useState<number | null>(null)
   const step = getCurrentStep(flow, state)
   const StepView = getStepComponent(step.type)
   if (!StepView) {
@@ -53,7 +57,11 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const pct = useMemo(() => Math.round(flowProgress(flow, state) * 100), [flow, state])
 
   const middleSteps = useMemo(
-    () => flow.steps.filter((s) => !getStepTypeDefinition(s.type)?.role),
+    () =>
+      flow.steps.filter((s) => {
+        const role = getStepTypeDefinition(s.type)?.role
+        return role !== "intro" && role !== "confirmation"
+      }),
     [flow],
   )
   const middleIndex = middleSteps.findIndex((s) => s.id === step.id)
@@ -61,7 +69,8 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const isIntro = stepRole === "intro"
   const isConfirmation = stepRole === "confirmation"
   const showHeader = !isIntro && !isConfirmation
-  const isReview = step.type === "review"
+  const isReviewType = stepRole === "review"
+  const isFinalReviewSubmit = isReviewType && (step as StepWithReviewFields).mode !== "checkpoint"
 
   const layout = useFlowRunnerLayout(step, theme, mode, direction)
   const progressProps = { pct, currentIndex: middleIndex, total: middleSteps.length }
@@ -73,16 +82,28 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   }
 
   async function handleNext() {
-    if (isReview) {
+    if (isFinalReviewSubmit) {
       await onSubmit?.(state.answers)
     }
     setDirection("next")
+    if (returnToIndex !== null) {
+      const target = returnToIndex
+      setReturnToIndex(null)
+      setState((s) => ({ ...s, index: target }))
+      return
+    }
     setState((s) => nextState(flow, s))
   }
 
   function handlePrev() {
     setDirection("prev")
     setState((s) => prevState(flow, s))
+  }
+
+  function handleNavigateToStep(stepId: string) {
+    setReturnToIndex(state.index)
+    setDirection("next")
+    setState((s) => goToStep(flow, s, stepId))
   }
 
   function handleRestart() {
@@ -98,11 +119,14 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     handleRestart()
   }
 
-  const primaryLabel = isReview
-    ? ((step as StepWithReviewFields).submitLabel ?? "Invia segnalazione ✓")
-    : isIntro
-      ? ((step as StepWithIntroFields).cta ?? "Continua")
-      : "Continua"
+  const primaryLabel =
+    returnToIndex !== null
+      ? "Torna al riepilogo"
+      : isFinalReviewSubmit
+        ? ((step as StepWithReviewFields).submitLabel ?? "Invia segnalazione ✓")
+        : isIntro
+          ? ((step as StepWithIntroFields).cta ?? "Continua")
+          : "Continua"
 
   const isMapStep = step.type === "location" || step.type === "location-leaflet"
 
@@ -146,6 +170,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
                   onChange={handleChange}
                   flow={flow}
                   answers={state.answers}
+                  onNavigateToStep={isReviewType ? handleNavigateToStep : undefined}
                 />
               </div>
             </div>
@@ -159,7 +184,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
             onBack={handlePrev}
             primaryLabel={primaryLabel}
             primaryDisabled={!valid}
-            isSubmit={isReview}
+            isSubmit={isFinalReviewSubmit}
             onPrimary={handleNext}
             progress={{
               Component: layout.ProgressComponent,

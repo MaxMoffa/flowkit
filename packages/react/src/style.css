@@ -1402,6 +1402,20 @@
   border-bottom: none;
 }
 
+.fk-review-row-clickable {
+  cursor: pointer;
+  margin: 0 -18px;
+  padding-left: 18px;
+  padding-right: 18px;
+  border-radius: var(--fk-radius-sm);
+}
+
+.fk-review-row-clickable:hover,
+.fk-review-row-clickable:focus-visible {
+  background: var(--fk-surface);
+  outline: none;
+}
+
 .fk-review-row .fk-review-icon {
   font-size: 22px;
   width: 28px;

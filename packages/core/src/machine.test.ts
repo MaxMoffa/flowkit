@@ -4,6 +4,7 @@ import {
   type Flow,
   canGoNext,
   createFlowState,
+  goToStep,
   isStepValid,
   next,
   prev,
@@ -81,5 +82,28 @@ describe("machine navigation", () => {
     let state = { index: flow.steps.length - 1, answers: {} }
     state = next(flow, state)
     expect(state.index).toBe(flow.steps.length - 1)
+  })
+})
+
+describe("goToStep", () => {
+  it("jumps to the step matching the given id, leaving answers untouched", () => {
+    const flow = makeFlow()
+    const state = { index: 0, answers: { mood: "4" } }
+    const jumped = goToStep(flow, state, "notes")
+    expect(jumped.index).toBe(2)
+    expect(jumped.answers).toEqual({ mood: "4" })
+  })
+
+  it("throws for an unknown step id", () => {
+    const flow = makeFlow()
+    const state = createFlowState()
+    expect(() => goToStep(flow, state, "does-not-exist")).toThrow(/no step with id/)
+  })
+
+  it("jumping to the current step's own id is a no-op index-wise", () => {
+    const flow = makeFlow()
+    const state = { index: 1, answers: {} }
+    const jumped = goToStep(flow, state, "mood")
+    expect(jumped.index).toBe(1)
   })
 })
