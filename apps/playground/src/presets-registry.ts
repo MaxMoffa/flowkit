@@ -1,4 +1,4 @@
-import { odoriFlow, feedbackFlow, restaurantFlow } from "@flowkit-io/presets"
+import { odoriFlow, feedbackFlow, restaurantFlow, anagraficaFlow } from "@flowkit-io/presets"
 import type { Flow } from "@flowkit-io/core"
 import { customStepDemoFlow } from "./custom-step-demo"
 import { featuresDemoFlow } from "./features-demo"
@@ -14,6 +14,7 @@ export const presets: Record<string, Flow> = {
   odori: odoriFlow,
   feedback: feedbackFlow,
   restaurant: restaurantFlow,
+  anagrafica: anagraficaFlow,
   "custom-step": customStepDemoFlow,
   "features-demo": featuresDemoFlow,
   "custom-intro": customIntroDemoFlow,
@@ -29,6 +30,7 @@ export const presetLabels: Record<string, string> = {
   odori: "Segnala odore",
   feedback: "Feedback",
   restaurant: "Prenotazione ristorante",
+  anagrafica: "Dati anagrafici",
   "custom-step": "Step custom (demo)",
   "features-demo": "OAuth + Mappa (demo)",
   "custom-intro": "Intro & conferma custom (demo)",

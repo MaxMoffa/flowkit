@@ -15,7 +15,7 @@ Covers only `next`, `back`, `submit`, `required` (locale `it`/`en`, falling back
 
 ## Included presets
 
-`@flowkit-io/presets` contains three ready-made flows, useful both as demos and as an
+`@flowkit-io/presets` contains four ready-made flows, useful both as demos and as an
 example of how to compose every step type:
 
 - **`odoriFlow`** (`packages/presets/src/odori.ts`) — reporting a bad smell:
@@ -31,9 +31,16 @@ example of how to compose every step type:
   `chips` (seating) → `select-cards` (occasion, optional) → `notes`
   (allergies/requests, optional) → `text` × 3 (name, email, phone) → `review` →
   `confirmation` (with `resultActions.pdfExport`/`nativeShare`).
+- **`anagraficaFlow`** (`packages/presets/src/anagrafica.ts`) — personal-data
+  collection: `intro` → `text` (nome, cognome, luogo di nascita, indirizzo) →
+  `date-time` (data di nascita) → `text` with `pattern` (codice fiscale, telefono) →
+  `text` email → `checkbox` (consenso privacy, required) → `review` → `confirmation`.
+  Generic and meant to be customized (e.g. by the FlowLab builder): every field's
+  label, order and validation lives in the flow config, nothing hardcoded in the step
+  components.
 
 ```ts
-import { odoriFlow, feedbackFlow, restaurantFlow } from "@flowkit-io/presets"
+import { odoriFlow, feedbackFlow, restaurantFlow, anagraficaFlow } from "@flowkit-io/presets"
 ```
 
 The playground also includes additional demos (not standalone packages, just examples

@@ -30,7 +30,7 @@ packages/core            # Flow/Step schema (zod), open step registry, state mac
 packages/react            # <FlowRunner>, <ThemeProvider>, components for every step type (incl. oauth, real map)
 packages/themes            # notion-clean, mint-fresh, midnight-ink, sunset-clay, rose-quartz, showcase themes (tokens + CSS vars, light/dark, custom fonts/images)
 packages/adapters           # answer persistence: local, rest, notion, receipt-email, supabase (stub)
-packages/presets              # ready-to-use flows: "odori", "feedback", "restaurant"
+packages/presets              # ready-to-use flows: "odori", "feedback", "restaurant", "anagrafica"
 packages/create-flowkit         # CLI: `create-flowkit` (scaffold) and `flowkit-init` (installer)
 apps/playground                   # Vite showcase app: preset/theme/dark-mode picker, mobile frame
 e2e/                                 # Playwright end-to-end tests (React target only for now)
