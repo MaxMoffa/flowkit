@@ -238,6 +238,22 @@ export const textStepSchema = z.object({
   variant: z.enum(["text", "number", "email"]).default("text"),
   placeholder: z.string().optional(),
   multiline: z.boolean().default(false),
+  /** Regex (as a string, no flags) the value must fully match, checked in addition to
+   *  the variant's own rule. E.g. an Italian fiscal code or a phone number shape. */
+  pattern: z.string().optional(),
+})
+
+/**
+ * "checkbox" step: a single boolean toggle (e.g. privacy consent). The real "must be
+ * accepted to proceed" gate comes from baseStepFields.required (default true), same as
+ * every other step: isStepValid() (machine.ts) already skips validation entirely when
+ * required:false, so this step's own validate() only runs when acceptance is mandatory.
+ */
+export const checkboxStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("checkbox"),
+  label: z.string().min(1),
+  description: z.string().optional(),
 })
 
 export const reviewStepSchema = z.object({
@@ -343,6 +359,7 @@ export type NpsStep = z.infer<typeof npsStepSchema>
 export type MultiSelectStep = z.infer<typeof multiSelectStepSchema>
 export type RadioStep = z.infer<typeof radioStepSchema>
 export type TextStep = z.infer<typeof textStepSchema>
+export type CheckboxStep = z.infer<typeof checkboxStepSchema>
 export type ReviewStep = z.infer<typeof reviewStepSchema>
 export type ConfirmationStep = z.infer<typeof confirmationStepSchema>
 
@@ -379,6 +396,7 @@ export interface StepTypeMap {
   "multi-select": MultiSelectStep
   radio: RadioStep
   text: TextStep
+  checkbox: CheckboxStep
   review: ReviewStep
   confirmation: ConfirmationStep
   oauth: OAuthStep
@@ -411,6 +429,7 @@ export type BuiltinStepType =
   | "multi-select"
   | "radio"
   | "text"
+  | "checkbox"
   | "review"
   | "confirmation"
   | "oauth"

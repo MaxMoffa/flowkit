@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseFlow } from "./index"
+import { parseFlow, isStepValid } from "./index"
 
 const baseFlow = {
   id: "flow",
@@ -103,6 +103,63 @@ describe("parseFlow step order", () => {
         ],
       }),
     ).toThrow(/must be the second-to-last step/)
+  })
+})
+
+describe("checkbox step", () => {
+  const step = { id: "consent", type: "checkbox" as const, label: "Accetto", required: true }
+
+  it("blocks when the value is not true", () => {
+    expect(isStepValid(parseFlow({ ...baseFlow, steps: [baseFlow.steps[0], step, baseFlow.steps[2]] }).steps[1]!, { consent: false })).toBe(false)
+    expect(isStepValid(parseFlow({ ...baseFlow, steps: [baseFlow.steps[0], step, baseFlow.steps[2]] }).steps[1]!, {})).toBe(false)
+  })
+
+  it("passes once the value is true", () => {
+    const flow = parseFlow({ ...baseFlow, steps: [baseFlow.steps[0], step, baseFlow.steps[2]] })
+    expect(isStepValid(flow.steps[1]!, { consent: true })).toBe(true)
+  })
+
+  it("passes regardless of value when required:false", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [baseFlow.steps[0], { ...step, required: false }, baseFlow.steps[2]],
+    })
+    expect(isStepValid(flow.steps[1]!, { consent: false })).toBe(true)
+  })
+})
+
+describe("text step pattern", () => {
+  const pattern = "^[0-9]{5}$"
+
+  it("blocks a value that doesn't match the pattern", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [baseFlow.steps[0], { id: "zip", type: "text", pattern }, baseFlow.steps[2]],
+    })
+    expect(isStepValid(flow.steps[1]!, { zip: "abc" })).toBe(false)
+  })
+
+  it("passes a value that matches the pattern", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [baseFlow.steps[0], { id: "zip", type: "text", pattern }, baseFlow.steps[2]],
+    })
+    expect(isStepValid(flow.steps[1]!, { zip: "12345" })).toBe(true)
+  })
+
+  it("still applies the email variant check when both are set", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        baseFlow.steps[0],
+        { id: "biz-email", type: "text", variant: "email", pattern: "^.+@biz\\.com$" },
+        baseFlow.steps[2],
+      ],
+    })
+    const step = flow.steps[1]!
+    expect(isStepValid(step, { "biz-email": "not-an-email" })).toBe(false)
+    expect(isStepValid(step, { "biz-email": "a@other.com" })).toBe(false)
+    expect(isStepValid(step, { "biz-email": "a@biz.com" })).toBe(true)
   })
 })
 

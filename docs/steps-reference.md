@@ -364,10 +364,29 @@ Free text/number/email input. Answer value: `string`. Component: `TextStepView`.
 | `variant` | `"text" \| "number" \| "email"` | `"text"` | Changes validation: `"email"` requires a valid email format, `"number"` requires the value to be convertible with `Number(...)` |
 | `placeholder` | `string` | — | Input placeholder |
 | `multiline` | `boolean` | `false` | (reserved for future textarea use) |
+| `pattern` | `string` | — | Regex (as a string, no flags) the value must fully match, checked in addition to `variant`'s own rule. Useful for formats like a fiscal code or a phone number, configured per-flow instead of hardcoded in the component |
 
 ```ts
 { id: "email", type: "text", title: "Want us to follow up?", required: false,
   variant: "email", placeholder: "name@example.com" }
+```
+
+#### `checkbox`
+
+Single boolean toggle (e.g. privacy consent). Answer value: `boolean`. Component:
+`CheckboxStepView`. The "must be accepted to proceed" gate comes from the standard
+`required` field (default `true`, same as every other step): when `required` is not
+`false`, the step only validates once the box is checked.
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `label` | `string` | — (min 1) | Text shown next to the box |
+| `description` | `string` | — | Optional extended text/notice below the box |
+
+```ts
+{ id: "consenso-privacy", type: "checkbox", title: "Privacy",
+  label: "Ho letto e accetto l'informativa sulla privacy",
+  description: "I tuoi dati saranno trattati secondo l'informativa privacy." }
 ```
 
 #### `oauth`

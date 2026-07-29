@@ -13,6 +13,7 @@ export interface OAuthResult {
 export type AnswerValue =
   | string
   | number
+  | boolean
   | string[]
   | OAuthResult
   | { lat?: number; lng?: number; address?: string; regionId?: string; pointId?: string }

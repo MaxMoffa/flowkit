@@ -1011,6 +1011,29 @@
   margin-bottom: var(--fk-space-lg);
 }
 
+.fk-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--fk-text);
+}
+
+.fk-checkbox-row input[type="checkbox"] {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--fk-accent);
+  flex-shrink: 0;
+}
+
+.fk-checkbox-description {
+  font-size: 13px;
+  color: var(--fk-text2);
+  margin-top: 8px;
+}
+
 /* Cards grid */
 .fk-cards-grid {
   display: grid;

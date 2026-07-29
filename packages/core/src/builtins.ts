@@ -15,6 +15,7 @@ import {
   multiSelectStepSchema,
   radioStepSchema,
   textStepSchema,
+  checkboxStepSchema,
   reviewStepSchema,
   confirmationStepSchema,
 } from "./schema"
@@ -130,10 +131,17 @@ registerStepType({
   schema: textStepSchema,
   validate: (step, value) => {
     if (typeof value !== "string" || value.trim().length === 0) return false
-    if (step.variant === "email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-    if (step.variant === "number") return !Number.isNaN(Number(value))
+    if (step.variant === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return false
+    if (step.variant === "number" && Number.isNaN(Number(value))) return false
+    if (step.pattern && !new RegExp(step.pattern).test(value)) return false
     return true
   },
+})
+
+registerStepType({
+  type: "checkbox",
+  schema: checkboxStepSchema,
+  validate: (_step, value) => value === true,
 })
 
 registerStepType({

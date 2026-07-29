@@ -16,6 +16,7 @@ const stepEntries = [
   "multi-select",
   "radio",
   "text",
+  "checkbox",
   "review",
   "confirmation",
   "oauth",

@@ -29,6 +29,7 @@ export function formatAnswer(step: Step, value: unknown): string {
     if (items.length === 0) return "—"
     return `${step.type === "media" ? "📷" : "📎"}×${items.length}`
   }
+  if (step.type === "checkbox") return value === true ? "✓ Accettato" : "—"
   if (Array.isArray(value)) return value.map((v) => optionLabel(step, String(v))).join(", ")
   if ((step.type as string) === "group") {
     const children = (step as unknown as { steps: Step[] }).steps
@@ -58,6 +59,8 @@ export function defaultIcon(step: Step): string {
       return "⏱️"
     case "radio":
       return "🔘"
+    case "checkbox":
+      return "☑️"
     case "faces":
       return "🙂"
     case "notes":
