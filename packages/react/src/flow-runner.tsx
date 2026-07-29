@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { Answers, Flow } from "@flowkit-io/core"
 import {
   canGoNext,
@@ -75,6 +75,19 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const layout = useFlowRunnerLayout(step, theme, mode, direction)
   const progressProps = { pct, currentIndex: middleIndex, total: middleSteps.length }
 
+  /** Forward-only flows must also survive the browser's own back button: push a
+   *  sentinel history entry and re-push it on every popstate, so the back button
+   *  never actually navigates away from the current step. */
+  useEffect(() => {
+    if (!flow.disableBack) return
+    window.history.pushState(null, "", window.location.href)
+    function handlePopState() {
+      window.history.pushState(null, "", window.location.href)
+    }
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [flow.disableBack])
+
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
     const nextAnswers = setAnswer(state, step.id, value)
     setState(nextAnswers)
@@ -96,6 +109,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   }
 
   function handlePrev() {
+    if (flow.disableBack) return
     setDirection("prev")
     setState((s) => prevState(flow, s))
   }
@@ -136,15 +150,17 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
         {showHeader && (
           <div className="fk-header" style={{ order: layout.headerOrder }}>
             <div className="fk-header-inner">
-              <button
-                type="button"
-                className="fk-back"
-                onClick={handlePrev}
-                disabled={first}
-                aria-label="Indietro"
-              >
-                ←
-              </button>
+              {!flow.disableBack && (
+                <button
+                  type="button"
+                  className="fk-back"
+                  onClick={handlePrev}
+                  disabled={first}
+                  aria-label="Indietro"
+                >
+                  ←
+                </button>
+              )}
               {layout.ProgressComponent && layout.progressPosition === "header" && (
                 <layout.ProgressComponent {...progressProps} />
               )}
@@ -170,7 +186,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
                   onChange={handleChange}
                   flow={flow}
                   answers={state.answers}
-                  onNavigateToStep={isReviewType ? handleNavigateToStep : undefined}
+                  onNavigateToStep={isReviewType && !flow.disableBack ? handleNavigateToStep : undefined}
                 />
               </div>
             </div>
@@ -179,7 +195,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
         {!last && (
           <StepFooter
             order={layout.footerOrder}
-            showBack={showHeader}
+            showBack={showHeader && !flow.disableBack}
             backDisabled={first}
             onBack={handlePrev}
             primaryLabel={primaryLabel}

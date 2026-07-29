@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
   parseFlow,
   type Flow,
+  canGoBack,
   canGoNext,
   createFlowState,
   goToStep,
@@ -82,6 +83,30 @@ describe("machine navigation", () => {
     let state = { index: flow.steps.length - 1, answers: {} }
     state = next(flow, state)
     expect(state.index).toBe(flow.steps.length - 1)
+  })
+})
+
+describe("disableBack", () => {
+  function makeForwardOnlyFlow(): Flow {
+    return parseFlow({ ...rawFlow, disableBack: true })
+  }
+
+  it("canGoBack is false whenever disableBack is set, even mid-flow", () => {
+    const flow = makeForwardOnlyFlow()
+    expect(canGoBack(flow, { index: 1, answers: {} })).toBe(false)
+    expect(canGoBack(flow, { index: 0, answers: {} })).toBe(false)
+  })
+
+  it("canGoBack is true mid-flow on a normal flow", () => {
+    const flow = makeFlow()
+    expect(canGoBack(flow, { index: 1, answers: {} })).toBe(true)
+    expect(canGoBack(flow, { index: 0, answers: {} })).toBe(false)
+  })
+
+  it("prev is a no-op when disableBack is set, even mid-flow", () => {
+    const flow = makeForwardOnlyFlow()
+    const state = prev(flow, { index: 1, answers: {} })
+    expect(state.index).toBe(1)
   })
 })
 

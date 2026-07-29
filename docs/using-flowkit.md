@@ -26,7 +26,7 @@ function App() {
 
 | Import | Registers | When to use |
 |---|---|---|
-| `@flowkit-io/react` | All 18 built-in steps | Default. Nothing else to import, everything works |
+| `@flowkit-io/react` | All 19 built-in steps | Default. Nothing else to import, everything works |
 | `@flowkit-io/react/lean` | Nothing | Bundle size matters: pair it with the steps you use |
 | `@flowkit-io/react/steps/<type>` | That one step | Alongside `/lean`, one import per step type |
 | `@flowkit-io/react/map-maplibre` | `location` | Always needed for the maplibre map step |
@@ -61,7 +61,11 @@ if it meets a step nobody registered, so a forgotten import fails loudly.
 `FlowRunner` doesn't render the header/progress bar/Continue button on the `intro` and
 `confirmation` steps ("hero" behavior, no chrome), while for every other step it
 automatically shows: a back button, a progress bar, an `n/m` counter, and a footer with
-the primary button (enabled only when the current step is valid per its rules). On
+the primary button (enabled only when the current step is valid per its rules). Set
+`flow.disableBack: true` for forward-only navigation: the back button (header and
+footer) is hidden, review-step shortcuts stop navigating to earlier steps, and the
+browser's own back button no longer leaves the current step. Default `false` keeps
+today's behavior unchanged. On
 desktop (≥1024px), back and continue split the footer row evenly (equal width), and the
 progress bar can optionally move into the footer instead of the header — see
 `layout.progressPosition` in [Configuring a theme](./theming.md). Every step is mounted

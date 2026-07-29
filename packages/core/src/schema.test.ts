@@ -106,6 +106,18 @@ describe("parseFlow step order", () => {
   })
 })
 
+describe("Flow.disableBack", () => {
+  it("defaults to false", () => {
+    const flow = parseFlow(baseFlow)
+    expect(flow.disableBack).toBe(false)
+  })
+
+  it("accepts an explicit true", () => {
+    const flow = parseFlow({ ...baseFlow, disableBack: true })
+    expect(flow.disableBack).toBe(true)
+  })
+})
+
 describe("checkbox step", () => {
   const step = { id: "consent", type: "checkbox" as const, label: "Accetto", required: true }
 

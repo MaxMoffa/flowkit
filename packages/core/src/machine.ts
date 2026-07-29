@@ -70,8 +70,14 @@ export function next(flow: Flow, state: FlowState): FlowState {
 }
 
 export function prev(flow: Flow, state: FlowState): FlowState {
-  if (isFirstStep(state)) return state
+  if (flow.disableBack || isFirstStep(state)) return state
   return { ...state, index: state.index - 1 }
+}
+
+/** Whether the "Indietro" affordance (button, review shortcuts) should be available:
+ *  false on the first step regardless, and always false when the flow is forward-only. */
+export function canGoBack(flow: Flow, state: FlowState): boolean {
+  return !flow.disableBack && !isFirstStep(state)
 }
 
 /** Jumps directly to a step by id (unlike next/prev, which move ±1). Used to let a

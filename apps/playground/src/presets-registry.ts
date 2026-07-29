@@ -9,6 +9,7 @@ import { buttonOverflowDemoFlow } from "./button-overflow-demo"
 import { verificationDemoFlow } from "./verification-demo"
 import { mediaDisplayDemoFlow } from "./media-display-demo"
 import { checkpointReviewDemoFlow } from "./checkpoint-review-demo"
+import { disableBackDemoFlow } from "./disable-back-demo"
 
 export const presets: Record<string, Flow> = {
   odori: odoriFlow,
@@ -24,6 +25,7 @@ export const presets: Record<string, Flow> = {
   "verification-demo": verificationDemoFlow,
   "media-display-demo": mediaDisplayDemoFlow,
   "checkpoint-review-demo": checkpointReviewDemoFlow,
+  "disable-back-demo": disableBackDemoFlow,
 }
 
 export const presetLabels: Record<string, string> = {
@@ -40,4 +42,5 @@ export const presetLabels: Record<string, string> = {
   "verification-demo": "Step di verifica (demo)",
   "media-display-demo": "Media di sola visualizzazione (demo)",
   "checkpoint-review-demo": "Riepilogo con checkpoint (demo)",
+  "disable-back-demo": "Navigazione solo avanti (demo)",
 }

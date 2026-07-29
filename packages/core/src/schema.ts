@@ -467,6 +467,12 @@ export interface Flow {
   title: string
   locale: string
   steps: Step[]
+  /**
+   * Forward-only navigation: hides/disables the "Indietro" button (header + footer),
+   * disables clickable review-step shortcuts, and blocks the browser's back button
+   * from leaving the current step. Default false preserves current behavior.
+   */
+  disableBack: boolean
 }
 
 const flowShapeSchema = z.object({
@@ -474,6 +480,7 @@ const flowShapeSchema = z.object({
   title: z.string().min(1),
   locale: z.string().default("it"),
   steps: z.array(z.unknown()).min(1),
+  disableBack: z.boolean().default(false),
 })
 
 /**
