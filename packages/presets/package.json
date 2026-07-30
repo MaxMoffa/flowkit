@@ -1,6 +1,6 @@
 {
   "name": "@flowkit-io/presets",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Ready-made Flowkit flow configs (surveys, feedback, etc).",
   "license": "MIT",
   "author": "Massimo Moffa",
