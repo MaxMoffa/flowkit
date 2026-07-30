@@ -10,6 +10,10 @@ export interface ReceiptEmailTemplateOptions {
 
 function formatAnswerValue(value: unknown): string {
   if (value === null || value === undefined) return ""
+  if (typeof value === "string" && value.startsWith("data:image/")) {
+    const src = safeImageDataUrl(value)
+    return src ? `<img src="${src}" alt="" width="96" style="border-radius:8px;margin:0 6px 6px 0;" />` : "📷"
+  }
   if (typeof value === "string" && value.startsWith("data:")) return "📷"
   if (isUploadedItemArray(value)) {
     if (value.length === 0) return ""
