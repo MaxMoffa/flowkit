@@ -37,7 +37,7 @@ function Harness({ initialAnswers }: { initialAnswers: Answers }) {
         step={cfStep}
         value={value}
         onChange={setValue}
-        flow={{ id: "t", title: "t", locale: "it", steps: [], disableBack: false }}
+        flow={{ id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC" }}
         answers={answers}
         meta={meta}
         onMetaChange={(patch) => setMeta((m) => ({ ...m, ...patch }))}

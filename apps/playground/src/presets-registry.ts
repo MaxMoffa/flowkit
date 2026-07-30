@@ -13,6 +13,7 @@ import { disableBackDemoFlow } from "./disable-back-demo"
 import { flowMarkdownDemoFlow } from "./flow-markdown-demo"
 import { smartFillDemoFlow } from "./smart-fill-demo"
 import { remoteDataSourceDemoFlow } from "./remote-data-source-demo"
+import { bookingSlotDemoFlow } from "./booking-slot-demo"
 
 export const presets: Record<string, Flow> = {
   odori: odoriFlow,
@@ -32,6 +33,7 @@ export const presets: Record<string, Flow> = {
   "flow-markdown-demo": flowMarkdownDemoFlow,
   "smart-fill-demo": smartFillDemoFlow,
   "remote-data-source-demo": remoteDataSourceDemoFlow,
+  "booking-slot-demo": bookingSlotDemoFlow,
 }
 
 export const presetLabels: Record<string, string> = {
@@ -52,4 +54,5 @@ export const presetLabels: Record<string, string> = {
   "flow-markdown-demo": "Markdown nei testi (demo)",
   "smart-fill-demo": "Codice fiscale suggerito (demo)",
   "remote-data-source-demo": "Dati remoti / autocomplete (demo)",
+  "booking-slot-demo": "Prenotazione slot (demo)",
 }

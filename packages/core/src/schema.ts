@@ -19,6 +19,7 @@ import type { OAuthStep } from "./oauth-step"
 import type { SignatureStep } from "./signature-step"
 import type { PaymentStripeStep } from "./payment-stripe-step"
 import type { VerificationStep } from "./verification-step"
+import type { BookingSlotStep } from "./booking-slot-step"
 
 /**
  * Fields every step accepts, whatever its `type`. Exported so step definitions living
@@ -427,6 +428,7 @@ export interface StepTypeMap {
   signature: SignatureStep
   "payment-stripe": PaymentStripeStep
   verification: VerificationStep
+  "booking-slot": BookingSlotStep
 }
 
 /**
@@ -460,6 +462,7 @@ export type BuiltinStepType =
   | "signature"
   | "payment-stripe"
   | "verification"
+  | "booking-slot"
 
 /** Compile-time guard: a builtin without an entry in StepTypeMap makes this fail. */
 type _AssertBuiltinsAreMapped = BuiltinStepType extends keyof StepTypeMap ? true : never
@@ -497,6 +500,12 @@ export interface Flow {
    * from leaving the current step. Default false preserves current behavior.
    */
   disableBack: boolean
+  /**
+   * IANA timezone name (e.g. "Europe/Rome") this flow's date/time steps are
+   * authored/interpreted in — fixed at the flow level, deliberately not the visitor's
+   * browser timezone (see the "booking-slot" step, v2.31). Default "UTC".
+   */
+  timezone: string
 }
 
 const flowShapeSchema = z.object({
@@ -505,6 +514,7 @@ const flowShapeSchema = z.object({
   locale: z.string().default("it"),
   steps: z.array(z.unknown()).min(1),
   disableBack: z.boolean().default(false),
+  timezone: z.string().default("UTC"),
 })
 
 /**

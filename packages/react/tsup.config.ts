@@ -22,6 +22,7 @@ const stepEntries = [
   "oauth",
   "group",
   "signature",
+  "booking-slot",
 ]
 
 export default defineConfig({

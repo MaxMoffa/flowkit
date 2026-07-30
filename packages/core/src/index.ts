@@ -14,6 +14,7 @@ import "./group-step"
 import "./signature-step"
 import "./payment-stripe-step"
 import "./verification-step"
+import "./booking-slot-step"
 
 export * from "./schema"
 export * from "./machine"
@@ -40,3 +41,11 @@ export { paymentStripeStepSchema } from "./payment-stripe-step"
 export type { PaymentStripeStep, PaymentStripeValue } from "./payment-stripe-step"
 export { verificationStepSchema, verificationProviderSchema } from "./verification-step"
 export type { VerificationStep, VerificationProvider, VerificationValue } from "./verification-step"
+export {
+  bookingSlotStepSchema,
+  bookingSlotGranularitySchema,
+  bookingSlotWeeklyWindowSchema,
+  listBookingSlotDates,
+  listBookingSlotsForDate,
+} from "./booking-slot-step"
+export type { BookingSlotStep, BookingSlot, BookingSlotValue } from "./booking-slot-step"
