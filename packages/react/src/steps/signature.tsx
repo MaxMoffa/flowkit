@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import type { SignatureStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { FlowMarkdown } from "../markdown"
 
 /** Draws `dataUrl` (or fills with `backgroundColor` if null) into the canvas at its current CSS pixel size. */
 function paintCanvas(
@@ -164,8 +165,10 @@ export function SignatureStepView({ step, value, onChange }: StepComponentProps<
           ✕
         </button>
       )}
-      {!fullscreen && step.title && <h2 className="fk-title">{step.title}</h2>}
-      {!fullscreen && step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      {!fullscreen && step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {!fullscreen && step.subtitle && (
+        <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>
+      )}
       <div ref={wrapperRef} className="fk-signature-pad">
         {canvasEl}
       </div>

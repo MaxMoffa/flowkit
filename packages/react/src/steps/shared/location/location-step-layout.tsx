@@ -1,5 +1,6 @@
 import type { AnyLocationStep } from "./types"
 import type { LocationStepState } from "./use-location-step"
+import { FlowMarkdown } from "../../../markdown"
 
 interface LocationStepLayoutProps {
   step: AnyLocationStep
@@ -75,7 +76,9 @@ export function LocationStepLayout({ step, state }: LocationStepLayoutProps) {
         <div className="fk-loc-title">
           {current.address ?? `${current.lat?.toFixed(5)}, ${current.lng?.toFixed(5)}`}
         </div>
-        {step.detectedSubLabel && <div className="fk-loc-detail">{step.detectedSubLabel}</div>}
+        {step.detectedSubLabel && (
+          <div className="fk-loc-detail"><FlowMarkdown text={step.detectedSubLabel} variant="inline" /></div>
+        )}
       </div>
     </div>
   )
@@ -84,10 +87,17 @@ export function LocationStepLayout({ step, state }: LocationStepLayoutProps) {
     <div className="fk-gps-guide-overlay" role="dialog" aria-modal="true">
       <div className="fk-gps-guide">
         <div className="fk-gps-guide-ic">📍</div>
-        <div className="fk-gps-guide-title">{step.gpsGuideTitle ?? "Permesso di posizione bloccato"}</div>
+        <div className="fk-gps-guide-title">
+          <FlowMarkdown text={step.gpsGuideTitle ?? "Permesso di posizione bloccato"} variant="inline" />
+        </div>
         <p className="fk-gps-guide-text">
-          {step.gpsGuideText ??
-            "Il browser ha bloccato l'accesso alla posizione. Apri le impostazioni del sito (icona 🔒/ⓘ accanto all'indirizzo), consenti \"Posizione\" e riprova."}
+          <FlowMarkdown
+            text={
+              step.gpsGuideText ??
+              "Il browser ha bloccato l'accesso alla posizione. Apri le impostazioni del sito (icona 🔒/ⓘ accanto all'indirizzo), consenti \"Posizione\" e riprova."
+            }
+            variant="block"
+          />
         </p>
         <button type="button" className="fk-btn fk-btn-primary" onClick={dismissGpsGuide}>
           Ho capito
@@ -100,8 +110,8 @@ export function LocationStepLayout({ step, state }: LocationStepLayoutProps) {
     return (
       <div className="fk-step fk-step-location fk-step-location--full">
         <div className="fk-map-overlay-top">
-          {step.title && <h2 className="fk-title">{step.title}</h2>}
-          {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+          {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+          {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
           {searchBlock}
         </div>
 
@@ -124,8 +134,8 @@ export function LocationStepLayout({ step, state }: LocationStepLayoutProps) {
   return (
     <div className={`fk-step fk-step-location${columnsEnabled ? " fk-step-location--columns" : ""}`}>
       <div className="fk-location-controls">
-        {step.title && <h2 className="fk-title">{step.title}</h2>}
-        {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+        {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+        {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
 
         {searchBlock}
 

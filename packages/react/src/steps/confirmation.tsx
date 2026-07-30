@@ -1,5 +1,6 @@
 import type { ConfirmationStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { FlowMarkdown } from "../markdown"
 import { EmailApiAction } from "./confirmation-actions/email-api-action"
 import { EmailShareAction } from "./confirmation-actions/email-share-action"
 import { NativeShareAction, canNativeShare } from "./confirmation-actions/native-share-action"
@@ -31,15 +32,15 @@ export function ConfirmationStepView({ step, flow, answers }: StepComponentProps
           </svg>
         )}
       </div>
-      <h1 className="fk-title">{step.title}</h1>
-      {step.message && <p className="fk-subtitle">{step.message}</p>}
+      <h1 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h1>
+      {step.message && <p className="fk-subtitle"><FlowMarkdown text={step.message} variant="block" /></p>}
 
       {step.stats && step.stats.length > 0 && (
         <div className="fk-stat-row">
           {step.stats.map((s, i) => (
             <div key={i} className="fk-stat-box">
               <div className="fk-stat-num">{s.value}</div>
-              <div className="fk-stat-cap">{s.label}</div>
+              <div className="fk-stat-cap"><FlowMarkdown text={s.label} variant="inline" /></div>
             </div>
           ))}
         </div>

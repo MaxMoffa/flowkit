@@ -3,6 +3,7 @@ import type { FileStep } from "@flowkit-io/core"
 import { resolveFileAccept } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { useFileUpload } from "./shared/use-file-upload"
+import { FlowMarkdown } from "../markdown"
 
 function fileIcon(mimeType: string): string {
   if (mimeType.startsWith("image/")) return "🖼️"
@@ -39,8 +40,8 @@ export function FileStepView({ step, value, onChange }: StepComponentProps<FileS
 
   return (
     <div className="fk-step fk-step-file">
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
 
       {canAddMore && (
         <label className="fk-media-action-btn">

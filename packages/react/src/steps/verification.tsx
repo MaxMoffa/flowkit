@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import type { VerificationProvider, VerificationStep, VerificationValue } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { loadExternalScript } from "./shared/external-script"
+import { FlowMarkdown } from "../markdown"
 
 const PROVIDER_SCRIPT_SRC: Record<VerificationProvider, string> = {
   turnstile: "https://challenges.cloudflare.com/turnstile/v0/api.js",
@@ -93,8 +94,8 @@ export function VerificationStepView({ step, value, onChange }: StepComponentPro
   if (step.enabled === false) {
     return (
       <div className="fk-step fk-step-verification">
-        {step.title && <h2 className="fk-title">{step.title}</h2>}
-        {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+        {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+        {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       </div>
     )
   }
@@ -103,8 +104,8 @@ export function VerificationStepView({ step, value, onChange }: StepComponentPro
 
   return (
     <div className="fk-step fk-step-verification">
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       {verified ? (
         <div className="fk-loc-row">
           <div className="fk-loc-ic">✅</div>

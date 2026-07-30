@@ -1,4 +1,5 @@
 import type { ReportRow } from "@flowkit-io/core"
+import { FlowMarkdown } from "../../markdown"
 
 /** The `.fk-review-box` recap, shared by the review step and the confirmation step's
  *  print/PDF version. Both render the same rows from the same buildReportRows output.
@@ -28,7 +29,7 @@ export function ReportRows({ rows, onRowClick }: { rows: ReportRow[]; onRowClick
           >
             <span className="fk-review-icon">{row.icon}</span>
             <div>
-              <dt>{row.title}</dt>
+              <dt><FlowMarkdown text={row.title} variant="inline" /></dt>
               <dd>{row.value}</dd>
               {row.media && row.media.length > 0 && (
                 <div className="fk-review-media">

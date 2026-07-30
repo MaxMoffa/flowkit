@@ -1,6 +1,7 @@
 import type { AnswerValue, GroupStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { getStepComponent } from "../registry"
+import { FlowMarkdown } from "../markdown"
 
 /**
  * "group" step: renders its child steps inline on the same page. The value
@@ -21,8 +22,8 @@ export function GroupStepView({ step, value, onChange, flow, answers }: StepComp
 
   return (
     <div className={`fk-step fk-step-group fk-group-${effectiveLayout}`}>
-      {groupStep.title && <h2 className="fk-title">{groupStep.title}</h2>}
-      {groupStep.subtitle && <p className="fk-subtitle">{groupStep.subtitle}</p>}
+      {groupStep.title && <h2 className="fk-title"><FlowMarkdown text={groupStep.title} variant="inline" /></h2>}
+      {groupStep.subtitle && <p className="fk-subtitle"><FlowMarkdown text={groupStep.subtitle} variant="block" /></p>}
       <div className="fk-group-items">
         {groupStep.steps.map((child) => {
           const ChildView = getStepComponent(child.type)

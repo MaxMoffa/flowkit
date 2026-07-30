@@ -1,5 +1,6 @@
 import type { DateTimeStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { FlowMarkdown } from "../markdown"
 
 const inputTypeByMode = {
   date: "date",
@@ -20,8 +21,8 @@ export function DateTimeStepView({ step, value, onChange }: StepComponentProps<D
 
   return (
     <div className="fk-step fk-step-date-time">
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       <input
         className="fk-input"
         type={inputTypeByMode[step.mode]}

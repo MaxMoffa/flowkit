@@ -1,5 +1,6 @@
 import { buildAuthorizeUrl, generatePkcePair, type OAuthResult, type OAuthStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { FlowMarkdown } from "../markdown"
 
 const providerIcons: Record<string, string> = {
   google: "🔵",
@@ -39,8 +40,8 @@ export function OAuthStepView({ step, value, onChange }: StepComponentProps<OAut
 
   return (
     <div className="fk-step fk-step-oauth">
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       <div className="fk-oauth-providers">
         {step.providers.map((provider) => (
           <button
@@ -60,7 +61,7 @@ export function OAuthStepView({ step, value, onChange }: StepComponentProps<OAut
           className="fk-link"
           onClick={() => onChange({ providerId: "", anonymous: true })}
         >
-          {step.anonymousLabel ?? "Continua senza account"}
+          <FlowMarkdown text={step.anonymousLabel ?? "Continua senza account"} variant="inline" />
         </button>
       )}
       {connected?.anonymous && (

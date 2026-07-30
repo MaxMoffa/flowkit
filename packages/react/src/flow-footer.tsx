@@ -1,5 +1,6 @@
 import type { ComponentType } from "react"
 import type { ProgressComponentProps } from "./progress-registry"
+import { FlowMarkdown } from "./markdown"
 
 interface FooterShellProps {
   order: number
@@ -60,7 +61,7 @@ export function StepFooter({
           disabled={primaryDisabled}
           onClick={onPrimary}
         >
-          {primaryLabel}
+          <FlowMarkdown text={primaryLabel} variant="inline" />
         </button>
       </div>
     </FooterShell>
@@ -89,11 +90,11 @@ export function ConfirmationFooter({
     <FooterShell order={order}>
       <div className="fk-footer-row">
         <button type="button" className="fk-btn-secondary" onClick={onSecondary}>
-          {secondaryLabel}
+          <FlowMarkdown text={secondaryLabel} variant="inline" />
         </button>
         {showPrimary && (
           <button type="button" className="fk-btn-primary" onClick={onPrimary}>
-            {primaryLabel}
+            <FlowMarkdown text={primaryLabel} variant="inline" />
           </button>
         )}
       </div>

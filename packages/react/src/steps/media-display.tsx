@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react"
 import type { MediaDisplayStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { FlowMarkdown } from "../markdown"
 
 export function MediaDisplayStepView({ step }: StepComponentProps<MediaDisplayStep>) {
   const style: CSSProperties = {
@@ -10,8 +11,8 @@ export function MediaDisplayStepView({ step }: StepComponentProps<MediaDisplaySt
   }
   return (
     <div className="fk-step fk-step-media-display">
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       <div className="fk-media-display-frame">
         {step.kind === "video" ? (
           <video
@@ -39,7 +40,9 @@ export function MediaDisplayStepView({ step }: StepComponentProps<MediaDisplaySt
           />
         )}
       </div>
-      {step.caption && <p className="fk-media-display-caption">{step.caption}</p>}
+      {step.caption && (
+        <p className="fk-media-display-caption"><FlowMarkdown text={step.caption} variant="block" /></p>
+      )}
     </div>
   )
 }

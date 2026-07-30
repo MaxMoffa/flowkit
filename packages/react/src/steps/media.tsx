@@ -3,6 +3,7 @@ import type { MediaStep } from "@flowkit-io/core"
 import { resolveMediaAccept } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { useFileUpload } from "./shared/use-file-upload"
+import { FlowMarkdown } from "../markdown"
 
 export function MediaStepView({ step, value, onChange }: StepComponentProps<MediaStep>) {
   const [lightboxId, setLightboxId] = useState<string | null>(null)
@@ -32,8 +33,8 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
 
   return (
     <div className="fk-step fk-step-media">
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
 
       {canAddMore && (
         <div className="fk-media-actions">

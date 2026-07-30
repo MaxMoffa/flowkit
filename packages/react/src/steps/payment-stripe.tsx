@@ -3,6 +3,7 @@ import { loadStripe } from "@stripe/stripe-js"
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
 import type { PaymentStripeStep, PaymentStripeValue } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { FlowMarkdown } from "../markdown"
 
 interface PaymentFormProps {
   step: PaymentStripeStep
@@ -53,7 +54,7 @@ function PaymentForm({ step, onChange }: PaymentFormProps) {
         onClick={() => void handlePay()}
         disabled={!stripe || !elements || submitting}
       >
-        {submitting ? "Elaborazione…" : step.buttonLabel}
+        {submitting ? "Elaborazione…" : <FlowMarkdown text={step.buttonLabel} variant="inline" />}
       </button>
     </>
   )
@@ -90,9 +91,9 @@ export function PaymentStripeStepView({ step, value, onChange }: StepComponentPr
 
   return (
     <div className="fk-step fk-step-payment-stripe">
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
-      {step.description && <p className="fk-subtitle">{step.description}</p>}
+      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      {step.description && <p className="fk-subtitle"><FlowMarkdown text={step.description} variant="block" /></p>}
       {succeeded ? (
         <div className="fk-loc-row">
           <div className="fk-loc-ic">✅</div>

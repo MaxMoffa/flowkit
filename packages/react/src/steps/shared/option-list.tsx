@@ -1,3 +1,5 @@
+import { FlowMarkdown } from "../../markdown"
+
 interface OptionListProps {
   options: { value: string; label: string }[]
   isSelected: (optionValue: string) => boolean
@@ -32,7 +34,7 @@ export function OptionList({
               onChange={() => onPick(opt.value)}
               disabled={isDisabled?.(opt.value) ?? false}
             />
-            <span className="fk-list-label">{opt.label}</span>
+            <span className="fk-list-label"><FlowMarkdown text={opt.label} variant="inline" /></span>
           </label>
         )
       })}

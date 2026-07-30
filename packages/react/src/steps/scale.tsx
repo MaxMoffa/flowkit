@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import type { ScaleStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { FlowMarkdown } from "../markdown"
 
 const defaultColors = ["#7D7A75", "#46A171", "#46A171", "#D5803B", "#D5803B", "#E56458", "#E56458"]
 
@@ -22,8 +23,8 @@ export function ScaleStepView({ step, value, onChange }: StepComponentProps<Scal
   // them changes, so the two used to be a copy-pasted pair of full returns.
   return (
     <div className={`fk-step fk-step-scale${isSlider ? " fk-step-scale-slider" : ""}`}>
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
 
       {isSlider ? (
         <>
@@ -33,7 +34,7 @@ export function ScaleStepView({ step, value, onChange }: StepComponentProps<Scal
             </div>
             {sliderLabel && (
               <div className="fk-scale-lab" style={{ color: sliderColor }}>
-                {sliderLabel}
+                <FlowMarkdown text={sliderLabel} variant="inline" />
               </div>
             )}
           </div>
@@ -63,8 +64,8 @@ export function ScaleStepView({ step, value, onChange }: StepComponentProps<Scal
 
       {(step.minLabel || step.maxLabel) && (
         <div className="fk-scale-labels">
-          <span>{step.minLabel}</span>
-          <span>{step.maxLabel}</span>
+          <span><FlowMarkdown text={step.minLabel} variant="inline" /></span>
+          <span><FlowMarkdown text={step.maxLabel} variant="inline" /></span>
         </div>
       )}
     </div>

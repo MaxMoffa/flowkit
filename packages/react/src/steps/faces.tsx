@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import type { FacesStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { FlowMarkdown, stripMarkdownToPlainText } from "../markdown"
 
 export function FacesStepView({ step, value, onChange }: StepComponentProps<FacesStep>) {
   useEffect(() => {
@@ -13,8 +14,8 @@ export function FacesStepView({ step, value, onChange }: StepComponentProps<Face
 
   return (
     <div className="fk-step fk-step-faces">
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       <div className="fk-faces-row">
         {step.faces.map((f) => (
           <button
@@ -22,10 +23,12 @@ export function FacesStepView({ step, value, onChange }: StepComponentProps<Face
             type="button"
             className={`fk-face ${value === f.value ? "fk-face-selected" : ""}`}
             onClick={() => onChange(f.value)}
-            aria-label={f.label ?? f.value}
+            aria-label={f.label ? stripMarkdownToPlainText(f.label) : f.value}
           >
             <span className="fk-emoji-lg">{f.emoji}</span>
-            {f.label && <span className="fk-face-label">{f.label}</span>}
+            {f.label && (
+              <span className="fk-face-label"><FlowMarkdown text={f.label} variant="inline" /></span>
+            )}
           </button>
         ))}
       </div>

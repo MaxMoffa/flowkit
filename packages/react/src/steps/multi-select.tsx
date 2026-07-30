@@ -2,6 +2,7 @@ import type { MultiSelectStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { OptionList } from "./shared/option-list"
 import { useToggleSelection } from "./shared/selection"
+import { FlowMarkdown } from "../markdown"
 
 export function MultiSelectStepView({ step, value, onChange }: StepComponentProps<MultiSelectStep>) {
   const { selected, toggle, maxReached } = useToggleSelection(
@@ -12,8 +13,8 @@ export function MultiSelectStepView({ step, value, onChange }: StepComponentProp
 
   return (
     <div className="fk-step fk-step-multi-select">
-      {step.title && <h2 className="fk-title">{step.title}</h2>}
-      {step.subtitle && <p className="fk-subtitle">{step.subtitle}</p>}
+      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       <OptionList
         options={step.options}
         inputType="checkbox"
