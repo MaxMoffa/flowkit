@@ -371,6 +371,10 @@
   color: var(--fk-text);
 }
 
+.fk-title:not(:has(+ .fk-subtitle)) {
+  margin-bottom: var(--fk-space-xl);
+}
+
 .fk-subtitle {
   font-size: 15px;
   color: var(--fk-text2);
