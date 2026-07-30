@@ -47,7 +47,8 @@ test("notes+media group: both optional steps render independently and are skippa
 test.describe("media step: capture button (mobile only)", () => {
   // Only the UA/viewport/touch bits, not `defaultBrowserType` (iPhone 13 forces webkit,
   // which can't be set inside a describe-scoped `.use()` — the suite runs on Chromium).
-  const { defaultBrowserType: _defaultBrowserType, ...iphoneContext } = devices["iPhone 13"]!
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { defaultBrowserType, ...iphoneContext } = devices["iPhone 13"]!
   test.use(iphoneContext)
 
   test("mobile with a camera: capture and library are two distinct file inputs", async ({ page }) => {
