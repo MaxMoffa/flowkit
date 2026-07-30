@@ -1022,6 +1022,29 @@
   color: var(--fk-text2);
 }
 
+.fk-remote-search {
+  margin-bottom: var(--fk-space-md);
+}
+
+.fk-remote-status {
+  font-size: 14px;
+  color: var(--fk-text2);
+  margin-bottom: var(--fk-space-md);
+}
+
+.fk-remote-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.fk-remote-load-more {
+  display: block;
+  width: 100%;
+  margin-top: var(--fk-space-md);
+}
+
 .fk-checkbox-row {
   display: flex;
   align-items: flex-start;

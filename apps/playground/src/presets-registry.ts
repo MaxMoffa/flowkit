@@ -12,6 +12,7 @@ import { checkpointReviewDemoFlow } from "./checkpoint-review-demo"
 import { disableBackDemoFlow } from "./disable-back-demo"
 import { flowMarkdownDemoFlow } from "./flow-markdown-demo"
 import { smartFillDemoFlow } from "./smart-fill-demo"
+import { remoteDataSourceDemoFlow } from "./remote-data-source-demo"
 
 export const presets: Record<string, Flow> = {
   odori: odoriFlow,
@@ -30,6 +31,7 @@ export const presets: Record<string, Flow> = {
   "disable-back-demo": disableBackDemoFlow,
   "flow-markdown-demo": flowMarkdownDemoFlow,
   "smart-fill-demo": smartFillDemoFlow,
+  "remote-data-source-demo": remoteDataSourceDemoFlow,
 }
 
 export const presetLabels: Record<string, string> = {
@@ -49,4 +51,5 @@ export const presetLabels: Record<string, string> = {
   "disable-back-demo": "Navigazione solo avanti (demo)",
   "flow-markdown-demo": "Markdown nei testi (demo)",
   "smart-fill-demo": "Codice fiscale suggerito (demo)",
+  "remote-data-source-demo": "Dati remoti / autocomplete (demo)",
 }

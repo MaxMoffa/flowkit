@@ -1,6 +1,18 @@
 import { z } from "zod"
 import { getStepTypeDefinition } from "./registry"
 import { stepAddonSchema } from "./addons"
+import { remoteDataSourceSchema } from "./remote-data-source"
+
+/** Shared by every "elenco/select" step schema: at least one static option, or a
+ *  dataSource to fetch them from (checked as one zod `.refine`, not per-field, so the
+ *  error path/message stay consistent across select-cards/chips/radio/multi-select). */
+function requireOptionsOrDataSource(step: { options: unknown[]; dataSource?: unknown }) {
+  return step.options.length > 0 || !!step.dataSource
+}
+const optionsOrDataSourceIssue = {
+  message: "Provide at least one option, or a dataSource.",
+  path: ["options"],
+}
 import type { LocationStepConfig } from "./location-step"
 import type { LocationLeafletStepConfig } from "./location-leaflet-step"
 import type { OAuthStep } from "./oauth-step"
@@ -66,21 +78,25 @@ export const locationStepSchema = z.object({
   layout: z.enum(["stack", "columns"]).default("stack"),
 })
 
-export const selectCardsStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("select-cards"),
-  multiple: z.boolean().default(false),
-  options: z
-    .array(
-      z.object({
-        value: z.string(),
-        label: z.string(),
-        emoji: z.string().optional(),
-        description: z.string().optional(),
-      }),
-    )
-    .min(1),
-})
+export const selectCardsStepSchema = z
+  .object({
+    ...baseStepFields,
+    type: z.literal("select-cards"),
+    multiple: z.boolean().default(false),
+    options: z
+      .array(
+        z.object({
+          value: z.string(),
+          label: z.string(),
+          emoji: z.string().optional(),
+          description: z.string().optional(),
+        }),
+      )
+      .default([]),
+    /** Remote data source (v2.30): fetches options instead of/alongside the static list. */
+    dataSource: remoteDataSourceSchema.optional(),
+  })
+  .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)
 
 export const scaleStepSchema = z.object({
   ...baseStepFields,
@@ -94,14 +110,15 @@ export const scaleStepSchema = z.object({
   valueColors: z.array(z.string()).optional(),
 })
 
-export const chipsStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("chips"),
-  multiple: z.boolean().default(true),
-  options: z
-    .array(z.object({ value: z.string(), label: z.string() }))
-    .min(1),
-})
+export const chipsStepSchema = z
+  .object({
+    ...baseStepFields,
+    type: z.literal("chips"),
+    multiple: z.boolean().default(true),
+    options: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
+    dataSource: remoteDataSourceSchema.optional(),
+  })
+  .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)
 
 export const durationChipValues = [
   "< 5 min",
@@ -219,23 +236,25 @@ export const npsStepSchema = z.object({
   question: z.string().optional(),
 })
 
-export const multiSelectStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("multi-select"),
-  options: z
-    .array(z.object({ value: z.string(), label: z.string() }))
-    .min(1),
-  min: z.number().default(0),
-  max: z.number().optional(),
-})
+export const multiSelectStepSchema = z
+  .object({
+    ...baseStepFields,
+    type: z.literal("multi-select"),
+    options: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
+    min: z.number().default(0),
+    max: z.number().optional(),
+    dataSource: remoteDataSourceSchema.optional(),
+  })
+  .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)
 
-export const radioStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("radio"),
-  options: z
-    .array(z.object({ value: z.string(), label: z.string() }))
-    .min(1),
-})
+export const radioStepSchema = z
+  .object({
+    ...baseStepFields,
+    type: z.literal("radio"),
+    options: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
+    dataSource: remoteDataSourceSchema.optional(),
+  })
+  .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)
 
 export const textStepSchema = z.object({
   ...baseStepFields,
