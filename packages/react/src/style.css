@@ -7,6 +7,7 @@
   --fk-control-height: 52px;
   --fk-control-height-sm: 44px;
   --fk-border-width: 1.5px;
+  --fk-selection-box-size: 22px;
 
   background: var(--fk-canvas);
   color: var(--fk-text);
@@ -342,8 +343,8 @@
 }
 
 .fk-list-input {
-  width: 22px;
-  height: 22px;
+  width: var(--fk-selection-box-size);
+  height: var(--fk-selection-box-size);
   flex: none;
   accent-color: var(--fk-accent);
   cursor: pointer;
@@ -1015,17 +1016,22 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  min-height: var(--fk-control-height-sm);
   cursor: pointer;
   font-size: 15px;
   color: var(--fk-text);
 }
 
 .fk-checkbox-row input[type="checkbox"] {
-  margin-top: 2px;
-  width: 18px;
-  height: 18px;
+  width: var(--fk-selection-box-size);
+  height: var(--fk-selection-box-size);
   accent-color: var(--fk-accent);
   flex-shrink: 0;
+}
+
+.fk-checkbox-row input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .fk-checkbox-description {
