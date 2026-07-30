@@ -4,7 +4,8 @@ import { baseStepFields } from "./schema"
 
 /**
  * "signature" step (v2.25): user draws a signature (finger/mouse/stylus) on
- * a canvas. Value is a `data:image/png;base64,...` data URI.
+ * a canvas. Value is a vector `data:image/svg+xml;base64,...` data URI, so the
+ * review/print/PDF surfaces can embed it as a crisp `<img>` instead of raw text.
  */
 export const signatureStepSchema = z.object({
   ...baseStepFields,

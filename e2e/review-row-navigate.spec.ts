@@ -10,9 +10,23 @@ test.describe("review row navigate-and-return", () => {
     await page.getByRole("button", { name: "Continua", exact: true }).click() // checkpoint-1 -> q2
 
     await page.locator(".fk-input").fill("Risposta 2")
-    await page.getByRole("button", { name: "Continua", exact: true }).click() // q2 -> final-review
+    await page.getByRole("button", { name: "Continua", exact: true }).click() // q2 -> sig
+
+    const canvas = page.locator(".fk-signature-canvas")
+    const box = (await canvas.boundingBox())!
+    await page.mouse.move(box.x + 20, box.y + 20)
+    await page.mouse.down()
+    await page.mouse.move(box.x + 80, box.y + 60, { steps: 5 })
+    await page.mouse.up()
+    await page.getByRole("button", { name: "Continua", exact: true }).click() // sig -> final-review
 
     await expect(page.getByText("Risposta 1")).toBeVisible()
+
+    const sigRow = page.locator(".fk-review-row", { hasText: "Firma qui" })
+    await expect(sigRow.getByText("✍️ Firma")).toBeVisible()
+    await expect(sigRow.locator("img")).toHaveCount(1)
+    const sigSrc = await sigRow.locator("img").getAttribute("src")
+    expect(sigSrc).toMatch(/^data:image\/svg\+xml;base64,/)
 
     const q1Row = page.locator(".fk-review-row", { hasText: "Prima domanda" })
     await q1Row.click()

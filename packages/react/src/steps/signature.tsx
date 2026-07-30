@@ -3,6 +3,33 @@ import type { SignatureStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 
+interface Point {
+  x: number
+  y: number
+}
+
+function escapeAttr(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
+}
+
+/** Serializes completed strokes (each an ordered list of points, in the canvas's CSS
+ *  pixel space) into a standalone SVG document — a real vector signature, not a raster
+ *  screenshot, so it stays crisp at any size the review/print/PDF surfaces render it. */
+function buildSignatureSvg(strokes: Point[][], width: number, height: number, penColor: string, backgroundColor: string): string {
+  const paths = strokes
+    .filter((stroke) => stroke.length > 0)
+    .map((stroke) => {
+      const d = stroke.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")
+      return `<path d="${d}" fill="none" stroke="${escapeAttr(penColor)}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
+    })
+    .join("")
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="100%" height="100%" fill="${escapeAttr(backgroundColor)}"/>${paths}</svg>`
+}
+
+function svgToDataUrl(svg: string): string {
+  return `data:image/svg+xml;base64,${window.btoa(unescape(encodeURIComponent(svg)))}`
+}
+
 /** Draws `dataUrl` (or fills with `backgroundColor` if null) into the canvas at its current CSS pixel size. */
 function paintCanvas(
   canvas: HTMLCanvasElement,
@@ -26,7 +53,10 @@ export function SignatureStepView({ step, value, onChange }: StepComponentProps<
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
   const isDrawingRef = useRef(false)
-  const undoStackRef = useRef<ImageData[]>([])
+  /** Completed strokes, in the canvas's CSS pixel space — the source of truth the SVG is
+   *  rebuilt from after every stroke, undo, and clear. */
+  const strokesRef = useRef<Point[][]>([])
+  const currentStrokeRef = useRef<Point[]>([])
   const [fullscreen, setFullscreen] = useState(false)
 
   const currentValue = typeof value === "string" ? value : null
@@ -37,10 +67,32 @@ export function SignatureStepView({ step, value, onChange }: StepComponentProps<
     return canvasRef.current?.getContext("2d") ?? null
   }
 
+  function emitSvg(canvas: HTMLCanvasElement) {
+    if (strokesRef.current.length === 0) {
+      onChange(null)
+      return
+    }
+    const svg = buildSignatureSvg(strokesRef.current, canvas.clientWidth, canvas.clientHeight, penColor, backgroundColor)
+    onChange(svgToDataUrl(svg))
+  }
+
+  function redrawStrokes(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+    ctx.fillStyle = backgroundColor
+    ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight)
+    for (const stroke of strokesRef.current) {
+      ctx.beginPath()
+      stroke.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)))
+      ctx.stroke()
+    }
+  }
+
   // Resizes the canvas backing store to match its current CSS size (device-pixel-ratio
   // aware), redrawing the existing signature scaled into the new dimensions. Needed on
   // mount and whenever the fullscreen toggle changes the rendered size — canvas backing
   // store size has no CSS-only equivalent, unlike the pure layout decisions elsewhere.
+  // Recorded strokes are in CSS-pixel space of the pre-resize canvas, so they're dropped
+  // here (same as the undo stack) rather than redrawn at the wrong scale; the persisted
+  // SVG value itself is untouched and still renders correctly via paintCanvas below.
   function resizeToContainer() {
     const canvas = canvasRef.current
     const ctx = getContext()
@@ -59,7 +111,8 @@ export function SignatureStepView({ step, value, onChange }: StepComponentProps<
     ctx.lineWidth = 2.5
     ctx.strokeStyle = penColor
     paintCanvas(canvas, ctx, backgroundColor, priorDataUrl)
-    undoStackRef.current = []
+    strokesRef.current = []
+    currentStrokeRef.current = []
   }
 
   useEffect(() => {
@@ -76,11 +129,12 @@ export function SignatureStepView({ step, value, onChange }: StepComponentProps<
     const ctx = getContext()
     if (!canvas || !ctx) return
     canvas.setPointerCapture(e.pointerId)
-    undoStackRef.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height))
     isDrawingRef.current = true
     const rect = canvas.getBoundingClientRect()
+    const point = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    currentStrokeRef.current = [point]
     ctx.beginPath()
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top)
+    ctx.moveTo(point.x, point.y)
   }
 
   function handlePointerMove(e: ReactPointerEvent<HTMLCanvasElement>) {
@@ -89,7 +143,9 @@ export function SignatureStepView({ step, value, onChange }: StepComponentProps<
     const ctx = getContext()
     if (!canvas || !ctx) return
     const rect = canvas.getBoundingClientRect()
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top)
+    const point = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    currentStrokeRef.current.push(point)
+    ctx.lineTo(point.x, point.y)
     ctx.stroke()
   }
 
@@ -98,30 +154,34 @@ export function SignatureStepView({ step, value, onChange }: StepComponentProps<
     isDrawingRef.current = false
     const canvas = canvasRef.current
     if (!canvas) return
-    onChange(canvas.toDataURL("image/png"))
+    if (currentStrokeRef.current.length > 1) {
+      strokesRef.current.push(currentStrokeRef.current)
+    }
+    currentStrokeRef.current = []
+    emitSvg(canvas)
   }
 
   function handleUndo() {
     const canvas = canvasRef.current
     const ctx = getContext()
-    if (!canvas || !ctx) return
-    const snapshot = undoStackRef.current.pop()
-    if (!snapshot) return
-    ctx.putImageData(snapshot, 0, 0)
-    onChange(undoStackRef.current.length === 0 ? null : canvas.toDataURL("image/png"))
+    if (!canvas || !ctx || strokesRef.current.length === 0) return
+    strokesRef.current.pop()
+    redrawStrokes(canvas, ctx)
+    emitSvg(canvas)
   }
 
   function handleClear() {
     const canvas = canvasRef.current
     const ctx = getContext()
     if (!canvas || !ctx) return
+    strokesRef.current = []
+    currentStrokeRef.current = []
     ctx.fillStyle = backgroundColor
     ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight)
-    undoStackRef.current = []
     onChange(null)
   }
 
-  const canUndo = undoStackRef.current.length > 0
+  const canUndo = strokesRef.current.length > 0
 
   const canvasEl = (
     <canvas

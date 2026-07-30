@@ -24,6 +24,15 @@ test.describe("checkpoint review step", () => {
     await page.locator(".fk-input").fill("Risposta due")
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 
+    // Signature step, required before the final review.
+    const canvas = page.locator(".fk-signature-canvas")
+    const box = (await canvas.boundingBox())!
+    await page.mouse.move(box.x + 20, box.y + 20)
+    await page.mouse.down()
+    await page.mouse.move(box.x + 80, box.y + 60, { steps: 5 })
+    await page.mouse.up()
+    await page.getByRole("button", { name: "Continua", exact: true }).click()
+
     // Final review: both answers shown, primary button is the real submit action.
     await expect(page.getByText("Prima domanda")).toBeVisible()
     await expect(page.getByText("Risposta uno")).toBeVisible()

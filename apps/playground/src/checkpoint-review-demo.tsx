@@ -15,6 +15,7 @@ export const checkpointReviewDemoFlow: Flow = parseFlow({
     { id: "q1", type: "text", title: "Prima domanda" },
     { id: "checkpoint-1", type: "review", title: "Controlla finora", mode: "checkpoint" },
     { id: "q2", type: "text", title: "Seconda domanda" },
+    { id: "sig", type: "signature", title: "Firma qui" },
     { id: "final-review", type: "review", title: "Rivedi le risposte" },
     { id: "end", type: "confirmation", title: "Grazie!", showHomeButton: false },
   ],

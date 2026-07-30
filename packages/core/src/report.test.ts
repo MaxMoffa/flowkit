@@ -19,6 +19,7 @@ const flow: Flow = parseFlow({
         { id: "extra-photo", type: "media", required: false },
       ],
     },
+    { id: "sig", type: "signature", title: "Firma" },
     { id: "check", type: "review" },
     { id: "end", type: "confirmation" },
   ],
@@ -27,12 +28,12 @@ const flow: Flow = parseFlow({
 describe("buildReportRows", () => {
   it("excludes intro/review/confirmation and orders rows like the flow", () => {
     const rows = buildReportRows(flow, {})
-    expect(rows.map((r) => r.title)).toEqual(["Come ti senti?", "Note", "Extra"])
+    expect(rows.map((r) => r.title)).toEqual(["Come ti senti?", "Note", "Extra", "Firma"])
   })
 
   it("carries the originating step's id on every row", () => {
     const rows = buildReportRows(flow, {})
-    expect(rows.map((r) => r.stepId)).toEqual(["mood", "notes", "extras"])
+    expect(rows.map((r) => r.stepId)).toEqual(["mood", "notes", "extras", "sig"])
   })
 
   it("excludes a checkpoint review step just like a final one", () => {
@@ -83,5 +84,15 @@ describe("buildReportRows", () => {
       extras: { "extra-notes": "", "extra-photo": [photo, photo] },
     })
     expect(rows.find((r) => r.title === "Extra")!.value).toBe("📷×2")
+  })
+
+  it("renders a signature answer as a label plus an embeddable svg image, not raw text", () => {
+    const svgDataUrl = "data:image/svg+xml;base64,PHN2Zy8+"
+    const rows = buildReportRows(flow, { sig: svgDataUrl })
+    const row = rows.find((r) => r.title === "Firma")!
+    expect(row.value).toBe("✍️ Firma")
+    expect(row.media).toEqual([
+      { id: "sig", name: "signature", mimeType: "image/svg+xml", size: 0, dataUrl: svgDataUrl, kind: "image" },
+    ])
   })
 })

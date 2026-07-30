@@ -30,6 +30,7 @@ export function formatAnswer(step: Step, value: unknown): string {
     return `${step.type === "media" ? "📷" : "📎"}×${items.length}`
   }
   if (step.type === "checkbox") return value === true ? "✓ Accettato" : "—"
+  if (step.type === "signature") return "✍️ Firma"
   if (Array.isArray(value)) return value.map((v) => optionLabel(step, String(v))).join(", ")
   if ((step.type as string) === "group") {
     const children = (step as unknown as { steps: Step[] }).steps
@@ -61,6 +62,8 @@ export function defaultIcon(step: Step): string {
       return "🔘"
     case "checkbox":
       return "☑️"
+    case "signature":
+      return "✍️"
     case "faces":
       return "🙂"
     case "notes":
@@ -83,6 +86,9 @@ export function defaultIcon(step: Step): string {
 function collectImages(step: Step, value: unknown): UploadedItem[] {
   if ((step.type === "media" || step.type === "file") && isUploadedItemArray(value)) {
     return value.filter((item) => item.kind === "image")
+  }
+  if (step.type === "signature" && typeof value === "string" && value) {
+    return [{ id: step.id, name: "signature", mimeType: "image/svg+xml", size: 0, dataUrl: value, kind: "image" }]
   }
   if ((step.type as string) === "group") {
     const children = (step as unknown as { steps: Step[] }).steps
