@@ -11,6 +11,7 @@ import { mediaDisplayDemoFlow } from "./media-display-demo"
 import { checkpointReviewDemoFlow } from "./checkpoint-review-demo"
 import { disableBackDemoFlow } from "./disable-back-demo"
 import { flowMarkdownDemoFlow } from "./flow-markdown-demo"
+import { smartFillDemoFlow } from "./smart-fill-demo"
 
 export const presets: Record<string, Flow> = {
   odori: odoriFlow,
@@ -28,6 +29,7 @@ export const presets: Record<string, Flow> = {
   "checkpoint-review-demo": checkpointReviewDemoFlow,
   "disable-back-demo": disableBackDemoFlow,
   "flow-markdown-demo": flowMarkdownDemoFlow,
+  "smart-fill-demo": smartFillDemoFlow,
 }
 
 export const presetLabels: Record<string, string> = {
@@ -46,4 +48,5 @@ export const presetLabels: Record<string, string> = {
   "checkpoint-review-demo": "Riepilogo con checkpoint (demo)",
   "disable-back-demo": "Navigazione solo avanti (demo)",
   "flow-markdown-demo": "Markdown nei testi (demo)",
+  "smart-fill-demo": "Codice fiscale suggerito (demo)",
 }

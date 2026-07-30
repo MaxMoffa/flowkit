@@ -6,6 +6,7 @@
 // that module (and its registerStepType) to be evaluated early, breaking the
 // intended order.
 import "./builtins"
+import "./smart-fill-generators"
 import "./oauth-step"
 import "./location-step"
 import "./location-leaflet-step"
@@ -16,6 +17,7 @@ import "./verification-step"
 
 export * from "./schema"
 export * from "./machine"
+export * from "./addons"
 export * from "./upload-item"
 export * from "./report"
 export * from "./i18n"

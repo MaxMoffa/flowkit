@@ -10,12 +10,13 @@ import { FlowMarkdown } from "../markdown"
  * static Step union (avoids a type cycle with StepTypeMap), so it receives
  * StepComponentProps<Step> and casts internally.
  */
-export function GroupStepView({ step, value, onChange, flow, answers }: StepComponentProps) {
+export function GroupStepView({ step, value, onChange, flow, answers, meta, onMetaChange }: StepComponentProps) {
   const groupStep = step as unknown as GroupStep
   const aggregate = (value && typeof value === "object" && !Array.isArray(value) ? value : {}) as Record<
     string,
     AnswerValue
   >
+  const childMeta = (meta.children ?? {}) as Record<string, Record<string, unknown>>
   // "columns" only makes sense with enough content to actually split; a single child
   // falls back to "stack" regardless of the configured layout.
   const effectiveLayout = groupStep.layout === "columns" && groupStep.steps.length >= 2 ? "columns" : "stack"
@@ -36,6 +37,10 @@ export function GroupStepView({ step, value, onChange, flow, answers }: StepComp
                 onChange={(childValue) => onChange({ ...aggregate, [child.id]: childValue })}
                 flow={flow}
                 answers={answers}
+                meta={childMeta[child.id] ?? {}}
+                onMetaChange={(patch) =>
+                  onMetaChange({ children: { ...childMeta, [child.id]: { ...childMeta[child.id], ...patch } } })
+                }
               />
             </div>
           )

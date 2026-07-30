@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { getStepTypeDefinition } from "./registry"
+import { stepAddonSchema } from "./addons"
 import type { LocationStepConfig } from "./location-step"
 import type { LocationLeafletStepConfig } from "./location-leaflet-step"
 import type { OAuthStep } from "./oauth-step"
@@ -31,6 +32,10 @@ export const baseStepFields = {
    * (>=1024px). Unset = falls back to the theme's value (default "top").
    */
   contentAlign: z.enum(["top", "center", "bottom"]).optional(),
+  /** Add-ons (v2.29) applied to this step, e.g. "smartFill" on a text step. Any step
+   *  type accepts the field; only the step types that know how to use a given add-on's
+   *  `type` actually render/apply it. */
+  addons: z.array(stepAddonSchema).optional(),
 }
 
 export const introStepSchema = z.object({

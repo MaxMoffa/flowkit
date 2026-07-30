@@ -25,10 +25,29 @@ export type Answers = Record<string, AnswerValue>
 export interface FlowState {
   index: number
   answers: Answers
+  /**
+   * Per-step bag for state that isn't itself the step's answer (e.g. the "smartFill"
+   * add-on's "user overrode the suggestion" flag). Keyed by step id, opaque to the
+   * engine. Lives here (not in component-local state) so it survives the step
+   * component unmounting on navigation, and resets naturally on flow restart.
+   */
+  meta: Record<string, Record<string, unknown>>
 }
 
 export function createFlowState(): FlowState {
-  return { index: 0, answers: {} }
+  return { index: 0, answers: {}, meta: {} }
+}
+
+/** Merges a patch into a step's meta bag, leaving other steps' meta untouched. */
+export function setStepMeta(state: FlowState, stepId: string, patch: Record<string, unknown>): FlowState {
+  return {
+    ...state,
+    meta: { ...state.meta, [stepId]: { ...state.meta[stepId], ...patch } },
+  }
+}
+
+export function getStepMeta(state: FlowState, stepId: string): Record<string, unknown> {
+  return state.meta[stepId] ?? {}
 }
 
 export function getCurrentStep(flow: Flow, state: FlowState): Step {

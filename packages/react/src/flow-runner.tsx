@@ -4,6 +4,7 @@ import {
   canGoNext,
   createFlowState,
   getCurrentStep,
+  getStepMeta,
   getStepTypeDefinition,
   goToStep,
   isFirstStep,
@@ -12,6 +13,7 @@ import {
   prev as prevState,
   progress as flowProgress,
   setAnswer,
+  setStepMeta,
 } from "@flowkit-io/core"
 import type { Theme, ThemeMode } from "@flowkit-io/themes"
 import { ConfirmationFooter, StepFooter } from "./flow-footer"
@@ -89,9 +91,16 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   }, [flow.disableBack])
 
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
-    const nextAnswers = setAnswer(state, step.id, value)
-    setState(nextAnswers)
-    onChange?.(nextAnswers.answers)
+    // Functional update: a step (e.g. the "smartFill" add-on) may also call
+    // onMetaChange in the same event, which queues its own functional update. Using a
+    // plain (non-functional) setState here would replace the whole state with one
+    // computed from a stale closure, silently discarding that sibling update.
+    setState((s) => setAnswer(s, step.id, value))
+    onChange?.({ ...state.answers, [step.id]: value })
+  }
+
+  function handleMetaChange(patch: Record<string, unknown>) {
+    setState((s) => setStepMeta(s, step.id, patch))
   }
 
   async function handleNext() {
@@ -187,6 +196,8 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
                   flow={flow}
                   answers={state.answers}
                   onNavigateToStep={isReviewType && !flow.disableBack ? handleNavigateToStep : undefined}
+                  meta={getStepMeta(state, step.id)}
+                  onMetaChange={handleMetaChange}
                 />
               </div>
             </div>

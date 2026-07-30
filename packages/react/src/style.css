@@ -1016,6 +1016,12 @@
   margin-bottom: var(--fk-space-lg);
 }
 
+.fk-smartfill-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--fk-text2);
+}
+
 .fk-checkbox-row {
   display: flex;
   align-items: flex-start;
