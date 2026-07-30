@@ -98,7 +98,7 @@ export const anagraficaFlow: Flow = parseFlow({
       type: "checkbox",
       title: "Privacy",
       icon: "🔒",
-      label: "Ho letto e accetto l'informativa sulla privacy",
+      label: "Confermo che i dati sono corretti",
       description:
         "I tuoi dati saranno trattati esclusivamente per le finalità indicate nell'informativa privacy.",
     },

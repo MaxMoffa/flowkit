@@ -385,7 +385,7 @@ Single boolean toggle (e.g. privacy consent). Answer value: `boolean`. Component
 
 ```ts
 { id: "consenso-privacy", type: "checkbox", title: "Privacy",
-  label: "Ho letto e accetto l'informativa sulla privacy",
+  label: "Confermo che i dati sono corretti",
   description: "I tuoi dati saranno trattati secondo l'informativa privacy." }
 ```
 

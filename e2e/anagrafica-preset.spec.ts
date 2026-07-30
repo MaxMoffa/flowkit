@@ -50,7 +50,7 @@ test("anagrafica preset: completes the full flow end to end", async ({ page }) =
   // consenso privacy: submitting is blocked until the checkbox is checked
   await expect(page.getByRole("heading", { name: "Privacy" })).toBeVisible()
   await expect(continueBtn).toBeDisabled()
-  await page.getByLabel("Ho letto e accetto l'informativa sulla privacy").check()
+  await page.getByLabel("Confermo che i dati sono corretti").check()
   await expect(continueBtn).toBeEnabled()
   await continueBtn.click()
 
