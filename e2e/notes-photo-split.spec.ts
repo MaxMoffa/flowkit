@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test"
+import { test, expect, devices } from "@playwright/test"
 import { openPreset } from "./helpers/open-preset"
 
 const onePixelPng = {
@@ -44,13 +44,49 @@ test("notes+media group: both optional steps render independently and are skippa
   await expect(page.getByRole("heading", { name: "Tutto pronto?" })).toBeVisible()
 })
 
-test("media step: capture and library are two distinct file inputs", async ({ page }) => {
+test.describe("media step: capture button (mobile only)", () => {
+  // Only the UA/viewport/touch bits, not `defaultBrowserType` (iPhone 13 forces webkit,
+  // which can't be set inside a describe-scoped `.use()` — the suite runs on Chromium).
+  const { defaultBrowserType: _defaultBrowserType, ...iphoneContext } = devices["iPhone 13"]!
+  test.use(iphoneContext)
+
+  test("mobile with a camera: capture and library are two distinct file inputs", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "mediaDevices", {
+        value: { enumerateDevices: async () => [{ kind: "videoinput" }] },
+        configurable: true,
+      })
+    })
+    await goToNotesMediaGroup(page)
+
+    const actions = page.locator(".fk-media-actions")
+    await expect(actions.locator("input[capture]")).toHaveCount(1)
+    await expect(actions.locator("input:not([capture])")).toHaveCount(1)
+    // library input accepts more than one file at a time
+    await expect(actions.locator("input:not([capture])")).toHaveAttribute("multiple", "")
+  })
+
+  test("mobile confirmed with no camera: falls back to the upload-only button", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "mediaDevices", {
+        value: { enumerateDevices: async () => [{ kind: "audioinput" }] },
+        configurable: true,
+      })
+    })
+    await goToNotesMediaGroup(page)
+
+    const actions = page.locator(".fk-media-actions")
+    await expect(actions.locator("input[capture]")).toHaveCount(0)
+    await expect(actions.locator("input:not([capture])")).toHaveCount(1)
+  })
+})
+
+test("media step: desktop shows only the upload button (no camera capture)", async ({ page }) => {
   await goToNotesMediaGroup(page)
 
   const actions = page.locator(".fk-media-actions")
-  await expect(actions.locator("input[capture]")).toHaveCount(1)
+  await expect(actions.locator("input[capture]")).toHaveCount(0)
   await expect(actions.locator("input:not([capture])")).toHaveCount(1)
-  // library input accepts more than one file at a time
   await expect(actions.locator("input:not([capture])")).toHaveAttribute("multiple", "")
 })
 

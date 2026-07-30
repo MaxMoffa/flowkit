@@ -1,6 +1,6 @@
 {
   "name": "@flowkit-io/react",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "React renderer and step components for Flowkit.",
   "license": "MIT",
   "author": "Massimo Moffa",

@@ -3,6 +3,7 @@ import type { MediaStep } from "@flowkit-io/core"
 import { resolveMediaAccept } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { useFileUpload } from "./shared/use-file-upload"
+import { useMediaCaptureAvailability } from "./shared/use-media-capture-availability"
 import { FlowMarkdown } from "../markdown"
 
 export function MediaStepView({ step, value, onChange }: StepComponentProps<MediaStep>) {
@@ -13,6 +14,7 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
     maxItems: step.maxItems,
     kindOf: (file) => (file.type.startsWith("video/") ? "video" : "image"),
   })
+  const { showCaptureButton } = useMediaCaptureAvailability()
 
   const acceptImages = step.acceptImages !== false
   const acceptVideos = step.acceptVideos === true
@@ -38,16 +40,18 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
 
       {canAddMore && (
         <div className="fk-media-actions">
-          <label className="fk-media-action-btn">
-            {captureLabel}
-            <input
-              type="file"
-              accept={accept}
-              capture="environment"
-              hidden
-              onChange={(e) => void addFiles(e.target.files)}
-            />
-          </label>
+          {showCaptureButton && (
+            <label className="fk-media-action-btn">
+              {captureLabel}
+              <input
+                type="file"
+                accept={accept}
+                capture="environment"
+                hidden
+                onChange={(e) => void addFiles(e.target.files)}
+              />
+            </label>
+          )}
           <label className="fk-media-action-btn">
             🖼️ {step.placeholder ?? "Scegli dalla libreria"}
             <input
