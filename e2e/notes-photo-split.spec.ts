@@ -90,7 +90,7 @@ test("media step: desktop shows only the upload button (no camera capture)", asy
   await expect(actions.locator("input:not([capture])")).toHaveAttribute("multiple", "")
 })
 
-test("media step: add multiple photos, remove one, preview via lightbox", async ({ page }) => {
+test("media step: add multiple photos, remove one via the grid's X button", async ({ page }) => {
   await goToNotesMediaGroup(page)
 
   const libraryInput = page.locator(".fk-media-actions input:not([capture])")
@@ -99,18 +99,17 @@ test("media step: add multiple photos, remove one, preview via lightbox", async 
   const thumbs = page.locator(".fk-media-thumb")
   await expect(thumbs).toHaveCount(2)
 
-  // remove the first one via its X button
   await thumbs.first().locator(".fk-media-remove").click()
   await expect(thumbs).toHaveCount(1)
+})
 
-  // clicking the thumbnail itself (not the X) opens a full-size lightbox
-  await thumbs.first().click()
-  const lightbox = page.locator(".fk-media-lightbox")
-  await expect(lightbox).toBeVisible()
-  await expect(lightbox.locator("img")).toBeVisible()
+test("media step: clicking a thumbnail opens the full viewer", async ({ page }) => {
+  await goToNotesMediaGroup(page)
 
-  // the lightbox has its own remove control
-  await lightbox.locator(".fk-media-lightbox-remove").click()
-  await expect(lightbox).toBeHidden()
-  await expect(thumbs).toHaveCount(0)
+  const libraryInput = page.locator(".fk-media-actions input:not([capture])")
+  await libraryInput.setInputFiles([onePixelPng])
+  await page.locator(".fk-media-thumb").first().click()
+
+  await expect(page.locator(".fk-media-viewer")).toBeVisible()
+  await expect(page.locator(".fk-media-viewer img")).toBeVisible()
 })

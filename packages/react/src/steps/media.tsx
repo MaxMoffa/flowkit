@@ -1,13 +1,14 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { MediaStep } from "@flowkit-io/core"
 import { resolveMediaAccept } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { useFileUpload } from "./shared/use-file-upload"
 import { useMediaCaptureAvailability } from "./shared/use-media-capture-availability"
+import { MediaViewer } from "./shared/media-viewer"
 import { FlowMarkdown } from "../markdown"
 
 export function MediaStepView({ step, value, onChange }: StepComponentProps<MediaStep>) {
-  const [lightboxId, setLightboxId] = useState<string | null>(null)
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const { items, canAddMore, addFiles, removeItem } = useFileUpload({
     value,
     onChange,
@@ -15,6 +16,14 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
     kindOf: (file) => (file.type.startsWith("video/") ? "video" : "image"),
   })
   const { showCaptureButton } = useMediaCaptureAvailability()
+
+  // Keep the open viewer's index in sync after a removal: clamp into range, or close
+  // entirely once no items remain.
+  useEffect(() => {
+    if (viewerIndex === null) return
+    if (items.length === 0) setViewerIndex(null)
+    else if (viewerIndex >= items.length) setViewerIndex(items.length - 1)
+  }, [items.length, viewerIndex])
 
   const acceptImages = step.acceptImages !== false
   const acceptVideos = step.acceptVideos === true
@@ -25,13 +34,6 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
     videoFormats: step.videoFormats,
   })
   const captureLabel = acceptImages && acceptVideos ? "📷 Scatta foto/video" : acceptVideos ? "🎥 Registra video" : "📷 Scatta foto"
-
-  function remove(id: string) {
-    removeItem(id)
-    if (lightboxId === id) setLightboxId(null)
-  }
-
-  const lightboxItem = items.find((i) => i.id === lightboxId) ?? null
 
   return (
     <div className="fk-step fk-step-media">
@@ -67,8 +69,8 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
 
       {items.length > 0 && (
         <div className="fk-media-thumbs">
-          {items.map((item) => (
-            <div key={item.id} className="fk-media-thumb" onClick={() => setLightboxId(item.id)}>
+          {items.map((item, i) => (
+            <div key={item.id} className="fk-media-thumb" onClick={() => setViewerIndex(i)}>
               {item.kind === "video" ? (
                 <video src={item.dataUrl} muted playsInline />
               ) : (
@@ -81,7 +83,7 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
                 aria-label="Rimuovi"
                 onClick={(e) => {
                   e.stopPropagation()
-                  remove(item.id)
+                  removeItem(item.id)
                 }}
               >
                 ✕
@@ -91,25 +93,14 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
         </div>
       )}
 
-      {lightboxItem && (
-        <div className="fk-media-lightbox" role="dialog" aria-modal="true">
-          <button
-            type="button"
-            className="fk-media-lightbox-close"
-            aria-label="Chiudi"
-            onClick={() => setLightboxId(null)}
-          >
-            ✕
-          </button>
-          {lightboxItem.kind === "video" ? (
-            <video src={lightboxItem.dataUrl} controls autoPlay />
-          ) : (
-            <img src={lightboxItem.dataUrl} alt="" />
-          )}
-          <button type="button" className="fk-media-lightbox-remove" onClick={() => remove(lightboxItem.id)}>
-            Rimuovi
-          </button>
-        </div>
+      {viewerIndex !== null && (
+        <MediaViewer
+          items={items}
+          index={viewerIndex}
+          onIndexChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+          onRemove={removeItem}
+        />
       )}
     </div>
   )
