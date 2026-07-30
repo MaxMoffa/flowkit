@@ -68,6 +68,7 @@ export const odoriFlow: Flow = parseFlow({
       id: "duration",
       type: "chips",
       title: "Da quanto lo senti?",
+      subtitle: "Indica per quanto tempo hai percepito l'odore.",
       icon: "⏱️",
       multiple: false,
       options: [
@@ -81,6 +82,7 @@ export const odoriFlow: Flow = parseFlow({
       id: "hedonic",
       type: "faces",
       title: "Quanto è fastidioso?",
+      subtitle: "Facoltativo: scegli l'emoji più vicina alla tua sensazione.",
       required: false,
       icon: "🙂",
       faces: [

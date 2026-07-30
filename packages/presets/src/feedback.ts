@@ -17,17 +17,20 @@ export const feedbackFlow: Flow = parseFlow({
       id: "mood",
       type: "faces",
       title: "Come valuti l'esperienza complessiva?",
+      subtitle: "Scegli l'emoji che rappresenta meglio la tua sensazione.",
     },
     {
       id: "nps",
       type: "nps",
       title: "Ci consiglieresti?",
+      subtitle: "Da 0 (per niente probabile) a 10 (estremamente probabile).",
       question: "Quanto è probabile che ci consiglieresti a un amico o collega?",
     },
     {
       id: "highlights",
       type: "multi-select",
       title: "Cosa ti è piaciuto di più?",
+      subtitle: "Puoi selezionare più di un'opzione.",
       min: 0,
       options: [
         { value: "speed", label: "Velocità" },
@@ -40,6 +43,7 @@ export const feedbackFlow: Flow = parseFlow({
       id: "email",
       type: "text",
       title: "Vuoi essere ricontattato?",
+      subtitle: "Facoltativo: lascia la tua email solo se desideri una risposta.",
       required: false,
       variant: "email",
       placeholder: "nome@esempio.com",
@@ -48,6 +52,7 @@ export const feedbackFlow: Flow = parseFlow({
       id: "review",
       type: "review",
       title: "Rivedi il tuo feedback",
+      subtitle: "Controlla le risposte prima di inviare.",
     },
     {
       id: "confirmation",
