@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildReportRows, parseFlow, type Flow } from "./index"
+import { buildReportRows, defaultIcon, parseFlow, type Flow } from "./index"
 
 const flow: Flow = parseFlow({
   id: "demo",
@@ -23,6 +23,34 @@ const flow: Flow = parseFlow({
     { id: "check", type: "review" },
     { id: "end", type: "confirmation" },
   ],
+})
+
+describe("defaultIcon", () => {
+  it("returns the step's own image when set", () => {
+    const withImage = parseFlow({
+      id: "d",
+      title: "D",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "sig", type: "signature", image: { kind: "emoji", value: "✒️" } },
+        { id: "end", type: "confirmation" },
+      ],
+    }).steps[1]!
+    expect(defaultIcon(withImage)).toEqual({ kind: "emoji", value: "✒️" })
+  })
+
+  it("falls back to a per-type default emoji when no image is set", () => {
+    const noImage = parseFlow({
+      id: "d2",
+      title: "D2",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "sig", type: "signature" },
+        { id: "end", type: "confirmation" },
+      ],
+    }).steps[1]!
+    expect(defaultIcon(noImage)).toEqual({ kind: "emoji", value: "✍️" })
+  })
 })
 
 describe("buildReportRows", () => {

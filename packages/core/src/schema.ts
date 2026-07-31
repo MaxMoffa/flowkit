@@ -44,12 +44,30 @@ import type { ConfirmationStep } from "./confirmation-step"
  * of retyping it: the copies had already drifted apart once, leaving the oauth step
  * without `themeOverride`/`contentAlign` while the docs promised them everywhere.
  */
+/**
+ * Unified step image field (v2.34): a step's own badge/icon, replacing the old
+ * `icon` (never actually rendered outside the review-row fallback) and `intro`'s
+ * separate `emoji` field. `kind` picks how `value` is interpreted:
+ * - "emoji": a literal emoji character, rendered as text.
+ * - "icon": raw inline SVG markup, sanitized and rendered so it inherits the
+ *   surrounding text color (adapts to light/dark themes).
+ * - "image": a URL or `data:` URI (raster or SVG), rendered via `<img>`.
+ * No picker ships with the library: consumers author `value` themselves.
+ */
+export const stepImageSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("emoji"), value: z.string().min(1) }),
+  z.object({ kind: z.literal("icon"), value: z.string().min(1) }),
+  z.object({ kind: z.literal("image"), value: z.string().min(1) }),
+])
+
+export type StepImage = z.infer<typeof stepImageSchema>
+
 export const baseStepFields = {
   id: z.string().min(1),
   title: z.string().optional(),
   subtitle: z.string().optional(),
   required: z.boolean().default(true),
-  icon: z.string().optional(),
+  image: stepImageSchema.optional(),
   /**
    * Theme override (v2.10) limited to this step: a subset of colors, radii
    * and images applied only while the step is shown. Not typed against

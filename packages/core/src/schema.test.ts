@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseFlow, isStepValid } from "./index"
+import { parseFlow, isStepValid, stepImageSchema } from "./index"
 
 const baseFlow = {
   id: "flow",
@@ -201,5 +201,35 @@ describe("base step fields", () => {
     const parsed = flow.steps[1] as { themeOverride?: Record<string, unknown>; contentAlign?: string }
     expect(parsed.themeOverride).toEqual({ accent: "#FF0000" })
     expect(parsed.contentAlign).toBe("center")
+  })
+})
+
+describe("stepImageSchema", () => {
+  it.each([
+    { kind: "emoji", value: "🎉" },
+    { kind: "icon", value: "<svg></svg>" },
+    { kind: "image", value: "https://example.com/a.png" },
+  ])("accepts kind $kind", (image) => {
+    expect(stepImageSchema.safeParse(image).success).toBe(true)
+  })
+
+  it("rejects an unknown kind", () => {
+    expect(stepImageSchema.safeParse({ kind: "photo", value: "x" }).success).toBe(false)
+  })
+
+  it("rejects an empty value", () => {
+    expect(stepImageSchema.safeParse({ kind: "emoji", value: "" }).success).toBe(false)
+  })
+
+  it("is accepted as the `image` field on a step, replacing the old icon/emoji fields", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        { id: "welcome", type: "intro", image: { kind: "emoji", value: "👋" } },
+        { id: "name", type: "text" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    expect(flow.steps[0]).toMatchObject({ image: { kind: "emoji", value: "👋" } })
   })
 })

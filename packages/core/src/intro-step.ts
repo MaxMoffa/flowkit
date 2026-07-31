@@ -5,7 +5,6 @@ import { baseStepFields } from "./schema"
 export const introStepSchema = z.object({
   ...baseStepFields,
   type: z.literal("intro"),
-  emoji: z.string().optional(),
   cta: z.string().default("Inizia"),
   livePill: z.string().optional(),
 })

@@ -1,6 +1,7 @@
 import { buildReportRows } from "@flowkit-io/core"
 import type { Answers, Flow } from "@flowkit-io/core"
 import { escapeHtml, safeImageDataUrl } from "./html"
+import { stepImageToHtml } from "./steps/shared/step-image"
 
 export interface RenderAnswersReportHtmlOptions {
   documentTitle?: string
@@ -28,7 +29,7 @@ export function renderAnswersReportHtml(
         .map((src) => `<img src="${src}" alt="" />`)
         .join("")
       const mediaHtml = images ? `<div class="fk-review-media">${images}</div>` : ""
-      return `<div class="fk-review-row"><span class="fk-review-icon">${escapeHtml(row.icon)}</span><div><dt>${escapeHtml(row.title)}</dt><dd>${escapeHtml(row.value)}</dd>${mediaHtml}</div></div>`
+      return `<div class="fk-review-row">${stepImageToHtml(row.icon, "fk-review-icon")}<div><dt>${escapeHtml(row.title)}</dt><dd>${escapeHtml(row.value)}</dd>${mediaHtml}</div></div>`
     })
     .join("")
 

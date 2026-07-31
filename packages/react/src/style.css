@@ -598,6 +598,13 @@
   margin-bottom: var(--fk-space-xl);
 }
 
+.fk-intro-badge svg,
+.fk-intro-badge img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
 .fk-step-intro .fk-title {
   font-size: 30px;
 }
@@ -1736,6 +1743,9 @@
   width: 28px;
   text-align: center;
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fk-review-row dt {
@@ -1764,6 +1774,13 @@
   object-fit: cover;
   border-radius: var(--fk-radius-sm);
   border: 1px solid var(--fk-border);
+}
+
+.fk-review-row .fk-review-icon svg,
+.fk-review-row .fk-review-icon img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 /* Confirmation */

@@ -1,4 +1,4 @@
-import type { Flow, Step } from "./schema"
+import type { Flow, Step, StepImage } from "./schema"
 import type { Answers } from "./machine"
 import { getStepTypeDefinition } from "./registry"
 import { isUploadedItemArray, type UploadedItem } from "./upload-item"
@@ -46,38 +46,32 @@ export function formatAnswer(step: Step, value: unknown): string {
   return optionLabel(step, String(value))
 }
 
-export function defaultIcon(step: Step): string {
-  if (step.icon) return step.icon
-  switch (step.type as string) {
-    case "location":
-    case "location-leaflet":
-      return "📍"
-    case "select-cards":
-      return "🏷️"
-    case "scale":
-      return "📊"
-    case "chips":
-      return "⏱️"
-    case "radio":
-      return "🔘"
-    case "checkbox":
-      return "☑️"
-    case "signature":
-      return "✍️"
-    case "faces":
-      return "🙂"
-    case "notes":
-    case "group":
-      return "📝"
-    case "media":
-      return "📷"
-    case "file":
-      return "📎"
-    case "date-time":
-      return "🗓️"
-    default:
-      return "•"
-  }
+/** Fallback emoji per step type, used when a step has no `image` of its own. */
+const DEFAULT_TYPE_EMOJI: Record<string, string> = {
+  location: "📍",
+  "location-leaflet": "📍",
+  "select-cards": "🏷️",
+  scale: "📊",
+  chips: "⏱️",
+  radio: "🔘",
+  checkbox: "☑️",
+  signature: "✍️",
+  faces: "🙂",
+  notes: "📝",
+  group: "📝",
+  media: "📷",
+  file: "📎",
+  "date-time": "🗓️",
+}
+
+export function defaultIcon(step: Step): StepImage {
+  // Cast: `image` comes from baseStepFields, which every built-in type spreads, but
+  // Step (StepTypeMap[keyof StepTypeMap]) is an open union — a consumer's custom step
+  // type (registered via registerStepType + module augmentation) isn't required to
+  // carry it.
+  const image = (step as { image?: StepImage }).image
+  if (image) return image
+  return { kind: "emoji", value: DEFAULT_TYPE_EMOJI[step.type as string] ?? "•" }
 }
 
 /** Recursively collects image items out of a media/file answer, including ones nested
@@ -102,7 +96,7 @@ export interface ReportRow {
   /** Id of the flow step this row was built from — lets consumers (e.g. a clickable
    *  review row) navigate back to the step that produced the answer. */
   stepId: string
-  icon: string
+  icon: StepImage
   title: string
   value: string
   /** Image items (from a media/file step, possibly nested in a group) to embed alongside the row. */
