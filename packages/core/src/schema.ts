@@ -1,15 +1,15 @@
 import { z } from "zod"
 import { getStepTypeDefinition } from "./registry"
 import { stepAddonSchema } from "./addons"
-import { remoteDataSourceSchema } from "./remote-data-source"
 
 /** Shared by every "elenco/select" step schema: at least one static option, or a
  *  dataSource to fetch them from (checked as one zod `.refine`, not per-field, so the
- *  error path/message stay consistent across select-cards/chips/radio/multi-select). */
-function requireOptionsOrDataSource(step: { options: unknown[]; dataSource?: unknown }) {
+ *  error path/message stay consistent across select-cards/chips/radio/multi-select).
+ *  Exported for select-cards-step.ts/chips-step.ts/radio-step.ts/multi-select-step.ts. */
+export function requireOptionsOrDataSource(step: { options: unknown[]; dataSource?: unknown }) {
   return step.options.length > 0 || !!step.dataSource
 }
-const optionsOrDataSourceIssue = {
+export const optionsOrDataSourceIssue = {
   message: "Provide at least one option, or a dataSource.",
   path: ["options"],
 }
@@ -20,6 +20,23 @@ import type { SignatureStep } from "./signature-step"
 import type { PaymentStripeStep } from "./payment-stripe-step"
 import type { VerificationStep } from "./verification-step"
 import type { BookingSlotStep } from "./booking-slot-step"
+import type { IntroStep } from "./intro-step"
+import type { SelectCardsStep } from "./select-cards-step"
+import type { ScaleStep } from "./scale-step"
+import type { ChipsStep } from "./chips-step"
+import type { FacesStep } from "./faces-step"
+import type { NotesStep } from "./notes-step"
+import type { MediaStep } from "./media-step"
+import type { FileStep } from "./file-step"
+import type { MediaDisplayStep } from "./media-display-step"
+import type { DateTimeStep } from "./date-time-step"
+import type { NpsStep } from "./nps-step"
+import type { MultiSelectStep } from "./multi-select-step"
+import type { RadioStep } from "./radio-step"
+import type { TextStep } from "./text-step"
+import type { CheckboxStep } from "./checkbox-step"
+import type { ReviewStep } from "./review-step"
+import type { ConfirmationStep } from "./confirmation-step"
 
 /**
  * Fields every step accepts, whatever its `type`. Exported so step definitions living
@@ -51,347 +68,11 @@ export const baseStepFields = {
   addons: z.array(stepAddonSchema).optional(),
 }
 
-export const introStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("intro"),
-  emoji: z.string().optional(),
-  cta: z.string().default("Inizia"),
-  livePill: z.string().optional(),
-})
-
-export const locationStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("location"),
-  placeholder: z.string().optional(),
-  showMap: z.boolean().default(true),
-  detectedLabel: z.string().optional(),
-  detectedSubLabel: z.string().optional(),
-  manualEntryLabel: z.string().optional(),
-  /** Map fills the entire step viewport; title/search/GPS/result float as overlays on top. Default: false. */
-  fullContainer: z.boolean().default(false),
-  /**
-   * Controls the two-column layout (controls beside the map). Default "stack"
-   * (single column, always safe). "columns" opts in, but only actually
-   * renders as two columns when the step's own rendered container is wide
-   * enough (CSS container query, not viewport-based) — never forced on a
-   * narrow container even on a wide browser window.
-   */
-  layout: z.enum(["stack", "columns"]).default("stack"),
-})
-
-export const selectCardsStepSchema = z
-  .object({
-    ...baseStepFields,
-    type: z.literal("select-cards"),
-    multiple: z.boolean().default(false),
-    options: z
-      .array(
-        z.object({
-          value: z.string(),
-          label: z.string(),
-          emoji: z.string().optional(),
-          description: z.string().optional(),
-        }),
-      )
-      .default([]),
-    /** Remote data source (v2.30): fetches options instead of/alongside the static list. */
-    dataSource: remoteDataSourceSchema.optional(),
-  })
-  .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)
-
-export const scaleStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("scale"),
-  min: z.number().default(1),
-  max: z.number().default(5),
-  minLabel: z.string().optional(),
-  maxLabel: z.string().optional(),
-  variant: z.enum(["pills", "slider"]).default("pills"),
-  valueLabels: z.array(z.string()).optional(),
-  valueColors: z.array(z.string()).optional(),
-})
-
-export const chipsStepSchema = z
-  .object({
-    ...baseStepFields,
-    type: z.literal("chips"),
-    multiple: z.boolean().default(true),
-    options: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
-    dataSource: remoteDataSourceSchema.optional(),
-  })
-  .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)
-
-export const durationChipValues = [
-  "< 5 min",
-  "5–30 min",
-  "> 30 min",
-  "Persistente",
-] as const
-
-export const facesStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("faces"),
-  faces: z
-    .array(z.object({ value: z.string(), emoji: z.string(), label: z.string().optional() }))
-    .min(2)
-    .default([
-      { value: "1", emoji: "😞", label: "Pessimo" },
-      { value: "2", emoji: "🙁", label: "Scarso" },
-      { value: "3", emoji: "😐", label: "Ok" },
-      { value: "4", emoji: "🙂", label: "Buono" },
-      { value: "5", emoji: "😄", label: "Ottimo" },
-    ]),
-})
-
-export const notesStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("notes"),
-  placeholder: z.string().optional(),
-})
-
-export const fileFormatPresetSchema = z.enum(["any", "images", "documents", "pdf", "spreadsheets", "archives"])
-
-export const mediaStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("media"),
-  placeholder: z.string().optional(),
-  /** Allow selecting/capturing more than one item. Default: true. */
-  multiple: z.boolean().default(true),
-  /** Accept image files. Default: true. */
-  acceptImages: z.boolean().default(true),
-  /** Accept video files. Default: false. */
-  acceptVideos: z.boolean().default(false),
-  /** Restrict accepted image MIME types/extensions (e.g. ["image/jpeg","image/png"]). Unset = any image. */
-  imageFormats: z.array(z.string()).optional(),
-  /** Restrict accepted video MIME types/extensions (e.g. ["video/mp4"]). Unset = any video. */
-  videoFormats: z.array(z.string()).optional(),
-  /** Maximum number of items the user can add. Unset = no limit. */
-  maxItems: z.number().int().positive().optional(),
-})
-
-export const fileStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("file"),
-  placeholder: z.string().optional(),
-  /** Allow selecting more than one file. Default: true. */
-  multiple: z.boolean().default(true),
-  /** Standard accepted-format preset. Default: "any". */
-  formatPreset: fileFormatPresetSchema.default("any"),
-  /** Free-form accept string (extensions and/or MIME types, e.g. ".csv,.zip"), combined with formatPreset. */
-  customAccept: z.string().optional(),
-  /** Maximum number of files the user can add. Unset = no limit. */
-  maxItems: z.number().int().positive().optional(),
-})
-
 /**
- * "media-display" step: read-only image/video shown before/during a question
- * (e.g. "what do you think of this?"). Distinct from "media" (upload/capture):
- * no file picker, no UploadedItem[] answer, just a configured src to render.
- */
-export const mediaDisplayStepSchema = z
-  .object({
-    ...baseStepFields,
-    type: z.literal("media-display"),
-    kind: z.enum(["image", "video"]).default("image"),
-    src: z.string().min(1),
-    /** Additional responsive sources: <source> children for video, or extra srcSet
-     *  candidates for image. */
-    sources: z
-      .array(z.object({ src: z.string().min(1), type: z.string().optional(), media: z.string().optional() }))
-      .optional(),
-    /** Poster frame shown before playback starts (video only). */
-    poster: z.string().optional(),
-    alt: z.string().optional(),
-    caption: z.string().optional(),
-    /** Video-only playback options. */
-    autoplay: z.boolean().default(false),
-    loop: z.boolean().default(false),
-    muted: z.boolean().default(false),
-    controls: z.boolean().default(true),
-    /** CSS aspect-ratio (e.g. "16/9", "1/1"). Unset = intrinsic media size. */
-    aspectRatio: z.string().optional(),
-    fit: z.enum(["cover", "contain", "fill"]).default("cover"),
-    /** Purely informational: collects no answer, so it must never block advancement
-     *  by default (overrides baseStepFields' required:true default). */
-    required: z.boolean().default(false),
-  })
-  .refine((step) => !(step.autoplay && !step.muted), {
-    message: "autoplay:true requires muted:true (browser autoplay policy).",
-    path: ["muted"],
-  })
-
-export const dateTimeStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("date-time"),
-  mode: z.enum(["date", "time", "datetime"]).default("date"),
-  min: z.string().optional(),
-  max: z.string().optional(),
-  step: z.number().optional(),
-  disablePast: z.boolean().default(false),
-  defaultValue: z.string().optional(),
-})
-
-export const npsStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("nps"),
-  question: z.string().optional(),
-})
-
-export const multiSelectStepSchema = z
-  .object({
-    ...baseStepFields,
-    type: z.literal("multi-select"),
-    options: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
-    min: z.number().default(0),
-    max: z.number().optional(),
-    dataSource: remoteDataSourceSchema.optional(),
-  })
-  .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)
-
-export const radioStepSchema = z
-  .object({
-    ...baseStepFields,
-    type: z.literal("radio"),
-    options: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
-    dataSource: remoteDataSourceSchema.optional(),
-  })
-  .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)
-
-export const textStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("text"),
-  variant: z.enum(["text", "number", "email"]).default("text"),
-  placeholder: z.string().optional(),
-  multiline: z.boolean().default(false),
-  /** Regex (as a string, no flags) the value must fully match, checked in addition to
-   *  the variant's own rule. E.g. an Italian fiscal code or a phone number shape. */
-  pattern: z.string().optional(),
-})
-
-/**
- * "checkbox" step: a single boolean toggle (e.g. privacy consent). The real "must be
- * accepted to proceed" gate comes from baseStepFields.required (default true), same as
- * every other step: isStepValid() (machine.ts) already skips validation entirely when
- * required:false, so this step's own validate() only runs when acceptance is mandatory.
- */
-export const checkboxStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("checkbox"),
-  label: z.string().min(1),
-  description: z.string().optional(),
-})
-
-export const reviewStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("review"),
-  meta: z.string().optional(),
-  /** Text of the final submit button. Default preserves the previous hardcoded text. */
-  submitLabel: z.string().default("Invia segnalazione ✓"),
-  /**
-   * "final" (default): the flow's closing recap, must be the second-to-last step
-   * (immediately before confirmation), at most one per flow. "checkpoint": a mid-flow
-   * partial recap, any number allowed, exempt from the second-to-last positional rule.
-   */
-  mode: z.enum(["final", "checkpoint"]).default("final"),
-})
-
-export const confirmationStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("confirmation"),
-  title: z.string().default("Grazie!"),
-  message: z.string().optional(),
-  emoji: z.string().optional(),
-  stats: z
-    .array(z.object({ value: z.string(), label: z.string() }))
-    .optional(),
-  primaryCta: z.string().optional(),
-  secondaryCta: z.string().optional(),
-  /** Show/hide the primary "torna alla home" button. Default: true (current behavior). */
-  showHomeButton: z.boolean().default(true),
-  /**
-   * When set, the primary button navigates to this URL (window.location.href)
-   * instead of resetting the in-memory flow state. Unset = current behavior
-   * (acts as an in-app "start over"/home).
-   */
-  homeUrl: z.string().optional(),
-  emailShare: z
-    .object({
-      enabled: z.boolean().default(false),
-      subject: z.string().optional(),
-      buttonLabel: z.string().default("Invia via email"),
-      helpText: z.string().optional(),
-    })
-    .optional(),
-  /**
-   * Optional result actions, coexisting with emailShare (mailto).
-   * `resultLink.createLink`/`emailApi.sendEmail` are functions injected by
-   * the consumer (a pattern already used by mapAnswersToProperties in
-   * notion.ts): they aren't JSON-serializable, so a flow using them must be
-   * built as a TS/JS object, not loaded from plain JSON.
-   */
-  resultActions: z
-    .object({
-      pdfExport: z
-        .object({
-          enabled: z.boolean().default(false),
-          buttonLabel: z.string().default("Scarica PDF"),
-          documentTitle: z.string().optional(),
-        })
-        .optional(),
-      resultLink: z
-        .object({
-          enabled: z.boolean().default(false),
-          buttonLabel: z.string().default("Copia link"),
-          helpText: z.string().optional(),
-          createLink: z.custom<(answers: Record<string, unknown>) => Promise<{ url: string }>>(
-            (v) => typeof v === "function",
-          ),
-        })
-        .optional(),
-      nativeShare: z
-        .object({
-          enabled: z.boolean().default(false),
-          buttonLabel: z.string().default("Condividi"),
-          shareTitle: z.string().optional(),
-        })
-        .optional(),
-      emailApi: z
-        .object({
-          enabled: z.boolean().default(false),
-          buttonLabel: z.string().default("Invia via email (server)"),
-          helpText: z.string().optional(),
-          sendEmail: z.custom<(email: string, answers: Record<string, unknown>) => Promise<void>>(
-            (v) => typeof v === "function",
-          ),
-        })
-        .optional(),
-    })
-    .optional(),
-})
-
-export type IntroStep = z.infer<typeof introStepSchema>
-export type LocationStep = z.infer<typeof locationStepSchema>
-export type SelectCardsStep = z.infer<typeof selectCardsStepSchema>
-export type ScaleStep = z.infer<typeof scaleStepSchema>
-export type ChipsStep = z.infer<typeof chipsStepSchema>
-export type FacesStep = z.infer<typeof facesStepSchema>
-export type NotesStep = z.infer<typeof notesStepSchema>
-export type MediaStep = z.infer<typeof mediaStepSchema>
-export type FileStep = z.infer<typeof fileStepSchema>
-export type MediaDisplayStep = z.infer<typeof mediaDisplayStepSchema>
-export type DateTimeStep = z.infer<typeof dateTimeStepSchema>
-export type NpsStep = z.infer<typeof npsStepSchema>
-export type MultiSelectStep = z.infer<typeof multiSelectStepSchema>
-export type RadioStep = z.infer<typeof radioStepSchema>
-export type TextStep = z.infer<typeof textStepSchema>
-export type CheckboxStep = z.infer<typeof checkboxStepSchema>
-export type ReviewStep = z.infer<typeof reviewStepSchema>
-export type ConfirmationStep = z.infer<typeof confirmationStepSchema>
-
-/**
- * Maps type -> step shape. The built-in types are defined here; a consumer
- * registering a custom type with registerStepType can get full static
- * narrowing by augmenting this interface via module augmentation:
+ * Maps type -> step shape. Each built-in type's schema/registration lives in its own
+ * {type}-step.ts file (e.g. text-step.ts, chips-step.ts) — this file only imports their
+ * types to assemble the map. A consumer registering a custom type with registerStepType
+ * can get full static narrowing by augmenting this interface via module augmentation:
  *
  *   declare module "@flowkit-io/core" {
  *     interface StepTypeMap {

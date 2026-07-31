@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { getStepTypeDefinition } from "./registry"
-import "./builtins"
+import "./text-step"
 import "./group-step"
 
 function group(overrides: Record<string, unknown> = {}) {

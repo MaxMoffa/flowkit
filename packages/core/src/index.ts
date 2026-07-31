@@ -1,11 +1,28 @@
-// Critical ordering: the side-effect imports register step types in the registry.
-// "location-step" and "oauth" must be evaluated AFTER "builtins" (location-step
-// replaces the base "location" registration with the extended config). They must
-// come before any "export * from"/"export {...} from" targeting these same modules:
-// a re-export is also an import, and if written earlier in the file it would cause
-// that module (and its registerStepType) to be evaluated early, breaking the
-// intended order.
-import "./builtins"
+// Every built-in step type self-registers exactly once (its own {type}-step.ts calls
+// registerStepType on import) — unlike the pre-split "builtins.ts placeholder +
+// location-step.ts overwrite" arrangement this replaced, no two files register the same
+// type anymore, so import order here has no effect on the end state of the registry.
+// These still must come before any "export * from"/"export {...} from" targeting the
+// same modules below, though: a re-export is also an import, and dependents (e.g. the
+// registry.test.ts custom-step-type test) expect side effects to have already run by
+// the time index.ts's exports are evaluated.
+import "./intro-step"
+import "./select-cards-step"
+import "./scale-step"
+import "./chips-step"
+import "./faces-step"
+import "./notes-step"
+import "./media-step"
+import "./file-step"
+import "./media-display-step"
+import "./date-time-step"
+import "./nps-step"
+import "./multi-select-step"
+import "./radio-step"
+import "./text-step"
+import "./checkbox-step"
+import "./review-step"
+import "./confirmation-step"
 import "./smart-fill-generators"
 import "./oauth-step"
 import "./location-step"
@@ -17,6 +34,23 @@ import "./verification-step"
 import "./booking-slot-step"
 
 export * from "./schema"
+export * from "./intro-step"
+export * from "./select-cards-step"
+export * from "./scale-step"
+export * from "./chips-step"
+export * from "./faces-step"
+export * from "./notes-step"
+export * from "./media-step"
+export * from "./file-step"
+export * from "./media-display-step"
+export * from "./date-time-step"
+export * from "./nps-step"
+export * from "./multi-select-step"
+export * from "./radio-step"
+export * from "./text-step"
+export * from "./checkbox-step"
+export * from "./review-step"
+export * from "./confirmation-step"
 export * from "./machine"
 export * from "./addons"
 export * from "./remote-data-source"

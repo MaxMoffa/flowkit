@@ -1,6 +1,5 @@
 import { registerStepType } from "./registry"
-import { locationStepSchema } from "./schema"
-import { isValidLocationValue, locationConfigFields, type SelectionMode } from "./location-step"
+import { isValidLocationValue, locationConfigFields, locationStepSchema, type SelectionMode } from "./location-step"
 import { z } from "zod"
 
 /**

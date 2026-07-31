@@ -1,6 +1,34 @@
 import { z } from "zod"
 import { registerStepType } from "./registry"
-import { locationStepSchema } from "./schema"
+import { baseStepFields } from "./schema"
+
+/**
+ * Base "location" schema (pre-v2.8 shape: free-text address or lat/lng, no map).
+ * Not registered on its own — it's the foundation both "location" (extended below)
+ * and "location-leaflet" (location-leaflet-step.ts) build on via `.extend(...)`, since
+ * the two engines share every field except `type`.
+ */
+export const locationStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("location"),
+  placeholder: z.string().optional(),
+  showMap: z.boolean().default(true),
+  detectedLabel: z.string().optional(),
+  detectedSubLabel: z.string().optional(),
+  manualEntryLabel: z.string().optional(),
+  /** Map fills the entire step viewport; title/search/GPS/result float as overlays on top. Default: false. */
+  fullContainer: z.boolean().default(false),
+  /**
+   * Controls the two-column layout (controls beside the map). Default "stack"
+   * (single column, always safe). "columns" opts in, but only actually
+   * renders as two columns when the step's own rendered container is wide
+   * enough (CSS container query, not viewport-based) — never forced on a
+   * narrow container even on a wide browser window.
+   */
+  layout: z.enum(["stack", "columns"]).default("stack"),
+})
+
+export type LocationStep = z.infer<typeof locationStepSchema>
 
 const geoPointSchema = z.object({
   id: z.string(),
@@ -77,10 +105,6 @@ export const locationStepConfigSchema = locationStepSchema.extend(locationConfig
 
 export type LocationStepConfig = z.infer<typeof locationStepConfigSchema>
 
-/**
- * Replaces the builtin "location" registration (schema+validate) done in
- * builtins.ts: side-effect import evaluated afterwards, in index.ts.
- */
 registerStepType({
   type: "location",
   schema: locationStepConfigSchema,
