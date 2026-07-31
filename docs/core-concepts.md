@@ -4,7 +4,7 @@
 |---|---|---|
 | `Flow` | `@flowkit-io/core` | zod-validated object: `{ id, title, locale, steps[], disableBack }` (`disableBack` defaults to `false`; set `true` for forward-only navigation) |
 | `Step` | `@flowkit-io/core` | A "screen" of the flow; its `type` is resolved at runtime from a **registry** (see [Custom steps](./custom-steps.md)), not a closed union |
-| `Answers` | `@flowkit-io/core` | `Record<stepId, value>`, the state filled in by the user |
+| `Answers` | `@flowkit-io/core` | `Record<stepKey, value>` (each step's [`key`](./steps/index.md), not its `id`), the state filled in by the user |
 | `Theme` | `@flowkit-io/themes` | `{ name, label, light, dark }`, each variant is a set of tokens (colors, spacing, fonts, images) |
 | `FlowRunner` | `@flowkit-io/react` | React component that mounts a `Flow`, manages state/navigation/rendering |
 | `FlowAdapter` | `@flowkit-io/adapters` | `{ submit, loadDraft, saveDraft }` interface for persisting answers (local/rest/supabase/notion) |

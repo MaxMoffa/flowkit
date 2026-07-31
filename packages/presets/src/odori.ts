@@ -8,19 +8,21 @@ export const odoriFlow: Flow = parseFlow({
     {
       id: "intro",
       type: "intro",
+      key: "che_aria_tira",
       title: "Che aria tira?",
       subtitle:
         "Senti un cattivo odore nel tuo quartiere? Segnalalo in 30 secondi e aiuta a mappare la qualità dell'aria.",
-      emoji: "👃",
+      image: { kind: "emoji", value: "👃" },
       cta: "Segnala un odore →",
       livePill: "34 segnalazioni oggi in zona",
     },
     {
       id: "location",
       type: "location",
+      key: "dove_lo_senti",
       title: "Dove lo senti?",
       subtitle: "Abbiamo rilevato la tua posizione. Trascina il segnaposto per correggerla.",
-      icon: "📍",
+      image: { kind: "emoji", value: "📍" },
       showMap: true,
       detectedLabel: "Via Roma, 24",
       detectedSubLabel: "Battipaglia (SA) · ±15 m",
@@ -29,9 +31,10 @@ export const odoriFlow: Flow = parseFlow({
     {
       id: "smell-type",
       type: "select-cards",
+      key: "che_tipo_di_odore",
       title: "Che tipo di odore?",
       subtitle: "Scegli la categoria che si avvicina di più.",
-      icon: "🏷️",
+      image: { kind: "emoji", value: "🏷️" },
       multiple: false,
       options: [
         { value: "sewage", label: "Fognario", emoji: "🥚", description: "Uova marce, zolfo" },
@@ -45,9 +48,10 @@ export const odoriFlow: Flow = parseFlow({
     {
       id: "intensity",
       type: "scale",
+      key: "quanto_forte",
       title: "Quanto è forte?",
       subtitle: "Valuta l'intensità dell'odore che percepisci.",
-      icon: "📊",
+      image: { kind: "emoji", value: "📊" },
       variant: "slider",
       min: 0,
       max: 6,
@@ -67,9 +71,10 @@ export const odoriFlow: Flow = parseFlow({
     {
       id: "duration",
       type: "chips",
+      key: "da_quanto_lo_senti",
       title: "Da quanto lo senti?",
       subtitle: "Indica per quanto tempo hai percepito l'odore.",
-      icon: "⏱️",
+      image: { kind: "emoji", value: "⏱️" },
       multiple: false,
       options: [
         { value: "lt5", label: "< 5 min" },
@@ -81,10 +86,11 @@ export const odoriFlow: Flow = parseFlow({
     {
       id: "hedonic",
       type: "faces",
+      key: "quanto_fastidioso",
       title: "Quanto è fastidioso?",
       subtitle: "Facoltativo: scegli l'emoji più vicina alla tua sensazione.",
       required: false,
-      icon: "🙂",
+      image: { kind: "emoji", value: "🙂" },
       faces: [
         { value: "1", emoji: "😊" },
         { value: "2", emoji: "😐" },
@@ -96,21 +102,24 @@ export const odoriFlow: Flow = parseFlow({
     {
       id: "notes-photo-group",
       type: "group",
+      key: "vuoi_aggiungere_altro",
       title: "Vuoi aggiungere altro?",
       subtitle: "Facoltativo. Ogni dettaglio aiuta l'analisi.",
-      icon: "📝",
+      image: { kind: "emoji", value: "📝" },
       required: false,
       layout: "stack",
       steps: [
         {
           id: "notes",
           type: "notes",
+          key: "notes",
           required: false,
           placeholder: "Es. l'odore aumenta quando tira vento da nord…",
         },
         {
           id: "photo",
           type: "media",
+          key: "photo",
           required: false,
           placeholder: "Aggiungi una foto",
           acceptImages: true,
@@ -122,6 +131,7 @@ export const odoriFlow: Flow = parseFlow({
     {
       id: "review",
       type: "review",
+      key: "tutto_pronto",
       title: "Tutto pronto?",
       subtitle: "Controlla e invia la tua segnalazione.",
       meta: "🌬️ Aggiungeremo automaticamente meteo e direzione del vento",
@@ -129,6 +139,7 @@ export const odoriFlow: Flow = parseFlow({
     {
       id: "confirmation",
       type: "confirmation",
+      key: "grazie",
       title: "Grazie!",
       message: "La tua segnalazione è stata registrata e contribuisce alla mappa della tua zona.",
       stats: [

@@ -1,17 +1,45 @@
 # i18n
 
-`@flowkit-io/core` exposes a small dictionary for generic navigation strings:
+`@flowkit-io/core` ships a dictionary of the chrome/navigation/validation/status text
+the library itself renders — footer buttons, the back button's aria-label, the
+confirmation screen's restart/home defaults, validation/error messages, loading and
+status text (verification widget, file-step placeholder, attachment-count suffix in
+`answersToText`/the receipt-email reference template). It does **not** cover
+domain-specific text (titles, subtitles, option labels, per-step defaults like
+`intro.cta` or `review.submitLabel`) — that stays part of your `Flow` config as
+usual; for a multilingual flow, define parallel configs per locale.
+
+Every flow can override any of these strings via `Flow.texts`:
 
 ```ts
-import { t } from "@flowkit-io/core"
-
-t("it", "next")     // "Avanti"
-t("en", "back")     // "Back"
+const flow = parseFlow({
+  id: "demo",
+  title: "Demo",
+  locale: "en",
+  texts: {
+    back: "Go back",
+    continue: "Next step",
+    verificationFailedRetry: "That didn't work — try again.",
+  },
+  steps: [ /* ... */ ],
+})
 ```
 
-Covers only `next`, `back`, `submit`, `required` (locale `it`/`en`, falling back to
-`it`). Domain-specific text (titles, subtitles, option labels...) stays part of your
-`Flow`: if you need a multilingual flow, define parallel configs per locale.
+Resolution order for a given key: `flow.texts[key]` → the dictionary entry for
+`flow.locale` → the Italian default → the raw key. `resolveText(flow, key, fallback?)`
+is the same function every built-in component uses internally — call it yourself if
+you're building a custom step and want its chrome text to follow the same override
+mechanism:
+
+```ts
+import { resolveText } from "@flowkit-io/core"
+
+resolveText(flow, "back")                     // flow.texts.back, else the locale default
+resolveText(flow, "myCustomKey", "Fallback")  // your own key, with your own fallback
+```
+
+See `defaultMessages` in `packages/core/src/i18n.ts` for the full key list and the
+`it`/`en` defaults.
 
 ## Included presets
 
@@ -48,7 +76,11 @@ in `apps/playground/src`): **"Custom step (demo)"** (`custom-step-demo.tsx`, see
 [Custom steps](./custom-steps.md)), **"OAuth + Map (demo)"** (`features-demo.tsx`,
 `oauth` step with custom icon/anonymous skip + `location` and `location-leaflet`
 variants), **"Result actions (demo)"** (`result-actions-demo.tsx`, all four
-confirmation `resultActions` wired to real adapters) and **"Step file (demo)"**
-(`file-step-demo.tsx`, the generic `file` step with a format preset + custom accept).
+confirmation `resultActions` wired to real adapters), **"Step file (demo)"**
+(`file-step-demo.tsx`, the generic `file` step with a format preset + custom accept),
+**"Conditional branching (demo)"** (`branch-demo.tsx`, see [`branch`](./steps/branch.md)),
+**"Info steps (demo)"** (`info-long-content-demo.tsx`, see [`info`](./steps/info.md)
+and [`long-content`](./steps/long-content.md)), and **"Custom texts (demo)"**
+(`i18n-texts-demo.tsx`, a `flow.texts` override).
 
 Back to the [docs index](./README.md).

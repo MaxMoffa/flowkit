@@ -16,17 +16,43 @@ Every object in `steps[]` — whatever its `type` — accepts these base fields:
 | `title` | `string` | — | Title (`<h1>`/`<h2>` depending on the step) |
 | `subtitle` | `string` | — | Subtitle/description under the title |
 | `required` | `boolean` | `true` | If `false`, the step always validates — "Continue" doesn't wait for an answer |
-| `icon` | `string` (emoji) | — | Icon shown in the `review` step's summary row (defaults by `type` if absent) |
+| `image` | `{kind,value}` | — | The step's own badge/icon (also used as the `review` row icon; defaults by `type` if absent) — see below |
+| `key` | `string` (`[a-z0-9_]+`) | slug of `title`, else of `id` | Technical field name used in collected data (`Answers`, export/integration payloads) — distinct from `id`. Set it explicitly to override the auto-generated slug, or to name a titleless step. Must be unique across the whole flow (including nested `group` children); a duplicate throws at `parseFlow()` time. |
 | `themeOverride` | object (subset of theme tokens) | — | Overrides theme tokens only while this step is shown — see [Theming](../theming.md) |
 
-The order of `steps[]` is the navigation order. There's no conditional/branching step —
-compose different flows and pick which one to mount at runtime instead (see the
-playground's Preset selector).
+### The `image` field
+
+A discriminated union — `kind` picks how `value` is interpreted, no picker ships with
+the library, so a consumer authors `value` itself:
+
+| `kind` | `value` is... | Rendered as |
+|---|---|---|
+| `"emoji"` | a literal emoji character | plain text |
+| `"icon"` | raw inline SVG markup | sanitized (`@flowkit-io/react` uses DOMPurify) and mounted inline, so it inherits `currentColor` and adapts to light/dark themes |
+| `"image"` | a URL or `data:` URI (raster or SVG) | an `<img>` |
+
+`stepImageSchema` (core) only validates the shape above — zod runs with no DOM access,
+so it can't sanitize markup. Actual SVG sanitization for `kind: "icon"` happens
+exclusively on the `@flowkit-io/react` side (`<StepImage>`, and the
+`renderAnswersReportHtml`/receipt-email string exporters that embed the same markup).
+A consumer rendering `image` values outside `@flowkit-io/react` must sanitize
+`kind: "icon"` markup itself before mounting it.
+
+### Branching
+
+The order of `steps[]` is the default navigation order, but a
+[`branch`](./branch.md) step (invisible, evaluated and resolved before it would ever
+render) can jump forward to any other step's `id` based on prior answers —
+see [`branch`](./branch.md) for the condition syntax.
 
 ## By category
 
 **Structure** — [`intro`](./intro.md) (must be first) · [`review`](./review.md) ·
 [`confirmation`](./confirmation.md) (must be last) · [`group`](./group.md)
+
+**Content only** — [`info`](./info.md) · [`long-content`](./long-content.md)
+
+**Logic** — [`branch`](./branch.md) (invisible, conditional navigation)
 
 **Choice** — [`select-cards`](./select-cards.md) · [`chips`](./chips.md) ·
 [`radio`](./radio.md) · [`multi-select`](./multi-select.md) · [`faces`](./faces.md)
@@ -75,5 +101,8 @@ playground's Preset selector).
 | [`payment-stripe`](./payment-stripe.md) | `{status,paymentIntentId?}` | Stripe Payment Element, opt-in |
 | [`verification`](./verification.md) | `{verified,token?,provider}` | Turnstile/reCAPTCHA, opt-in |
 | [`media-display`](./media-display.md) | — | Read-only image/video, no answer |
+| [`info`](./info.md) | — | Content-only, same look as `intro`; repeatable, no positional constraint |
+| [`long-content`](./long-content.md) | — | Long scrollable content (terms, privacy); optional scroll-to-end gate |
+| [`branch`](./branch.md) | — | Invisible; resolves conditional navigation, never rendered |
 
 [Back to docs index](../README.md)

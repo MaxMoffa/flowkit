@@ -86,6 +86,17 @@ export default defineConfig({
             { text: "verification", link: "/steps/verification" },
           ],
         },
+        {
+          text: "Content only",
+          items: [
+            { text: "info", link: "/steps/info" },
+            { text: "long-content", link: "/steps/long-content" },
+          ],
+        },
+        {
+          text: "Logic",
+          items: [{ text: "branch", link: "/steps/branch" }],
+        },
       ],
       "/": [
         {
