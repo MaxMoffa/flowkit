@@ -1,4 +1,4 @@
-name: Deploy playground to GitHub Pages
+name: Deploy docs + playground to GitHub Pages
 
 on:
   push:
@@ -31,9 +31,17 @@ jobs:
         env:
           GITHUB_PAGES: "true"
 
+      - run: npm run docs:build
+        env:
+          GITHUB_PAGES: "true"
+
+      - run: |
+          mkdir -p docs/.vitepress/dist/playground
+          cp -r apps/playground/dist/. docs/.vitepress/dist/playground/
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/playground/dist
+          path: docs/.vitepress/dist
 
   deploy:
     needs: build

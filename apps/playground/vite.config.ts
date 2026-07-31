@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.GITHUB_PAGES === "true" ? "/flowkit/" : "/",
+  base: process.env.GITHUB_PAGES === "true" ? "/flowkit/playground/" : "/",
   build: {
     rollupOptions: {
       input: {
