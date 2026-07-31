@@ -1,6 +1,6 @@
 {
   "name": "@flowkit-io/react",
-  "version": "0.14.2",
+  "version": "0.15.0",
   "description": "React renderer and step components for Flowkit.",
   "license": "MIT",
   "author": "Massimo Moffa",
@@ -61,12 +61,12 @@
     "build": "tsup"
   },
   "peerDependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "maplibre-gl": "^4.7.1",
-    "leaflet": "^1.9.4",
+    "@stripe/react-stripe-js": "^6.0.0",
     "@stripe/stripe-js": "^9.0.0",
-    "@stripe/react-stripe-js": "^6.0.0"
+    "leaflet": "^1.9.4",
+    "maplibre-gl": "^4.7.1",
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0"
   },
   "peerDependenciesMeta": {
     "maplibre-gl": {
@@ -89,13 +89,14 @@
   "devDependencies": {
     "@stripe/react-stripe-js": "^6.8.0",
     "@stripe/stripe-js": "^9.12.0",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.1.0",
     "@types/leaflet": "^1.9.21",
-    "@types/react": "^18.3.17",
-    "@types/react-dom": "^18.3.5",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "leaflet": "^1.9.4",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "tsup": "^8.3.5"
   }
 }

@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from "react"
+import { Fragment, type ReactElement, type ReactNode } from "react"
 
 /** Restricted markdown renderer for configurable flow text (title/subtitle/description/
  *  label/message/button copy). Allowlist: bold, italic, links, bullet/numbered lists.
@@ -137,7 +137,7 @@ function renderBlock(text: string): ReactNode {
   return nodes
 }
 
-export function FlowMarkdown({ text, variant }: FlowMarkdownProps): JSX.Element | null {
+export function FlowMarkdown({ text, variant }: FlowMarkdownProps): ReactElement | null {
   if (!text) return null
   return <>{variant === "block" ? renderBlock(text) : renderInlineOnly(text)}</>
 }
