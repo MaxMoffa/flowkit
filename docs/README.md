@@ -7,7 +7,7 @@
 - [Using Flowkit in an app](./using-flowkit.md)
 - [Custom steps](./custom-steps.md)
 - [Configuring a theme](./theming.md)
-- [Defining a flow / reference by step type](./steps-reference.md)
+- [Defining a flow](./steps-reference.md) / [step-by-step reference](./steps/index.md)
 - [OAuth step](./oauth-step.md)
 - [Map step (maplibre-gl / Leaflet)](./map-step.md)
 - [Result actions (email, PDF, share, styled report export)](./result-actions.md)
@@ -15,4 +15,4 @@
 - [i18n and included presets](./i18n-and-presets.md)
 - [Monorepo scripts and end-to-end tests](./development.md)
 
-Back to the [project README](../README.md).
+Back to the [project README](https://github.com/MaxMoffa/flowkit#readme).
