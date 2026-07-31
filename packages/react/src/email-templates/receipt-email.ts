@@ -1,6 +1,6 @@
-import { isUploadedItemArray } from "@flowkit-io/core"
 import type { Answers } from "@flowkit-io/core"
 import { escapeHtml, safeImageDataUrl } from "../html"
+import { classifyAnswerValue } from "../answer-value"
 
 export interface ReceiptEmailTemplateOptions {
   title: string
@@ -8,32 +8,41 @@ export interface ReceiptEmailTemplateOptions {
   answers: Answers
 }
 
+function imgTag(src: string): string {
+  return `<img src="${src}" alt="" width="96" style="border-radius:8px;margin:0 6px 6px 0;" />`
+}
+
 function formatAnswerValue(value: unknown): string {
-  if (value === null || value === undefined) return ""
-  if (typeof value === "string" && value.startsWith("data:image/")) {
-    const src = safeImageDataUrl(value)
-    return src ? `<img src="${src}" alt="" width="96" style="border-radius:8px;margin:0 6px 6px 0;" />` : "📷"
+  const classified = classifyAnswerValue(value)
+  switch (classified.kind) {
+    case "empty":
+      return ""
+    case "data-url": {
+      if (!classified.isImage) return "📷"
+      const src = safeImageDataUrl(classified.url)
+      return src ? imgTag(src) : "📷"
+    }
+    case "uploaded-items": {
+      if (classified.items.length === 0) return ""
+      const images = classified.items
+        .filter((item) => item.kind === "image")
+        .map((item) => safeImageDataUrl(item.dataUrl))
+        .filter((src): src is string => src !== null)
+        .map(imgTag)
+        .join("")
+      return images || escapeHtml(`${classified.items.length} allegato/i`)
+    }
+    case "array":
+      return escapeHtml(classified.items.map(String).join(", "))
+    case "nested":
+      return escapeHtml(
+        Object.entries(classified.value)
+          .map(([k, v]) => `${k}: ${formatAnswerValue(v)}`)
+          .join(", "),
+      )
+    case "scalar":
+      return escapeHtml(String(classified.value))
   }
-  if (typeof value === "string" && value.startsWith("data:")) return "📷"
-  if (isUploadedItemArray(value)) {
-    if (value.length === 0) return ""
-    const images = value
-      .filter((item) => item.kind === "image")
-      .map((item) => safeImageDataUrl(item.dataUrl))
-      .filter((src): src is string => src !== null)
-      .map((src) => `<img src="${src}" alt="" width="96" style="border-radius:8px;margin:0 6px 6px 0;" />`)
-      .join("")
-    return images || escapeHtml(`${value.length} allegato/i`)
-  }
-  if (Array.isArray(value)) return escapeHtml(value.map(String).join(", "))
-  if (typeof value === "object") {
-    return escapeHtml(
-      Object.entries(value as Record<string, unknown>)
-        .map(([k, v]) => `${k}: ${String(formatAnswerValue(v))}`)
-        .join(", "),
-    )
-  }
-  return escapeHtml(String(value))
 }
 
 /**
