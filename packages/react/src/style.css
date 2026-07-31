@@ -108,11 +108,6 @@
     flex: var(--fk-content-flex, 1);
   }
 
-  /* Map steps get a wider column: room for the controls + map 2-column layout below */
-  .fk-scroll-location:has(.fk-step-location--columns) > .fk-scroll-inner {
-    max-width: 1040px;
-  }
-
   /* Choice steps (grids/lists/pills) get a wider column so options can spread out
      instead of stacking narrowly; dense text steps (text, notes, review…) stay at
      the default readable width. */
@@ -123,6 +118,13 @@
   .fk-scroll-inner:has(.fk-step-faces),
   .fk-scroll-inner:has(.fk-step-scale) {
     max-width: 780px;
+  }
+
+  /* Map steps get a wider column: room for the controls + map 2-column layout below.
+     Ordered after the choice-steps rule above (targets a disjoint :has() condition,
+     so this is a pure no-op reorder) to satisfy stylelint's no-descending-specificity. */
+  .fk-scroll-location:has(.fk-step-location--columns) > .fk-scroll-inner {
+    max-width: 1040px;
   }
 
   .fk-step-select-cards .fk-cards-grid {
@@ -487,6 +489,10 @@
   transform: scale(0.98);
 }
 
+/* stylelint-disable no-descending-specificity -- these two rules share no property
+   with .fk-btn-primary:active/.fk-btn-secondary:active above (transform vs.
+   min-height/border/font-size/...), so there's no real cascade risk from appearing
+   after it; flagged only because :active is nominally more specific. */
 .fk-btn-primary,
 .fk-btn-secondary {
   min-height: var(--fk-control-height);
@@ -539,6 +545,7 @@
   font-size: 16px;
   margin-bottom: var(--fk-space-sm);
 }
+/* stylelint-enable no-descending-specificity */
 
 .fk-btn-neutral:disabled {
   opacity: 0.6;
@@ -991,6 +998,11 @@
   margin-bottom: 16px;
 }
 
+/* stylelint-disable no-descending-specificity -- .fk-group-item .fk-textarea (2
+   classes, above) is unconditionally more specific than the bare .fk-textarea rules
+   below regardless of source order, so its own margin-bottom:0 always wins as
+   intended; flagged only because the more-specific selector happens to be declared
+   first in the file. */
 .fk-input,
 .fk-textarea {
   width: 100%;
@@ -1015,6 +1027,7 @@
   resize: none;
   margin-bottom: var(--fk-space-lg);
 }
+/* stylelint-enable no-descending-specificity */
 
 .fk-smartfill-hint {
   margin-top: 8px;

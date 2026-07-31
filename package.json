@@ -8,7 +8,7 @@
     "apps/*"
   ],
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint . && stylelint \"packages/react/src/**/*.css\" \"apps/playground/src/**/*.css\"",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "typecheck": "tsc --noEmit",
@@ -28,6 +28,8 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "globals": "^15.13.0",
     "jsdom": "^25.0.1",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard": "^40.0.0",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.1",
     "vite": "^6.0.3",
