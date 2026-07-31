@@ -3,10 +3,11 @@ import { openPreset } from "./helpers/open-preset"
 
 test.describe("flow.texts override", () => {
   test("overrides the intro CTA, footer back label, and confirmation buttons", async ({ page }) => {
-    await openPreset(page, { preset: "i18n-texts-demo" })
-
-    // intro's own `cta` field still wins (step-authored default), not flow.texts.continue.
+    // intro's own `cta` field still wins (step-authored default), not flow.texts.continue —
+    // check that before openPreset's default flow clicks straight past the intro screen.
+    await openPreset(page, { preset: "i18n-texts-demo", start: false })
     await expect(page.getByRole("button", { name: "Prova", exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Prova", exact: true }).click()
 
     await page.locator(".fk-input").fill("Risposta")
     await page.getByRole("button", { name: "Vai avanti", exact: true }).click()

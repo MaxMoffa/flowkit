@@ -23,8 +23,10 @@ export const remoteDataSourceSchema = z.object({
   hasMorePath: z.string().optional(),
   /** Query params always sent as-is. */
   staticParams: z.record(z.string(), z.string()).optional(),
-  /** Query param name -> id of a previous step whose current (string) answer supplies
-   *  the value. The request waits until every mapped source step has a non-empty answer. */
+  /** Query param name -> `key` of a previous step whose current (string) answer supplies
+   *  the value (the step's resolved `key`, see resolveStepKeys/answerKey — not its `id`,
+   *  since that's what names the field in `answers`). The request waits until every
+   *  mapped source step has a non-empty answer. */
   paramsFromSteps: z.record(z.string(), z.string()).optional(),
   /** Presence of this field turns the step into a search-autocomplete: it names the
    *  query param that carries the user's typed search text. Unset = a plain remote list,

@@ -19,6 +19,7 @@ export const remoteDataSourceDemoFlow: Flow = parseFlow({
     },
     {
       id: "user",
+      key: "user",
       type: "select-cards",
       title: "Utente",
       subtitle: "Caricato da jsonplaceholder.typicode.com/users.",

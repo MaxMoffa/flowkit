@@ -10,8 +10,9 @@ export const smartFillAddonSchema = z.object({
   type: z.literal("smartFill"),
   /** Id of a generator registered with registerSmartFillGenerator (see smart-fill.ts). */
   generator: z.string().min(1),
-  /** Maps each of the generator's logical input names to the id of the flow step that
-   *  provides it (e.g. { nome: "first-name-step", ... }). */
+  /** Maps each of the generator's logical input names to the `key` of the flow step
+   *  that provides it (e.g. { nome: "first-name-step", ... } where "first-name-step"
+   *  is that step's resolved `key`, not its `id` — see resolveStepKeys/answerKey). */
   sourceFields: z.record(z.string(), z.string()),
 })
 

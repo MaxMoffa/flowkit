@@ -31,12 +31,14 @@ export const smartFillDemoFlow: Flow = parseFlow({
     },
     {
       id: "data-di-nascita",
+      key: "data_di_nascita",
       type: "date-time",
       title: "Data di nascita",
       mode: "date",
     },
     {
       id: "luogo-di-nascita",
+      key: "luogo_di_nascita",
       type: "select-cards",
       title: "Luogo di nascita",
       options: [
@@ -60,8 +62,8 @@ export const smartFillDemoFlow: Flow = parseFlow({
           sourceFields: {
             nome: "nome",
             cognome: "cognome",
-            dataNascita: "data-di-nascita",
-            luogoNascita: "luogo-di-nascita",
+            dataNascita: "data_di_nascita",
+            luogoNascita: "luogo_di_nascita",
             sesso: "sesso",
           },
         },
