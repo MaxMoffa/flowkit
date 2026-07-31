@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { buildReportRows, defaultIcon, parseFlow, type Flow } from "./index"
+import { z } from "zod"
+import { buildReportRows, defaultIcon, parseFlow, registerStepType, type Flow } from "./index"
 
 const flow: Flow = parseFlow({
   id: "demo",
@@ -62,6 +63,32 @@ describe("buildReportRows", () => {
   it("carries the originating step's id on every row", () => {
     const rows = buildReportRows(flow, {})
     expect(rows.map((r) => r.stepId)).toEqual(["mood", "notes", "extras", "sig"])
+  })
+
+  it("excludes a step absent from visitedStepIds, e.g. one a branch skipped over", () => {
+    const rows = buildReportRows(flow, {}, new Set(["welcome", "mood", "sig", "check", "end"]))
+    expect(rows.map((r) => r.stepId)).toEqual(["mood", "sig"])
+  })
+
+  it("excludes a step whose type opts out via includeInSummary:false, even if visited", () => {
+    registerStepType({
+      type: "no-summary-test",
+      schema: z.object({ id: z.string(), type: z.literal("no-summary-test") }),
+      validate: () => true,
+      includeInSummary: false,
+    })
+    const withInfo: Flow = parseFlow({
+      id: "demo3",
+      title: "Demo 3",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "aside", type: "no-summary-test", title: "Aside" },
+        { id: "notes", type: "text", title: "Note" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const rows = buildReportRows(withInfo, {})
+    expect(rows.map((r) => r.stepId)).toEqual(["notes"])
   })
 
   it("excludes a checkpoint review step just like a final one", () => {

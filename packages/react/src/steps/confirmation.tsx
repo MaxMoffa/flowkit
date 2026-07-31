@@ -12,7 +12,12 @@ import { ResultLinkAction } from "./confirmation-actions/result-link-action"
  * the flow enabled. Each action owns its own state and lives in confirmation-actions/ —
  * they are independent features that only happen to share this screen.
  */
-export function ConfirmationStepView({ step, flow, answers }: StepComponentProps<ConfirmationStep>) {
+export function ConfirmationStepView({
+  step,
+  flow,
+  answers,
+  visitedStepIds,
+}: StepComponentProps<ConfirmationStep>) {
   const resultActions = step.resultActions
 
   return (
@@ -56,6 +61,7 @@ export function ConfirmationStepView({ step, flow, answers }: StepComponentProps
           fallbackTitle={step.title}
           flow={flow}
           answers={answers}
+          visitedStepIds={visitedStepIds}
         />
       )}
 

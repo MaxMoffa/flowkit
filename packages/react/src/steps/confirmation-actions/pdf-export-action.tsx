@@ -8,11 +8,12 @@ interface PdfExportActionProps {
   fallbackTitle: string
   flow: Flow
   answers: Answers
+  visitedStepIds?: Set<string>
 }
 
 /** Print button plus the `.fk-print-recap` block, hidden on screen and laid out for paper
  *  by the print stylesheet: "export to PDF" is the browser's own print-to-PDF. */
-export function PdfExportAction({ config, fallbackTitle, flow, answers }: PdfExportActionProps) {
+export function PdfExportAction({ config, fallbackTitle, flow, answers, visitedStepIds }: PdfExportActionProps) {
   return (
     <>
       <button type="button" className="fk-btn-neutral fk-pdf-export-btn" onClick={() => window.print()}>
@@ -20,7 +21,7 @@ export function PdfExportAction({ config, fallbackTitle, flow, answers }: PdfExp
       </button>
       <div className="fk-print-recap">
         <h1>{config.documentTitle ?? fallbackTitle}</h1>
-        <ReportRows rows={buildReportRows(flow, answers)} />
+        <ReportRows rows={buildReportRows(flow, answers, visitedStepIds)} />
       </div>
     </>
   )

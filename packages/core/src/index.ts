@@ -32,6 +32,7 @@ import "./signature-step"
 import "./payment-stripe-step"
 import "./verification-step"
 import "./booking-slot-step"
+import "./branch-step"
 
 export * from "./schema"
 export * from "./intro-step"
@@ -83,3 +84,10 @@ export {
   listBookingSlotsForDate,
 } from "./booking-slot-step"
 export type { BookingSlotStep, BookingSlot, BookingSlotValue } from "./booking-slot-step"
+export {
+  branchStepSchema,
+  branchRuleSchema,
+  conditionSchema,
+  evaluateCondition,
+} from "./branch-step"
+export type { BranchStep, BranchRule, Condition, ConditionOp } from "./branch-step"

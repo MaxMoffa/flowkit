@@ -173,8 +173,8 @@ export const featuresDemoFlow: Flow = parseFlow({
       title: "Entrambi i campi richiesti (AND)",
       subtitle: "requiredChildren: { mode: 'all' } — Continua resta disabilitato finché non compili entrambi.",
       steps: [
-        { id: "a", type: "text", title: "Campo A", placeholder: "Campo A", required: false },
-        { id: "b", type: "text", title: "Campo B", placeholder: "Campo B", required: false },
+        { id: "a", key: "and_a", type: "text", title: "Campo A", placeholder: "Campo A", required: false },
+        { id: "b", key: "and_b", type: "text", title: "Campo B", placeholder: "Campo B", required: false },
       ],
       requiredChildren: { mode: "all" },
     },
@@ -184,8 +184,8 @@ export const featuresDemoFlow: Flow = parseFlow({
       title: "Almeno un campo richiesto (OR)",
       subtitle: "requiredChildren: { mode: 'any' } — basta compilarne uno dei due.",
       steps: [
-        { id: "a", type: "text", title: "Campo A", placeholder: "Campo A", required: false },
-        { id: "b", type: "text", title: "Campo B", placeholder: "Campo B", required: false },
+        { id: "a", key: "any_a", type: "text", title: "Campo A", placeholder: "Campo A", required: false },
+        { id: "b", key: "any_b", type: "text", title: "Campo B", placeholder: "Campo B", required: false },
       ],
       requiredChildren: { mode: "any" },
     },
@@ -195,8 +195,8 @@ export const featuresDemoFlow: Flow = parseFlow({
       title: "Nessun campo obbligatorio",
       subtitle: "requiredChildren: { mode: 'none' } — puoi sempre procedere.",
       steps: [
-        { id: "a", type: "text", title: "Campo A", placeholder: "Campo A", required: false },
-        { id: "b", type: "text", title: "Campo B", placeholder: "Campo B", required: false },
+        { id: "a", key: "none_a", type: "text", title: "Campo A", placeholder: "Campo A", required: false },
+        { id: "b", key: "none_b", type: "text", title: "Campo B", placeholder: "Campo B", required: false },
       ],
       requiredChildren: { mode: "none" },
     },

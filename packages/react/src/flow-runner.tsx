@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useState } from "react"
 import type { Answers, Flow } from "@flowkit-io/core"
 import {
   answerKey,
+  applyBranch,
   canGoNext,
   createFlowState,
   getCurrentStep,
@@ -13,6 +14,7 @@ import {
   next as nextState,
   prev as prevState,
   progress as flowProgress,
+  resolveBranch,
   setAnswer,
   setStepMeta,
 } from "@flowkit-io/core"
@@ -63,7 +65,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     () =>
       flow.steps.filter((s) => {
         const role = getStepTypeDefinition(s.type)?.role
-        return role !== "intro" && role !== "confirmation"
+        return role !== "intro" && role !== "confirmation" && role !== "logic"
       }),
     [flow],
   )
@@ -71,12 +73,14 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const stepRole = getStepTypeDefinition(step.type)?.role
   const isIntro = stepRole === "intro"
   const isConfirmation = stepRole === "confirmation"
-  const showHeader = !isIntro && !isConfirmation
+  const isLogic = stepRole === "logic"
+  const showHeader = !isIntro && !isConfirmation && !isLogic
   const isReviewType = stepRole === "review"
   const isFinalReviewSubmit = isReviewType && (step as StepWithReviewFields).mode !== "checkpoint"
 
   const layout = useFlowRunnerLayout(step, theme, mode, direction)
   const progressProps = { pct, currentIndex: middleIndex, total: middleSteps.length }
+  const visitedStepIds = useMemo(() => new Set([...state.history, step.id]), [state.history, step.id])
 
   /** Forward-only flows must also survive the browser's own back button: push a
    *  sentinel history entry and re-push it on every popstate, so the back button
@@ -90,6 +94,17 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     window.addEventListener("popstate", handlePopState)
     return () => window.removeEventListener("popstate", handlePopState)
   }, [flow.disableBack])
+
+  /** A "branch" (role: "logic") step is never shown: resolve its target and jump
+   *  synchronously, before the browser paints, so it never actually renders on screen
+   *  (its component itself also just renders null, belt-and-suspenders). Runs on mount
+   *  and on every index change; the `stepRole !== "logic"` guard makes it a no-op once
+   *  the jump has landed on a real step, so it can't loop. */
+  useLayoutEffect(() => {
+    if (stepRole !== "logic") return
+    const target = resolveBranch(flow, state)
+    setState((s) => applyBranch(flow, s, target))
+  }, [flow, state, stepRole])
 
   function handleChange(value: Parameters<typeof setAnswer>[2]) {
     // Functional update: a step (e.g. the "smartFill" add-on) may also call
@@ -199,12 +214,13 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
                   onNavigateToStep={isReviewType && !flow.disableBack ? handleNavigateToStep : undefined}
                   meta={getStepMeta(state, step.id)}
                   onMetaChange={handleMetaChange}
+                  visitedStepIds={visitedStepIds}
                 />
               </div>
             </div>
           </div>
         </div>
-        {!last && (
+        {!last && !isLogic && (
           <StepFooter
             order={layout.footerOrder}
             showBack={showHeader && !flow.disableBack}

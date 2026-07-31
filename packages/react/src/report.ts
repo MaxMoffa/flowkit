@@ -5,6 +5,11 @@ import { stepImageToHtml } from "./steps/shared/step-image"
 
 export interface RenderAnswersReportHtmlOptions {
   documentTitle?: string
+  /** Restricts rows to steps actually visited (see buildReportRows, core/report.ts).
+   *  Omit to include every eligible step regardless of visit — this function has no
+   *  FlowState to derive a path from, so the caller must supply one if it wants
+   *  branch-skipped steps excluded. */
+  visitedStepIds?: Set<string>
 }
 
 /**
@@ -20,7 +25,7 @@ export function renderAnswersReportHtml(
   answers: Answers,
   options: RenderAnswersReportHtmlOptions = {},
 ): string {
-  const rows = buildReportRows(flow, answers)
+  const rows = buildReportRows(flow, answers, options.visitedStepIds)
   const rowsHtml = rows
     .map((row) => {
       const images = (row.media ?? [])

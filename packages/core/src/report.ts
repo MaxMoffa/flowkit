@@ -105,11 +105,21 @@ export interface ReportRow {
 }
 
 /** Framework-agnostic row list for the "resoconto" report, shared by the review step,
- *  the confirmation step's print/PDF recap, and renderAnswersReportHtml. */
-export function buildReportRows(flow: Flow, answers: Answers): ReportRow[] {
+ *  the confirmation step's print/PDF recap, and renderAnswersReportHtml.
+ *
+ *  `visitedStepIds`, when provided, additionally filters out steps a branch skipped
+ *  over (never rendered, so they'd otherwise show up as an empty "—" row) — pass the
+ *  flow's actual traversal path (FlowState.history plus the current step). Omit it
+ *  to include every eligible step regardless of whether it was ever visited, the
+ *  previous behavior (used by consumers with no FlowState to hand, e.g. a server-side
+ *  renderAnswersReportHtml call). */
+export function buildReportRows(flow: Flow, answers: Answers, visitedStepIds?: Set<string>): ReportRow[] {
   const reviewable = flow.steps.filter((s) => {
-    const role = getStepTypeDefinition(s.type)?.role
-    return role !== "intro" && role !== "review" && role !== "confirmation"
+    if (visitedStepIds && !visitedStepIds.has(s.id)) return false
+    const def = getStepTypeDefinition(s.type)
+    const role = def?.role
+    if (role === "intro" || role === "review" || role === "confirmation" || role === "logic") return false
+    return def?.includeInSummary !== false
   })
   return reviewable.map((s) => {
     const value = answers[answerKey(s)]

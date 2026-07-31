@@ -13,6 +13,10 @@ export interface StepComponentProps<T extends Step = Step> {
    *  "user overrode the suggestion" flag). See FlowState.meta (core/machine.ts). */
   meta: Record<string, unknown>
   onMetaChange: (patch: Record<string, unknown>) => void
+  /** Ids of steps actually visited so far in this run (the real path, including the
+   *  current step) — lets a review/recap step exclude steps a branch skipped over. See
+   *  FlowState.history (core/machine.ts). */
+  visitedStepIds?: Set<string>
 }
 
 export type FlowSubmitHandler = (answers: Record<string, AnswerValue>) => void | Promise<void>

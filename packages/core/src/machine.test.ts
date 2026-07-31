@@ -3,6 +3,7 @@ import { z } from "zod"
 import {
   parseFlow,
   type Flow,
+  applyBranch,
   canGoBack,
   canGoNext,
   createFlowState,
@@ -11,6 +12,7 @@ import {
   next,
   prev,
   registerStepType,
+  resolveBranch,
   setAnswer,
   setStepMeta,
 } from "./index"
@@ -69,7 +71,7 @@ describe("machine navigation", () => {
 
   it("optional steps do not block navigation", () => {
     const flow = makeFlow()
-    let state = { index: 2, answers: {}, meta: {} }
+    let state = { index: 2, answers: {}, meta: {}, history: ["welcome", "mood"] }
     expect(isStepValid(flow.steps[2]!, state.answers)).toBe(true)
     state = next(flow, state)
     expect(state.index).toBe(3)
@@ -83,7 +85,7 @@ describe("machine navigation", () => {
 
   it("next does not go past the last step", () => {
     const flow = makeFlow()
-    let state = { index: flow.steps.length - 1, answers: {}, meta: {} }
+    let state = { index: flow.steps.length - 1, answers: {}, meta: {}, history: ["welcome", "mood", "notes"] }
     state = next(flow, state)
     expect(state.index).toBe(flow.steps.length - 1)
   })
@@ -129,19 +131,19 @@ describe("disableBack", () => {
 
   it("canGoBack is false whenever disableBack is set, even mid-flow", () => {
     const flow = makeForwardOnlyFlow()
-    expect(canGoBack(flow, { index: 1, answers: {}, meta: {} })).toBe(false)
-    expect(canGoBack(flow, { index: 0, answers: {}, meta: {} })).toBe(false)
+    expect(canGoBack(flow, { index: 1, answers: {}, meta: {}, history: ["welcome"] })).toBe(false)
+    expect(canGoBack(flow, { index: 0, answers: {}, meta: {}, history: [] })).toBe(false)
   })
 
   it("canGoBack is true mid-flow on a normal flow", () => {
     const flow = makeFlow()
-    expect(canGoBack(flow, { index: 1, answers: {}, meta: {} })).toBe(true)
-    expect(canGoBack(flow, { index: 0, answers: {}, meta: {} })).toBe(false)
+    expect(canGoBack(flow, { index: 1, answers: {}, meta: {}, history: ["welcome"] })).toBe(true)
+    expect(canGoBack(flow, { index: 0, answers: {}, meta: {}, history: [] })).toBe(false)
   })
 
   it("prev is a no-op when disableBack is set, even mid-flow", () => {
     const flow = makeForwardOnlyFlow()
-    const state = prev(flow, { index: 1, answers: {}, meta: {} })
+    const state = prev(flow, { index: 1, answers: {}, meta: {}, history: ["welcome"] })
     expect(state.index).toBe(1)
   })
 })
@@ -149,7 +151,7 @@ describe("disableBack", () => {
 describe("goToStep", () => {
   it("jumps to the step matching the given id, leaving answers untouched", () => {
     const flow = makeFlow()
-    const state = { index: 0, answers: { mood: "4" }, meta: {} }
+    const state = { index: 0, answers: { mood: "4" }, meta: {}, history: [] }
     const jumped = goToStep(flow, state, "notes")
     expect(jumped.index).toBe(2)
     expect(jumped.answers).toEqual({ mood: "4" })
@@ -163,8 +165,63 @@ describe("goToStep", () => {
 
   it("jumping to the current step's own id is a no-op index-wise", () => {
     const flow = makeFlow()
-    const state = { index: 1, answers: {}, meta: {} }
+    const state = { index: 1, answers: {}, meta: {}, history: ["welcome"] }
     const jumped = goToStep(flow, state, "mood")
     expect(jumped.index).toBe(1)
+  })
+})
+
+describe("branching", () => {
+  function makeBranchFlow(): Flow {
+    return parseFlow({
+      id: "branch-demo",
+      title: "Branch demo",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "age", type: "text", required: false },
+        {
+          id: "router",
+          type: "branch",
+          rules: [{ when: { key: "age", op: "gte", value: 18 }, goTo: "adult-only" }],
+          fallback: "minor-only",
+        },
+        { id: "adult-only", type: "text", required: false },
+        { id: "minor-only", type: "text", required: false },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+  }
+
+  it("resolveBranch returns the first matching rule's target", () => {
+    const flow = makeBranchFlow()
+    const state = { index: 2, answers: { age: 21 }, meta: {}, history: ["welcome", "age"] }
+    expect(resolveBranch(flow, state)).toBe("adult-only")
+  })
+
+  it("resolveBranch falls back when no rule matches", () => {
+    const flow = makeBranchFlow()
+    const state = { index: 2, answers: { age: 10 }, meta: {}, history: ["welcome", "age"] }
+    expect(resolveBranch(flow, state)).toBe("minor-only")
+  })
+
+  it("applyBranch jumps to the target without pushing the branch step onto history", () => {
+    const flow = makeBranchFlow()
+    const state = { index: 2, answers: { age: 21 }, meta: {}, history: ["welcome", "age"] }
+    const jumped = applyBranch(flow, state, resolveBranch(flow, state))
+    expect(jumped.index).toBe(3)
+    expect(jumped.history).toEqual(["welcome", "age"])
+  })
+
+  it("Back after a branch returns to the step before the branch, not the untaken side", () => {
+    const flow = makeBranchFlow()
+    let state = createFlowState()
+    state = next(flow, state) // welcome -> age
+    state = setAnswer(state, flow.steps[1]!, 21)
+    state = next(flow, state) // age -> router
+    state = applyBranch(flow, state, resolveBranch(flow, state)) // router -> adult-only (skips minor-only)
+    expect(flow.steps[state.index]!.id).toBe("adult-only")
+
+    state = prev(flow, state)
+    expect(flow.steps[state.index]!.id).toBe("age")
   })
 })
