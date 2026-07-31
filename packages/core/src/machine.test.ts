@@ -58,7 +58,7 @@ describe("machine navigation", () => {
     const flow = makeFlow()
     let state = createFlowState()
     state = next(flow, state) // -> mood
-    state = setAnswer(state, "mood", "4")
+    state = setAnswer(state, flow.steps[1]!, "4")
     expect(canGoNext(flow, state)).toBe(true)
     state = next(flow, state) // -> notes
     expect(state.index).toBe(2)

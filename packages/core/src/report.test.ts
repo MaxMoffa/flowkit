@@ -86,13 +86,13 @@ describe("buildReportRows", () => {
   })
 
   it("resolves a faces answer to its label, not the raw value", () => {
-    const rows = buildReportRows(flow, { mood: "3" })
+    const rows = buildReportRows(flow, { come_ti_senti: "3" })
     expect(rows.find((r) => r.title === "Come ti senti?")!.value).toBe("Ok")
   })
 
   it("aggregates a group's children into a single comma-joined row", () => {
     const rows = buildReportRows(flow, {
-      extras: { "extra-notes": "tutto ok", "extra-photo": [] },
+      extra: { extra_notes: "tutto ok", extra_photo: [] },
     })
     expect(rows.find((r) => r.title === "Extra")!.value).toBe("tutto ok")
   })
@@ -100,7 +100,7 @@ describe("buildReportRows", () => {
   it("collects image items from a media step nested in a group for embedding", () => {
     const photo = { id: "p1", name: "a.png", mimeType: "image/png", size: 10, dataUrl: "data:image/png;base64,AA==", kind: "image" as const }
     const rows = buildReportRows(flow, {
-      extras: { "extra-notes": "", "extra-photo": [photo] },
+      extra: { extra_notes: "", extra_photo: [photo] },
     })
     const row = rows.find((r) => r.title === "Extra")!
     expect(row.media).toEqual([photo])
@@ -109,14 +109,14 @@ describe("buildReportRows", () => {
   it("summarizes a media/file answer as a count, not the raw items", () => {
     const photo = { id: "p1", name: "a.png", mimeType: "image/png", size: 10, dataUrl: "data:image/png;base64,AA==", kind: "image" as const }
     const rows = buildReportRows(flow, {
-      extras: { "extra-notes": "", "extra-photo": [photo, photo] },
+      extra: { extra_notes: "", extra_photo: [photo, photo] },
     })
     expect(rows.find((r) => r.title === "Extra")!.value).toBe("📷×2")
   })
 
   it("renders a signature answer as a label plus an embeddable svg image, not raw text", () => {
     const svgDataUrl = "data:image/svg+xml;base64,PHN2Zy8+"
-    const rows = buildReportRows(flow, { sig: svgDataUrl })
+    const rows = buildReportRows(flow, { firma: svgDataUrl })
     const row = rows.find((r) => r.title === "Firma")!
     expect(row.value).toBe("✍️ Firma")
     expect(row.media).toEqual([

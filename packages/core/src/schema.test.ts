@@ -169,9 +169,9 @@ describe("text step pattern", () => {
       ],
     })
     const step = flow.steps[1]!
-    expect(isStepValid(step, { "biz-email": "not-an-email" })).toBe(false)
-    expect(isStepValid(step, { "biz-email": "a@other.com" })).toBe(false)
-    expect(isStepValid(step, { "biz-email": "a@biz.com" })).toBe(true)
+    expect(isStepValid(step, { biz_email: "not-an-email" })).toBe(false)
+    expect(isStepValid(step, { biz_email: "a@other.com" })).toBe(false)
+    expect(isStepValid(step, { biz_email: "a@biz.com" })).toBe(true)
   })
 })
 

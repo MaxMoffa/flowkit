@@ -1,5 +1,6 @@
 import type { Flow, Step, StepImage } from "./schema"
 import type { Answers } from "./machine"
+import { answerKey } from "./machine"
 import { getStepTypeDefinition } from "./registry"
 import { isUploadedItemArray, type UploadedItem } from "./upload-item"
 
@@ -37,7 +38,7 @@ export function formatAnswer(step: Step, value: unknown): string {
     const answers = value as Record<string, unknown>
     return (
       children
-        .map((child) => formatAnswer(child, answers[child.id]))
+        .map((child) => formatAnswer(child, answers[answerKey(child)]))
         .filter((v) => v && v !== "—")
         .join(", ") || "—"
     )
@@ -87,7 +88,7 @@ function collectImages(step: Step, value: unknown): UploadedItem[] {
   if ((step.type as string) === "group") {
     const children = (step as unknown as { steps: Step[] }).steps
     const answers = (value as Record<string, unknown>) ?? {}
-    return children.flatMap((child) => collectImages(child, answers[child.id]))
+    return children.flatMap((child) => collectImages(child, answers[answerKey(child)]))
   }
   return []
 }
@@ -111,7 +112,7 @@ export function buildReportRows(flow: Flow, answers: Answers): ReportRow[] {
     return role !== "intro" && role !== "review" && role !== "confirmation"
   })
   return reviewable.map((s) => {
-    const value = answers[s.id]
+    const value = answers[answerKey(s)]
     const media = collectImages(s, value)
     return {
       stepId: s.id,

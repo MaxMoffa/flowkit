@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { registerStepType, getStepTypeDefinition } from "./registry"
 import { baseStepFields, parseStep, type Step } from "./schema"
+import { answerKey } from "./machine"
 
 /**
  * "group" step (v2.14+): composes multiple steps into a single page, with no
@@ -39,7 +40,7 @@ export type GroupStep = z.infer<typeof groupStepSchema> & { steps: Step[] }
 function isChildValid(child: Step, aggregate: Record<string, unknown>): boolean {
   const def = getStepTypeDefinition(child.type)
   if (!def) return false
-  return def.validate(child, aggregate[child.id], aggregate)
+  return def.validate(child, aggregate[answerKey(child)], aggregate)
 }
 
 registerStepType({

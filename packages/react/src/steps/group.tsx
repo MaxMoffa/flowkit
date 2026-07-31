@@ -1,4 +1,5 @@
 import type { AnswerValue, GroupStep } from "@flowkit-io/core"
+import { answerKey } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { getStepComponent } from "../registry"
 import { FlowMarkdown } from "../markdown"
@@ -33,8 +34,8 @@ export function GroupStepView({ step, value, onChange, flow, answers, meta, onMe
             <div key={child.id} className="fk-group-item">
               <ChildView
                 step={child}
-                value={aggregate[child.id] ?? null}
-                onChange={(childValue) => onChange({ ...aggregate, [child.id]: childValue })}
+                value={aggregate[answerKey(child)] ?? null}
+                onChange={(childValue) => onChange({ ...aggregate, [answerKey(child)]: childValue })}
                 flow={flow}
                 answers={answers}
                 meta={childMeta[child.id] ?? {}}

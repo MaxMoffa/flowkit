@@ -80,15 +80,15 @@ export function isFirstStep(state: FlowState): boolean {
 export function isStepValid(step: Step, answers: Answers): boolean {
   if (step.required === false) return true
 
-  const value = answers[step.id]
+  const value = answers[answerKey(step)]
   const def = getStepTypeDefinition(step.type)
   // No validation registered for this type: passes (permissive default behavior).
   if (!def) return true
   return def.validate(step, value, answers)
 }
 
-export function setAnswer(state: FlowState, stepId: string, value: AnswerValue): FlowState {
-  return { ...state, answers: { ...state.answers, [stepId]: value } }
+export function setAnswer(state: FlowState, step: Step, value: AnswerValue): FlowState {
+  return { ...state, answers: { ...state.answers, [answerKey(step)]: value } }
 }
 
 export function next(flow: Flow, state: FlowState): FlowState {

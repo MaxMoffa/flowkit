@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import type { Answers, Flow } from "@flowkit-io/core"
 import {
+  answerKey,
   canGoNext,
   createFlowState,
   getCurrentStep,
@@ -95,8 +96,8 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     // onMetaChange in the same event, which queues its own functional update. Using a
     // plain (non-functional) setState here would replace the whole state with one
     // computed from a stale closure, silently discarding that sibling update.
-    setState((s) => setAnswer(s, step.id, value))
-    onChange?.({ ...state.answers, [step.id]: value })
+    setState((s) => setAnswer(s, step, value))
+    onChange?.({ ...state.answers, [answerKey(step)]: value })
   }
 
   function handleMetaChange(patch: Record<string, unknown>) {
@@ -191,7 +192,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
               >
                 <StepView
                   step={step}
-                  value={state.answers[step.id] ?? null}
+                  value={state.answers[answerKey(step)] ?? null}
                   onChange={handleChange}
                   flow={flow}
                   answers={state.answers}
