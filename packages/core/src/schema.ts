@@ -69,6 +69,18 @@ export const baseStepFields = {
   required: z.boolean().default(true),
   image: stepImageSchema.optional(),
   /**
+   * Technical identifier used as the field name in collected flow data (answers,
+   * export/integration payloads) — distinct from `id`, which stays the step's
+   * internal navigation identifier. Lowercase letters, digits, underscore, no
+   * spaces. Left unset, it's auto-generated from the step's title (see
+   * `resolveStepKeys`); set it explicitly to override, or to give a stable name to
+   * a step with no title.
+   */
+  key: z
+    .string()
+    .regex(/^[a-z0-9_]+$/, "key must be lowercase letters, digits and underscores only")
+    .optional(),
+  /**
    * Theme override (v2.10) limited to this step: a subset of colors, radii
    * and images applied only while the step is shown. Not typed against
    * ThemeTokens: core doesn't depend on @flowkit-io/themes, the validation/CSS
@@ -276,9 +288,56 @@ function assertFlowStepOrder(steps: Step[]): void {
   }
 }
 
+/** Lowercase, non `[a-z0-9]` runs collapsed to a single `_`, trimmed — same shape the
+ *  `key` field's own regex requires, so a slugified title/id always validates. */
+export function slugify(input: string): string {
+  const slug = input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+  return slug || "step"
+}
+
+type StepWithKeyFields = { id: string; title?: string; key?: string; steps?: Step[] }
+
+/**
+ * Resolves and materializes `step.key` on every step (recursing into `group`
+ * children): explicit `key` wins, else the title is slugified, else the id is.
+ * Mutates the parsed steps in place — after `parseFlow`, every step's `.key` is
+ * guaranteed to be a valid, flow-unique string (read it via `answerKey()`, machine.ts,
+ * rather than `step.key` directly — steps parsed by calling a type's schema.parse()
+ * directly, bypassing parseFlow, never go through this resolution). Throws on a
+ * duplicate resolved key anywhere in the flow, including across a top-level step and a
+ * nested group child: the key names a field in the same flat `answers` object for both.
+ */
+export function resolveStepKeys(steps: Step[]): void {
+  const seen = new Map<string, StepWithKeyFields>()
+
+  function visit(list: Step[]): void {
+    for (const raw of list) {
+      const step = raw as unknown as StepWithKeyFields
+      const resolvedKey = step.key ?? slugify(step.title ?? step.id)
+      const existing = seen.get(resolvedKey)
+      if (existing) {
+        throw new Error(
+          `Invalid flow: duplicate step key "${resolvedKey}" — step id="${existing.id}"` +
+            `${existing.title ? ` (title="${existing.title}")` : ""} and step id="${step.id}"` +
+            `${step.title ? ` (title="${step.title}")` : ""} both resolve to it. Set an explicit, unique "key" on one of them.`,
+        )
+      }
+      step.key = resolvedKey
+      seen.set(resolvedKey, step)
+      if (Array.isArray(step.steps)) visit(step.steps)
+    }
+  }
+
+  visit(steps)
+}
+
 export function parseFlow(input: unknown): Flow {
   const shape = flowShapeSchema.parse(input)
   const steps = shape.steps.map(parseStep)
   assertFlowStepOrder(steps)
+  resolveStepKeys(steps)
   return { ...shape, steps }
 }

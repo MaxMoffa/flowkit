@@ -22,6 +22,16 @@ export type AnswerValue =
 
 export type Answers = Record<string, AnswerValue>
 
+/** Field name a step's answer is stored under: its resolved `key` (see
+ *  `resolveStepKeys`, schema.ts) when present, else its `id` — the fallback covers
+ *  steps parsed outside `parseFlow` (e.g. `schema.parse()` called directly in a
+ *  test), which never go through key resolution. */
+export function answerKey(step: Step): string {
+  // Cast: `key` comes from baseStepFields, not guaranteed on a consumer's custom step
+  // type (see the identical cast/rationale on `defaultIcon`, report.ts).
+  return (step as { key?: string }).key ?? step.id
+}
+
 export interface FlowState {
   index: number
   answers: Answers

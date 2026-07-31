@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseFlow, isStepValid, stepImageSchema } from "./index"
+import { parseFlow, isStepValid, stepImageSchema, slugify } from "./index"
 
 const baseFlow = {
   id: "flow",
@@ -231,5 +231,105 @@ describe("stepImageSchema", () => {
       ],
     })
     expect(flow.steps[0]).toMatchObject({ image: { kind: "emoji", value: "👋" } })
+  })
+})
+
+describe("slugify", () => {
+  it("lowercases, replaces non-alphanumerics with underscore, trims/collapses", () => {
+    expect(slugify("Come ti senti?")).toBe("come_ti_senti")
+    expect(slugify("  Multi   Space  ")).toBe("multi_space")
+    expect(slugify("Già-così_ok!!")).toBe("gi_cos_ok")
+  })
+
+  it("falls back to a non-empty slug when the input has no alphanumerics", () => {
+    expect(slugify("???")).toBe("step")
+  })
+})
+
+describe("resolveStepKeys (via parseFlow)", () => {
+  it("uses an explicit key when set, unchanged", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "name", type: "text", title: "Nome", key: "custom_key" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    expect((flow.steps[1] as { key?: string }).key).toBe("custom_key")
+  })
+
+  it("falls back to a slug of the title when key is unset", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "name", type: "text", title: "Nome completo" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    expect((flow.steps[1] as { key?: string }).key).toBe("nome_completo")
+  })
+
+  it("falls back to a slug of the id when neither key nor title is set", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "step-42", type: "text" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    expect((flow.steps[1] as { key?: string }).key).toBe("step_42")
+  })
+
+  it("resolves keys recursively for group children", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        { id: "welcome", type: "intro" },
+        {
+          id: "grp",
+          type: "group",
+          title: "Extra",
+          steps: [{ id: "child", type: "text", title: "Nota" }],
+        },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const group = flow.steps[1] as unknown as { steps: { key?: string }[] }
+    expect(group.steps[0]!.key).toBe("nota")
+  })
+
+  it("throws on a duplicate resolved key between two top-level steps", () => {
+    expect(() =>
+      parseFlow({
+        ...baseFlow,
+        steps: [
+          { id: "welcome", type: "intro" },
+          { id: "a", type: "text", key: "dup" },
+          { id: "b", type: "text", key: "dup" },
+          { id: "end", type: "confirmation" },
+        ],
+      }),
+    ).toThrow(/duplicate step key "dup"/)
+  })
+
+  it("throws on a duplicate resolved key between a top-level step and a nested group child", () => {
+    expect(() =>
+      parseFlow({
+        ...baseFlow,
+        steps: [
+          { id: "welcome", type: "intro" },
+          { id: "outer", type: "text", key: "shared" },
+          {
+            id: "grp",
+            type: "group",
+            steps: [{ id: "inner", type: "text", key: "shared" }],
+          },
+          { id: "end", type: "confirmation" },
+        ],
+      }),
+    ).toThrow(/duplicate step key "shared"/)
   })
 })
