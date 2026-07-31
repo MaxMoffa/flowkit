@@ -21,8 +21,14 @@ provider's secret key and calls Cloudflare's/Google's siteverify endpoint, resol
 |---|---|---|---|
 | `provider` | `"turnstile" \| "recaptcha"` | — (required) | Which widget to render |
 | `siteKey` | `string` | — (required) | Public site key. Never a secret key |
-| `enabled` | `boolean` | `true` | When `false`, the step always validates and never loads the provider's script/widget — keep the step in place across environments (e.g. disabled in dev/test) without maintaining two flow variants |
+| `enabled` | `boolean` | `true` | When `false`, the step always validates and never loads the provider's script/widget, showing no UI beyond title/subtitle — keep the step in place across environments (e.g. disabled in dev/test) without maintaining two flow variants |
+| `previewVerified` | `boolean` | `false` | When `true`, skips the widget entirely and renders the same "Verifica completata ✅" success state a real pass would — no script load, no `verifyToken` call, no API usage. For previewing/demoing the step's full UI without spending a real challenge. Ignored if `enabled` is `false` |
 | `verifyToken` | `(token, provider) => Promise<boolean>` | — (required) | Must call your backend to verify the widget token server-side |
+
+`enabled: false` and `previewVerified: true` both make the step always valid, but they
+render differently: `enabled: false` shows nothing beyond the title (the step is
+effectively hidden/disabled), `previewVerified: true` shows the full success UI (the
+step still "exists", it just always looks passed).
 
 Answer value: `{ verified: boolean, token?: string, provider }`.
 

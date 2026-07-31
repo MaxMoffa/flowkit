@@ -28,6 +28,16 @@ export const verificationStepSchema = z.object({
    */
   enabled: z.boolean().default(true),
   /**
+   * When true, never loads the provider's script or renders the widget: the
+   * step immediately shows the same "verified" success state a real pass
+   * would, without calling verifyToken or spending a real challenge. Unlike
+   * enabled:false (which shows nothing at all, for hiding the step behind a
+   * feature flag), this is for previewing/demoing the step's full UI without
+   * consuming the anti-bot provider's API. Ignored (real widget shown as
+   * normal) if enabled is false. Default false: the widget shows as today.
+   */
+  previewVerified: z.boolean().default(false),
+  /**
    * Must call the consumer's own backend to verify the widget token
    * server-side against the provider's siteverify endpoint, resolving true
    * only on success.
@@ -49,5 +59,7 @@ registerStepType({
   type: "verification",
   schema: verificationStepSchema,
   validate: (step, value) =>
-    step.enabled === false || (value as VerificationValue | null)?.verified === true,
+    step.enabled === false ||
+    step.previewVerified === true ||
+    (value as VerificationValue | null)?.verified === true,
 })

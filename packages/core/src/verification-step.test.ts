@@ -68,5 +68,15 @@ describe("verification step", () => {
       expect(def.validate(step, null, {})).toBe(true)
       expect(def.validate(step, { verified: false, provider: "turnstile" }, {})).toBe(true)
     })
+
+    it("bypasses validation entirely when previewVerified is true, regardless of value", () => {
+      const step = makeStep({ previewVerified: true })
+      expect(def.validate(step, null, {})).toBe(true)
+      expect(def.validate(step, { verified: false, provider: "turnstile" }, {})).toBe(true)
+    })
+  })
+
+  it("defaults previewVerified to false", () => {
+    expect(makeStep().previewVerified).toBe(false)
   })
 })

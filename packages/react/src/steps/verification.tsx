@@ -40,8 +40,10 @@ export function VerificationStepView({ step, value, onChange }: StepComponentPro
   const [verifying, setVerifying] = useState(false)
   const [verifyError, setVerifyError] = useState<string | null>(null)
 
+  const skipWidget = step.enabled === false || step.previewVerified === true
+
   useEffect(() => {
-    if (step.enabled === false) return
+    if (skipWidget) return
     let cancelled = false
     loadExternalScript(PROVIDER_SCRIPT_SRC[step.provider])
       .then(() => {
@@ -54,7 +56,14 @@ export function VerificationStepView({ step, value, onChange }: StepComponentPro
       cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step.provider, step.enabled])
+  }, [step.provider, skipWidget])
+
+  useEffect(() => {
+    if (step.enabled !== false && step.previewVerified === true) {
+      onChange({ verified: true, provider: step.provider })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step.enabled, step.previewVerified, step.provider])
 
   function handleWidgetToken(token: string) {
     setVerifying(true)
@@ -78,7 +87,7 @@ export function VerificationStepView({ step, value, onChange }: StepComponentPro
   }
 
   useEffect(() => {
-    if (step.enabled === false) return
+    if (skipWidget) return
     if (scriptStatus !== "ready" || renderedRef.current || !containerRef.current) return
     const api = getWidgetApi(step.provider)
     if (!api) return
@@ -89,7 +98,7 @@ export function VerificationStepView({ step, value, onChange }: StepComponentPro
     })
     renderedRef.current = true
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scriptStatus, step.enabled])
+  }, [scriptStatus, skipWidget])
 
   if (step.enabled === false) {
     return (
@@ -100,7 +109,7 @@ export function VerificationStepView({ step, value, onChange }: StepComponentPro
     )
   }
 
-  const verified = asVerificationValue(value)?.verified === true
+  const verified = step.previewVerified === true || asVerificationValue(value)?.verified === true
 
   return (
     <div className="fk-step fk-step-verification">
