@@ -1,6 +1,6 @@
 import { useState } from "react"
 import type { FileStep } from "@flowkit-io/core"
-import { resolveFileAccept } from "@flowkit-io/core"
+import { resolveFileAccept, resolveText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { useFileUpload } from "./shared/use-file-upload"
 import { FlowMarkdown } from "../markdown"
@@ -20,7 +20,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function FileStepView({ step, value, onChange }: StepComponentProps<FileStep>) {
+export function FileStepView({ step, value, onChange, flow }: StepComponentProps<FileStep>) {
   const [previewId, setPreviewId] = useState<string | null>(null)
   const { items, canAddMore, addFiles, removeItem } = useFileUpload({
     value,
@@ -45,7 +45,7 @@ export function FileStepView({ step, value, onChange }: StepComponentProps<FileS
 
       {canAddMore && (
         <label className="fk-media-action-btn">
-          📎 {step.placeholder ?? "Aggiungi file"}
+          📎 {step.placeholder ?? resolveText(flow, "fileAddPlaceholder")}
           <input
             type="file"
             accept={accept || undefined}

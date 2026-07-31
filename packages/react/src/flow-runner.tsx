@@ -15,6 +15,7 @@ import {
   prev as prevState,
   progress as flowProgress,
   resolveBranch,
+  resolveText,
   setAnswer,
   setStepMeta,
 } from "@flowkit-io/core"
@@ -160,12 +161,12 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
 
   const primaryLabel =
     returnToIndex !== null
-      ? "Torna al riepilogo"
+      ? resolveText(flow, "returnToReview")
       : isFinalReviewSubmit
-        ? ((step as StepWithReviewFields).submitLabel ?? "Invia segnalazione ✓")
+        ? ((step as StepWithReviewFields).submitLabel ?? resolveText(flow, "submit"))
         : isIntro
-          ? ((step as StepWithIntroFields).cta ?? "Continua")
-          : "Continua"
+          ? ((step as StepWithIntroFields).cta ?? resolveText(flow, "continue"))
+          : resolveText(flow, "continue")
 
   const isMapStep = step.type === "location" || step.type === "location-leaflet"
 
@@ -181,7 +182,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
                   className="fk-back"
                   onClick={handlePrev}
                   disabled={first}
-                  aria-label="Indietro"
+                  aria-label={resolveText(flow, "backAriaLabel")}
                 >
                   ←
                 </button>
@@ -226,6 +227,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
             showBack={showHeader && !flow.disableBack}
             backDisabled={first}
             onBack={handlePrev}
+            backLabel={resolveText(flow, "back")}
             primaryLabel={primaryLabel}
             primaryDisabled={!valid}
             isSubmit={isFinalReviewSubmit}
@@ -240,9 +242,9 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
         {last && isConfirmation && (
           <ConfirmationFooter
             order={layout.footerOrder}
-            secondaryLabel={(step as StepWithConfirmationFields).secondaryCta ?? "Nuova segnalazione"}
+            secondaryLabel={(step as StepWithConfirmationFields).secondaryCta ?? resolveText(flow, "confirmationRestart")}
             onSecondary={handleRestart}
-            primaryLabel={(step as StepWithConfirmationFields).primaryCta ?? "Torna alla home"}
+            primaryLabel={(step as StepWithConfirmationFields).primaryCta ?? resolveText(flow, "confirmationHome")}
             showPrimary={(step as StepWithConfirmationFields).showHomeButton !== false}
             onPrimary={handleGoHome}
           />

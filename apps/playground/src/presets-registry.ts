@@ -16,6 +16,7 @@ import { remoteDataSourceDemoFlow } from "./remote-data-source-demo"
 import { bookingSlotDemoFlow } from "./booking-slot-demo"
 import { branchDemoFlow } from "./branch-demo"
 import { infoLongContentDemoFlow } from "./info-long-content-demo"
+import { i18nTextsDemoFlow } from "./i18n-texts-demo"
 
 export const presets: Record<string, Flow> = {
   odori: odoriFlow,
@@ -38,6 +39,7 @@ export const presets: Record<string, Flow> = {
   "booking-slot-demo": bookingSlotDemoFlow,
   "branch-demo": branchDemoFlow,
   "info-long-content-demo": infoLongContentDemoFlow,
+  "i18n-texts-demo": i18nTextsDemoFlow,
 }
 
 export const presetLabels: Record<string, string> = {
@@ -61,4 +63,5 @@ export const presetLabels: Record<string, string> = {
   "booking-slot-demo": "Prenotazione slot (demo)",
   "branch-demo": "Ramificazione condizionale (demo)",
   "info-long-content-demo": "Step informativi (demo)",
+  "i18n-texts-demo": "Testi personalizzati (demo)",
 }

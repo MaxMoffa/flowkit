@@ -226,6 +226,14 @@ export interface Flow {
    * browser timezone (see the "booking-slot" step, v2.31). Default "UTC".
    */
   timezone: string
+  /**
+   * Per-flow overrides of the chrome/navigation/validation/status text shipped by the
+   * library (buttons, aria-labels, error and loading messages — see core/i18n.ts's
+   * `defaultMessages`), keyed by the same string as `defaultMessages[locale]`. Unset
+   * keys fall back to the dictionary entry for `locale`, then the Italian default.
+   * Resolve a value with `resolveText(flow, key, fallback?)`.
+   */
+  texts?: Record<string, string>
 }
 
 const flowShapeSchema = z.object({
@@ -235,6 +243,7 @@ const flowShapeSchema = z.object({
   steps: z.array(z.unknown()).min(1),
   disableBack: z.boolean().default(false),
   timezone: z.string().default("UTC"),
+  texts: z.record(z.string(), z.string()).optional(),
 })
 
 /**

@@ -21,6 +21,7 @@ interface StepFooterProps {
   showBack: boolean
   backDisabled: boolean
   onBack: () => void
+  backLabel: string
   primaryLabel: string
   primaryDisabled: boolean
   /** The review step's primary button doubles as the submit action. */
@@ -35,6 +36,7 @@ export function StepFooter({
   showBack,
   backDisabled,
   onBack,
+  backLabel,
   primaryLabel,
   primaryDisabled,
   isSubmit,
@@ -52,7 +54,7 @@ export function StepFooter({
       <div className="fk-footer-row">
         {showBack && (
           <button type="button" className="fk-footer-back" onClick={onBack} disabled={backDisabled}>
-            ← Indietro
+            ← {backLabel}
           </button>
         )}
         <button

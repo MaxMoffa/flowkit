@@ -1,4 +1,5 @@
-import type { Answers } from "@flowkit-io/core"
+import type { Answers, Flow } from "@flowkit-io/core"
+import { resolveText } from "@flowkit-io/core"
 import { escapeHtml, safeImageDataUrl } from "../html"
 import { classifyAnswerValue } from "../answer-value"
 
@@ -6,13 +7,18 @@ export interface ReceiptEmailTemplateOptions {
   title: string
   message?: string
   answers: Answers
+  /** Resolves the attachment-count suffix ("allegato/i"/"attachment(s)", or a
+   *  flow.texts override) via flow.locale. Omit to keep the previous hardcoded
+   *  Italian text — this stays optional since this function has no FlowState/React
+   *  context of its own (a reference impl for the consumer's backend). */
+  flow?: Flow
 }
 
 function imgTag(src: string): string {
   return `<img src="${src}" alt="" width="96" style="border-radius:8px;margin:0 6px 6px 0;" />`
 }
 
-function formatAnswerValue(value: unknown): string {
+function formatAnswerValue(value: unknown, attachmentSuffix: string): string {
   const classified = classifyAnswerValue(value)
   switch (classified.kind) {
     case "empty":
@@ -30,14 +36,14 @@ function formatAnswerValue(value: unknown): string {
         .filter((src): src is string => src !== null)
         .map(imgTag)
         .join("")
-      return images || escapeHtml(`${classified.items.length} allegato/i`)
+      return images || escapeHtml(`${classified.items.length} ${attachmentSuffix}`)
     }
     case "array":
       return escapeHtml(classified.items.map(String).join(", "))
     case "nested":
       return escapeHtml(
         Object.entries(classified.value)
-          .map(([k, v]) => `${k}: ${formatAnswerValue(v)}`)
+          .map(([k, v]) => `${k}: ${formatAnswerValue(v, attachmentSuffix)}`)
           .join(", "),
       )
     case "scalar":
@@ -52,13 +58,14 @@ function formatAnswerValue(value: unknown): string {
  * A reference function for the consumer's backend — not called from any client-side code
  * in this repo, the actual email send always happens server-side.
  */
-export function renderReceiptEmailHtml({ title, message, answers }: ReceiptEmailTemplateOptions): string {
+export function renderReceiptEmailHtml({ title, message, answers, flow }: ReceiptEmailTemplateOptions): string {
+  const attachmentSuffix = flow ? resolveText(flow, "attachmentSuffix") : "allegato/i"
   const rows = Object.entries(answers)
     .filter(([, v]) => v !== null && v !== undefined && v !== "")
     .map(
       ([key, value]) => `<tr>
         <td style="padding:8px 0;color:#7D7A75;font-size:13px;">${escapeHtml(key)}</td>
-        <td style="padding:8px 0;color:#2C2C2B;font-size:14px;">${formatAnswerValue(value)}</td>
+        <td style="padding:8px 0;color:#2C2C2B;font-size:14px;">${formatAnswerValue(value, attachmentSuffix)}</td>
       </tr>`,
     )
     .join("")

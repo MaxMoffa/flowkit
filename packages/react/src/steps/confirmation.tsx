@@ -52,7 +52,7 @@ export function ConfirmationStepView({
       )}
 
       {step.emailShare?.enabled && (
-        <EmailShareAction config={step.emailShare} fallbackSubject={step.title} answers={answers} />
+        <EmailShareAction config={step.emailShare} fallbackSubject={step.title} answers={answers} flow={flow} />
       )}
 
       {resultActions?.pdfExport?.enabled && (
@@ -70,6 +70,7 @@ export function ConfirmationStepView({
           config={resultActions.nativeShare}
           fallbackTitle={step.title}
           answers={answers}
+          flow={flow}
         />
       )}
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import type { VerificationProvider, VerificationStep, VerificationValue } from "@flowkit-io/core"
+import { resolveText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { loadExternalScript } from "./shared/external-script"
 import { FlowMarkdown } from "../markdown"
@@ -32,7 +33,7 @@ function asVerificationValue(value: unknown): VerificationValue | null {
   return typeof current.verified === "boolean" ? current : null
 }
 
-export function VerificationStepView({ step, value, onChange }: StepComponentProps<VerificationStep>) {
+export function VerificationStepView({ step, value, onChange, flow }: StepComponentProps<VerificationStep>) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const widgetIdRef = useRef<string | number | null>(null)
   const renderedRef = useRef(false)
@@ -75,13 +76,13 @@ export function VerificationStepView({ step, value, onChange }: StepComponentPro
         if (ok) {
           onChange({ verified: true, token, provider: step.provider })
         } else {
-          setVerifyError("Verifica non riuscita, riprova.")
+          setVerifyError(resolveText(flow, "verificationFailedRetry"))
           if (widgetIdRef.current !== null) getWidgetApi(step.provider)?.reset(widgetIdRef.current)
         }
       })
       .catch(() => {
         setVerifying(false)
-        setVerifyError("Errore durante la verifica, riprova.")
+        setVerifyError(resolveText(flow, "verificationErrorRetry"))
         if (widgetIdRef.current !== null) getWidgetApi(step.provider)?.reset(widgetIdRef.current)
       })
   }
@@ -94,7 +95,7 @@ export function VerificationStepView({ step, value, onChange }: StepComponentPro
     widgetIdRef.current = api.render(containerRef.current, {
       sitekey: step.siteKey,
       callback: handleWidgetToken,
-      "error-callback": () => setVerifyError("Errore del widget di verifica."),
+      "error-callback": () => setVerifyError(resolveText(flow, "verificationWidgetError")),
     })
     renderedRef.current = true
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,14 +119,18 @@ export function VerificationStepView({ step, value, onChange }: StepComponentPro
       {verified ? (
         <div className="fk-loc-row">
           <div className="fk-loc-ic">✅</div>
-          <div className="fk-loc-title">Verifica completata</div>
+          <div className="fk-loc-title">{resolveText(flow, "verificationCompleted")}</div>
         </div>
       ) : (
         <>
           <div ref={containerRef} className="fk-verification-widget" />
-          {scriptStatus === "loading" && <p className="fk-map-search-loading">Carico il widget di verifica…</p>}
-          {scriptStatus === "error" && <p className="fk-gps-error">Impossibile caricare il widget di verifica.</p>}
-          {verifying && <p className="fk-map-search-loading">Verifica in corso…</p>}
+          {scriptStatus === "loading" && (
+            <p className="fk-map-search-loading">{resolveText(flow, "verificationLoadingWidget")}</p>
+          )}
+          {scriptStatus === "error" && (
+            <p className="fk-gps-error">{resolveText(flow, "verificationLoadError")}</p>
+          )}
+          {verifying && <p className="fk-map-search-loading">{resolveText(flow, "verificationInProgress")}</p>}
           {verifyError && <p className="fk-gps-error">{verifyError}</p>}
         </>
       )}
