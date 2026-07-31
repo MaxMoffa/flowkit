@@ -8,12 +8,26 @@ import type { z } from "zod"
 export interface StepTypeDefinition<TStep = unknown, TValue = unknown> {
   type: string
   schema: z.ZodType<TStep, z.ZodTypeDef, unknown>
-  validate: (step: TStep, value: TValue, answers: Record<string, unknown>) => boolean
+  /** `meta` is the step's own per-step meta bag (machine.ts's setStepMeta/getStepMeta)
+   *  — ephemeral state that isn't the answer itself, e.g. the "long-content" step's
+   *  scroll-to-end flag. Optional (not every type needs it) and passed as `{}` when the
+   *  caller has none, so existing 2/3-arg validate functions are unaffected. */
+  validate: (
+    step: TStep,
+    value: TValue,
+    answers: Record<string, unknown>,
+    meta?: Record<string, unknown>,
+  ) => boolean
   /** Optional role in the wizard: hides the header and drives FlowRunner's CTA/footer.
    *  "review" marks a recap step; assertFlowStepOrder (schema.ts) allows any number of
    *  review steps but constrains at most one non-checkpoint ("final") one, which must
-   *  sit immediately before the confirmation step. */
-  role?: "intro" | "review" | "confirmation"
+   *  sit immediately before the confirmation step. "logic" marks an invisible step
+   *  (e.g. "branch") that FlowRunner resolves and jumps past without ever rendering. */
+  role?: "intro" | "review" | "confirmation" | "logic"
+  /** Whether this type's steps appear in buildReportRows' summary/payload. Default true
+   *  (unset). Set false for content-only types that add no field to the flow (e.g.
+   *  "info", "long-content") — they'd otherwise show up as an empty "—" row. */
+  includeInSummary?: boolean
 }
 
 const registry = new Map<string, StepTypeDefinition>()

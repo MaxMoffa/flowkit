@@ -61,4 +61,47 @@ describe("step type registry", () => {
       parseFlow({ id: "x", title: "X", steps: [{ id: "a", type: "does-not-exist" }] }),
     ).toThrow(/Unknown step type/)
   })
+
+  it("propagates role:\"logic\" through registerStepType", () => {
+    registerStepType({
+      type: "logic-test",
+      schema: z.object({ id: z.string(), type: z.literal("logic-test") }),
+      validate: () => true,
+      role: "logic",
+    })
+
+    expect(getStepTypeDefinition("logic-test")?.role).toBe("logic")
+  })
+
+  it("defaults includeInSummary to undefined (treated as true) and honors an explicit false", () => {
+    registerStepType({
+      type: "summary-default-test",
+      schema: z.object({ id: z.string(), type: z.literal("summary-default-test") }),
+      validate: () => true,
+    })
+    registerStepType({
+      type: "summary-excluded-test",
+      schema: z.object({ id: z.string(), type: z.literal("summary-excluded-test") }),
+      validate: () => true,
+      includeInSummary: false,
+    })
+
+    expect(getStepTypeDefinition("summary-default-test")?.includeInSummary).toBeUndefined()
+    expect(getStepTypeDefinition("summary-excluded-test")?.includeInSummary).toBe(false)
+  })
+
+  it("passes the step's meta bag as a 4th argument to validate", () => {
+    let receivedMeta: Record<string, unknown> | undefined
+    registerStepType({
+      type: "meta-aware-test",
+      schema: z.object({ id: z.string(), type: z.literal("meta-aware-test") }),
+      validate: (_step, _value, _answers, meta) => {
+        receivedMeta = meta
+        return true
+      },
+    })
+
+    getStepTypeDefinition("meta-aware-test")!.validate({ id: "x" }, null, {}, { scrolledToEnd: true })
+    expect(receivedMeta).toEqual({ scrolledToEnd: true })
+  })
 })

@@ -76,15 +76,17 @@ export function isFirstStep(state: FlowState): boolean {
   return state.index === 0
 }
 
-/** Returns true if the answer satisfies the step's minimum constraints. */
-export function isStepValid(step: Step, answers: Answers): boolean {
+/** Returns true if the answer satisfies the step's minimum constraints. `meta` is the
+ *  step's own meta bag (see FlowState.meta) — used by types that gate on ephemeral,
+ *  non-answer state (e.g. "long-content"'s requireScrollToEnd). */
+export function isStepValid(step: Step, answers: Answers, meta: Record<string, unknown> = {}): boolean {
   if (step.required === false) return true
 
   const value = answers[answerKey(step)]
   const def = getStepTypeDefinition(step.type)
   // No validation registered for this type: passes (permissive default behavior).
   if (!def) return true
-  return def.validate(step, value, answers)
+  return def.validate(step, value, answers, meta)
 }
 
 export function setAnswer(state: FlowState, step: Step, value: AnswerValue): FlowState {
@@ -93,7 +95,7 @@ export function setAnswer(state: FlowState, step: Step, value: AnswerValue): Flo
 
 export function next(flow: Flow, state: FlowState): FlowState {
   const step = getCurrentStep(flow, state)
-  if (!isStepValid(step, state.answers)) return state
+  if (!isStepValid(step, state.answers, getStepMeta(state, step.id))) return state
   if (isLastStep(flow, state)) return state
   return { ...state, index: state.index + 1 }
 }
@@ -120,7 +122,8 @@ export function goToStep(flow: Flow, state: FlowState, stepId: string): FlowStat
 }
 
 export function canGoNext(flow: Flow, state: FlowState): boolean {
-  return isStepValid(getCurrentStep(flow, state), state.answers)
+  const step = getCurrentStep(flow, state)
+  return isStepValid(step, state.answers, getStepMeta(state, step.id))
 }
 
 export function progress(flow: Flow, state: FlowState): number {

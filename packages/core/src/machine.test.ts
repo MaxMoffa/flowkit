@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { z } from "zod"
 import {
   parseFlow,
   type Flow,
@@ -9,7 +10,9 @@ import {
   isStepValid,
   next,
   prev,
+  registerStepType,
   setAnswer,
+  setStepMeta,
 } from "./index"
 
 const rawFlow = {
@@ -83,6 +86,39 @@ describe("machine navigation", () => {
     let state = { index: flow.steps.length - 1, answers: {}, meta: {} }
     state = next(flow, state)
     expect(state.index).toBe(flow.steps.length - 1)
+  })
+})
+
+describe("meta-aware validation", () => {
+  registerStepType({
+    type: "meta-gated-test",
+    schema: z.object({ id: z.string(), type: z.literal("meta-gated-test") }),
+    validate: (_step, _value, _answers, meta) => meta?.unlocked === true,
+  })
+
+  function makeMetaGatedFlow(): Flow {
+    return parseFlow({
+      id: "meta-demo",
+      title: "Meta demo",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "gate", type: "meta-gated-test" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+  }
+
+  it("blocks canGoNext/next until the step's meta says unlocked", () => {
+    const flow = makeMetaGatedFlow()
+    let state = next(flow, createFlowState()) // -> gate
+    expect(canGoNext(flow, state)).toBe(false)
+    state = next(flow, state)
+    expect(state.index).toBe(1)
+
+    state = setStepMeta(state, "gate", { unlocked: true })
+    expect(canGoNext(flow, state)).toBe(true)
+    state = next(flow, state)
+    expect(state.index).toBe(2)
   })
 })
 
