@@ -33,6 +33,8 @@ import "./payment-stripe-step"
 import "./verification-step"
 import "./booking-slot-step"
 import "./branch-step"
+import "./info-step"
+import "./long-content-step"
 
 export * from "./schema"
 export * from "./intro-step"
@@ -91,3 +93,7 @@ export {
   evaluateCondition,
 } from "./branch-step"
 export type { BranchStep, BranchRule, Condition, ConditionOp } from "./branch-step"
+export { infoStepSchema } from "./info-step"
+export type { InfoStep } from "./info-step"
+export { longContentStepSchema } from "./long-content-step"
+export type { LongContentStep } from "./long-content-step"

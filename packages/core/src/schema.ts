@@ -37,6 +37,9 @@ import type { TextStep } from "./text-step"
 import type { CheckboxStep } from "./checkbox-step"
 import type { ReviewStep } from "./review-step"
 import type { ConfirmationStep } from "./confirmation-step"
+import type { InfoStep } from "./info-step"
+import type { LongContentStep } from "./long-content-step"
+import type { BranchStep } from "./branch-step"
 
 /**
  * Fields every step accepts, whatever its `type`. Exported so step definitions living
@@ -140,6 +143,9 @@ export interface StepTypeMap {
   "payment-stripe": PaymentStripeStep
   verification: VerificationStep
   "booking-slot": BookingSlotStep
+  info: InfoStep
+  "long-content": LongContentStep
+  branch: BranchStep
 }
 
 /**
@@ -174,6 +180,9 @@ export type BuiltinStepType =
   | "payment-stripe"
   | "verification"
   | "booking-slot"
+  | "info"
+  | "long-content"
+  | "branch"
 
 /** Compile-time guard: a builtin without an entry in StepTypeMap makes this fail. */
 type _AssertBuiltinsAreMapped = BuiltinStepType extends keyof StepTypeMap ? true : never

@@ -880,6 +880,39 @@
   display: none;
 }
 
+/* "long-content" step: full-bleed, independently-scrollable content — same
+   full-container CSS pattern as .fk-step-location--full above (outer .fk-scroll stops
+   scrolling/padding itself, the step owns its own scroll region instead). */
+.fk-step-long-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.fk-scroll:has(.fk-step-long-content) {
+  padding: 0;
+  overflow: hidden;
+}
+
+.fk-scroll:has(.fk-step-long-content) > .fk-scroll-inner {
+  max-width: none;
+  align-self: stretch;
+}
+
+.fk-long-content-header {
+  flex: none;
+  padding: var(--fk-space-xl) var(--fk-space-xl) 0;
+}
+
+.fk-long-content-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--fk-space-lg) var(--fk-space-xl) var(--fk-space-xl);
+}
+
 @media (max-width: 400px) {
   .fk-map-overlay-top,
   .fk-map-overlay-bottom {

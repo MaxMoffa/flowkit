@@ -15,6 +15,7 @@ import { smartFillDemoFlow } from "./smart-fill-demo"
 import { remoteDataSourceDemoFlow } from "./remote-data-source-demo"
 import { bookingSlotDemoFlow } from "./booking-slot-demo"
 import { branchDemoFlow } from "./branch-demo"
+import { infoLongContentDemoFlow } from "./info-long-content-demo"
 
 export const presets: Record<string, Flow> = {
   odori: odoriFlow,
@@ -36,6 +37,7 @@ export const presets: Record<string, Flow> = {
   "remote-data-source-demo": remoteDataSourceDemoFlow,
   "booking-slot-demo": bookingSlotDemoFlow,
   "branch-demo": branchDemoFlow,
+  "info-long-content-demo": infoLongContentDemoFlow,
 }
 
 export const presetLabels: Record<string, string> = {
@@ -58,4 +60,5 @@ export const presetLabels: Record<string, string> = {
   "remote-data-source-demo": "Dati remoti / autocomplete (demo)",
   "booking-slot-demo": "Prenotazione slot (demo)",
   "branch-demo": "Ramificazione condizionale (demo)",
+  "info-long-content-demo": "Step informativi (demo)",
 }
