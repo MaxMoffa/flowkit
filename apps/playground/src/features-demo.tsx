@@ -182,10 +182,11 @@ export const featuresDemoFlow: Flow = parseFlow({
       id: "group-any",
       type: "group",
       title: "Almeno un campo richiesto (OR)",
-      subtitle: "requiredChildren: { mode: 'any' } — basta compilarne uno dei due.",
+      subtitle: "requiredChildren: { mode: 'any' } — basta compilarne uno dei tre.",
       steps: [
         { id: "a", key: "any_a", type: "text", title: "Campo A", placeholder: "Campo A", required: false },
         { id: "b", key: "any_b", type: "text", title: "Campo B", placeholder: "Campo B", required: false },
+        { id: "c", key: "any_c", type: "text", title: "Campo C", placeholder: "Campo C", required: false },
       ],
       requiredChildren: { mode: "any" },
     },
