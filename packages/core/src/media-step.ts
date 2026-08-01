@@ -26,4 +26,5 @@ registerStepType({
   type: "media",
   schema: mediaStepSchema,
   validate: (_step, value) => Array.isArray(value) && value.length > 0,
+  getIssue: (_step, value) => (Array.isArray(value) && value.length > 0 ? null : { rule: "required" }),
 })

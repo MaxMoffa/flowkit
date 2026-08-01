@@ -99,6 +99,11 @@ export const baseStepFields = {
    *  type accepts the field; only the step types that know how to use a given add-on's
    *  `type` actually render/apply it. */
   addons: z.array(stepAddonSchema).optional(),
+  /** Per-field overrides of the validation error messages (see registry.ts's
+   *  ValidationRule/ValidationIssue), keyed by rule name. Unset rules fall back to
+   *  flow.texts["validation.<rule>"], then the shipped default — see
+   *  i18n.ts's resolveValidationMessage. */
+  validationMessages: z.record(z.string(), z.string()).optional(),
 }
 
 /**

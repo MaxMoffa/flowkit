@@ -1,6 +1,30 @@
 import type { z } from "zod"
 
 /**
+ * Validation rule identifiers, each with a default message in i18n.ts's
+ * `defaultMessages` (keyed `validation.<rule>`) and overridable per-field via a step's
+ * `validationMessages[rule]` (schema.ts's baseStepFields) or per-flow via
+ * `flow.texts["validation.<rule>"]`. `params` feeds template placeholders in the
+ * message (e.g. "{min}") — see i18n.ts's `formatMessage`.
+ */
+export type ValidationRule =
+  | "required"
+  | "invalidFormat"
+  | "minLength"
+  | "maxLength"
+  | "outOfRange"
+  | "invalidDate"
+  | "fileTooLarge"
+  | "invalidFileType"
+  | "tooFewOptions"
+  | "tooManyOptions"
+
+export interface ValidationIssue {
+  rule: ValidationRule
+  params?: Record<string, string | number>
+}
+
+/**
  * Definition of a runtime-registrable step type. Replaces the closed
  * discriminatedUnion: new types (built-in or custom) are added by calling
  * registerStepType, without touching schema.ts/machine.ts.
@@ -18,6 +42,16 @@ export interface StepTypeDefinition<TStep = unknown, TValue = unknown> {
     answers: Record<string, unknown>,
     meta?: Record<string, unknown>,
   ) => boolean
+  /** Same inputs as `validate`, but returns the specific rule that failed (or `null`
+   *  when valid) so the UI can render an explicit, field-anchored message instead of a
+   *  generic one. Optional: types without it fall back to a plain "required" issue
+   *  whenever `validate` returns false (see machine.ts's `getStepValidationIssue`). */
+  getIssue?: (
+    step: TStep,
+    value: TValue,
+    answers: Record<string, unknown>,
+    meta?: Record<string, unknown>,
+  ) => ValidationIssue | null
   /** Optional role in the wizard: hides the header and drives FlowRunner's CTA/footer.
    *  "review" marks a recap step; assertFlowStepOrder (schema.ts) allows any number of
    *  review steps but constrains at most one non-checkpoint ("final") one, which must

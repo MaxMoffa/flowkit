@@ -18,4 +18,6 @@ registerStepType({
   type: "radio",
   schema: radioStepSchema,
   validate: (_step, value) => typeof value === "string" && value.length > 0,
+  getIssue: (_step, value) =>
+    typeof value === "string" && value.length > 0 ? null : { rule: "required" },
 })

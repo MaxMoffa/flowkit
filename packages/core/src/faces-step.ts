@@ -23,4 +23,6 @@ registerStepType({
   type: "faces",
   schema: facesStepSchema,
   validate: (_step, value) => typeof value === "string" && value.length > 0,
+  getIssue: (_step, value) =>
+    typeof value === "string" && value.length > 0 ? null : { rule: "required" },
 })

@@ -38,6 +38,27 @@ export function resolveFileAccept(formatPreset: FileFormatPreset, customAccept?:
   return [presetAccept, customAccept].filter(Boolean).join(",")
 }
 
+/** Whether `item` matches an HTML `accept`-style string (as produced by
+ *  resolveFileAccept/resolveMediaAccept): comma-separated extensions (".pdf"), MIME
+ *  types ("application/pdf"), or MIME wildcards ("image/*"). An empty/blank accept
+ *  string means "no restriction" (matches everything). */
+export function matchesFileAccept(item: Pick<UploadedItem, "name" | "mimeType">, accept: string): boolean {
+  const tokens = accept
+    .split(",")
+    .map((t) => t.trim().toLowerCase())
+    .filter(Boolean)
+  if (tokens.length === 0) return true
+
+  const name = item.name.toLowerCase()
+  const mime = item.mimeType.toLowerCase()
+
+  return tokens.some((token) => {
+    if (token.startsWith(".")) return name.endsWith(token)
+    if (token.endsWith("/*")) return mime.startsWith(token.slice(0, -1))
+    return mime === token
+  })
+}
+
 /** Combines a `media` step's image/video toggles + optional format lists into an `accept` string. */
 export function resolveMediaAccept(options: {
   acceptImages: boolean

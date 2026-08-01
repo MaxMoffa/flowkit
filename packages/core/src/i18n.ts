@@ -1,4 +1,5 @@
-import type { Flow } from "./schema"
+import type { Flow, Step } from "./schema"
+import type { ValidationIssue } from "./registry"
 
 export type Locale = "it" | "en"
 
@@ -27,6 +28,16 @@ export const defaultMessages: Record<Locale, Record<string, string>> = {
     verificationWidgetError: "Errore del widget di verifica.",
     fileAddPlaceholder: "Aggiungi file",
     attachmentSuffix: "allegato/i",
+    "validation.required": "Campo obbligatorio: compilalo per continuare.",
+    "validation.invalidFormat": "Formato non valido: controlla come hai scritto il valore e riprova.",
+    "validation.minLength": "Servono almeno {min} caratteri: aggiungine ancora {remaining}.",
+    "validation.maxLength": "Massimo {max} caratteri: accorcia il testo di {excess}.",
+    "validation.outOfRange": "Il valore deve essere tra {min} e {max}.",
+    "validation.invalidDate": "Data non ammessa: scegline una tra {min} e {max}.",
+    "validation.fileTooLarge": "Il file supera {max} MB: scegline uno più leggero.",
+    "validation.invalidFileType": "Tipo di file non consentito: usa uno dei formati ammessi ({accepted}).",
+    "validation.tooFewOptions": "Seleziona almeno {min} opzioni: ne mancano {remaining}.",
+    "validation.tooManyOptions": "Puoi selezionare al massimo {max} opzioni: rimuovine {excess}.",
   },
   en: {
     continue: "Continue",
@@ -46,7 +57,26 @@ export const defaultMessages: Record<Locale, Record<string, string>> = {
     verificationWidgetError: "Verification widget error.",
     fileAddPlaceholder: "Add file",
     attachmentSuffix: "attachment(s)",
+    "validation.required": "This field is required: fill it in to continue.",
+    "validation.invalidFormat": "Invalid format: check how you entered the value and try again.",
+    "validation.minLength": "At least {min} characters are required: add {remaining} more.",
+    "validation.maxLength": "Maximum {max} characters: shorten the text by {excess}.",
+    "validation.outOfRange": "The value must be between {min} and {max}.",
+    "validation.invalidDate": "Date not allowed: pick one between {min} and {max}.",
+    "validation.fileTooLarge": "The file exceeds {max} MB: pick a smaller one.",
+    "validation.invalidFileType": "File type not allowed: use one of the accepted formats ({accepted}).",
+    "validation.tooFewOptions": "Select at least {min} options: {remaining} more needed.",
+    "validation.tooManyOptions": "You can select at most {max} options: remove {excess}.",
   },
+}
+
+/** Replaces `{key}` placeholders in `template` with `params[key]`, left as-is when the
+ *  key is missing (belt-and-suspenders: every call site supplies exactly the params its
+ *  rule declares, so a miss would mean a bug, not user input). */
+export function formatMessage(template: string, params: Record<string, string | number> = {}): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
+    key in params ? String(params[key]) : match,
+  )
 }
 
 export function t(locale: Locale, key: string): string {
@@ -69,4 +99,15 @@ export function resolveText(flow: Flow, key: string, fallback?: string): string 
     fallback ??
     key
   )
+}
+
+/** Resolves a validation issue's user-facing message: the step's own per-field
+ *  override (`step.validationMessages[rule]`) wins, then the flow's dictionary
+ *  (`flow.texts["validation.<rule>"]`, resolved like any other `resolveText` key), then
+ *  the shipped default for the rule — each a template resolved via `formatMessage`
+ *  against the issue's `params`. */
+export function resolveValidationMessage(flow: Flow, step: Step, issue: ValidationIssue): string {
+  const perField = (step as { validationMessages?: Record<string, string> }).validationMessages?.[issue.rule]
+  const template = perField ?? resolveText(flow, `validation.${issue.rule}`)
+  return formatMessage(template, issue.params)
 }

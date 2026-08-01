@@ -21,4 +21,5 @@ registerStepType({
   type: "checkbox",
   schema: checkboxStepSchema,
   validate: (_step, value) => value === true,
+  getIssue: (_step, value) => (value === true ? null : { rule: "required" }),
 })

@@ -14,4 +14,5 @@ registerStepType({
   type: "nps",
   schema: npsStepSchema,
   validate: (_step, value) => typeof value === "number",
+  getIssue: (_step, value) => (typeof value === "number" ? null : { rule: "required" }),
 })

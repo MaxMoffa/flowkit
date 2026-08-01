@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { registerStepType } from "./registry"
+import { registerStepType, type ValidationIssue } from "./registry"
 import { baseStepFields, requireOptionsOrDataSource, optionsOrDataSourceIssue } from "./schema"
 import { remoteDataSourceSchema } from "./remote-data-source"
 
@@ -25,11 +25,14 @@ export const selectCardsStepSchema = z
 
 export type SelectCardsStep = z.infer<typeof selectCardsStepSchema>
 
+function selectCardsIssue(step: SelectCardsStep, value: unknown): ValidationIssue | null {
+  const empty = step.multiple ? !Array.isArray(value) || value.length === 0 : typeof value !== "string" || value.length === 0
+  return empty ? { rule: "required" } : null
+}
+
 registerStepType({
   type: "select-cards",
   schema: selectCardsStepSchema,
-  validate: (step, value) => {
-    if (step.multiple) return Array.isArray(value) && value.length > 0
-    return typeof value === "string" && value.length > 0
-  },
+  validate: (step, value) => selectCardsIssue(step, value) === null,
+  getIssue: (step, value) => selectCardsIssue(step, value),
 })

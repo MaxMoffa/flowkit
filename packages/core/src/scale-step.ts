@@ -20,4 +20,5 @@ registerStepType({
   type: "scale",
   schema: scaleStepSchema,
   validate: (_step, value) => typeof value === "number",
+  getIssue: (_step, value) => (typeof value === "number" ? null : { rule: "required" }),
 })

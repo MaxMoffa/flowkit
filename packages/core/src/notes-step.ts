@@ -14,4 +14,6 @@ registerStepType({
   type: "notes",
   schema: notesStepSchema,
   validate: (_step, value) => typeof value === "string" && value.trim().length > 0,
+  getIssue: (_step, value) =>
+    typeof value === "string" && value.trim().length > 0 ? null : { rule: "required" },
 })

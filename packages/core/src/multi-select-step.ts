@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { registerStepType } from "./registry"
+import { registerStepType, type ValidationIssue } from "./registry"
 import { baseStepFields, requireOptionsOrDataSource, optionsOrDataSourceIssue } from "./schema"
 import { remoteDataSourceSchema } from "./remote-data-source"
 
@@ -16,13 +16,21 @@ export const multiSelectStepSchema = z
 
 export type MultiSelectStep = z.infer<typeof multiSelectStepSchema>
 
+function multiSelectIssue(step: MultiSelectStep, value: unknown): ValidationIssue | null {
+  const arr = Array.isArray(value) ? value : []
+  if (arr.length === 0 && step.min > 0) return { rule: "required" }
+  if (arr.length < step.min) {
+    return { rule: "tooFewOptions", params: { min: step.min, remaining: step.min - arr.length } }
+  }
+  if (step.max !== undefined && arr.length > step.max) {
+    return { rule: "tooManyOptions", params: { max: step.max, excess: arr.length - step.max } }
+  }
+  return null
+}
+
 registerStepType({
   type: "multi-select",
   schema: multiSelectStepSchema,
-  validate: (step, value) => {
-    const arr = Array.isArray(value) ? value : []
-    if (arr.length < step.min) return false
-    if (step.max !== undefined && arr.length > step.max) return false
-    return step.min > 0 ? arr.length > 0 : true
-  },
+  validate: (step, value) => multiSelectIssue(step, value) === null,
+  getIssue: (step, value) => multiSelectIssue(step, value),
 })
