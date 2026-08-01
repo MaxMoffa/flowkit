@@ -6,8 +6,10 @@ import { useFileUpload } from "./shared/use-file-upload"
 import { useMediaCaptureAvailability } from "./shared/use-media-capture-availability"
 import { MediaViewer } from "./shared/media-viewer"
 import { FlowMarkdown } from "../markdown"
+import { useFieldValidation } from "./shared/use-field-validation"
+import { FieldError } from "./shared/field-error"
 
-export function MediaStepView({ step, value, onChange }: StepComponentProps<MediaStep>) {
+export function MediaStepView({ step, value, onChange, flow, answers, meta, validationAttempt }: StepComponentProps<MediaStep>) {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const { items, canAddMore, addFiles, removeItem } = useFileUpload({
     value,
@@ -16,6 +18,7 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
     kindOf: (file) => (file.type.startsWith("video/") ? "video" : "image"),
   })
   const { showCaptureButton } = useMediaCaptureAvailability()
+  const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
 
   // Keep the open viewer's index in sync after a removal: clamp into range, or close
   // entirely once no items remain.
@@ -36,7 +39,7 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
   const captureLabel = acceptImages && acceptVideos ? "📷 Scatta foto/video" : acceptVideos ? "🎥 Registra video" : "📷 Scatta foto"
 
   return (
-    <div className="fk-step fk-step-media">
+    <div className="fk-step fk-step-media" onBlur={handleBlur} {...ariaProps}>
       {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
 
@@ -102,6 +105,7 @@ export function MediaStepView({ step, value, onChange }: StepComponentProps<Medi
           onRemove={removeItem}
         />
       )}
+      <FieldError id={errorId} message={message} />
     </div>
   )
 }

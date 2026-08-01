@@ -1,9 +1,11 @@
 import type { ComponentType } from "react"
 
 export interface ProgressComponentProps {
-  pct: number
+  /** null while the path ahead can't yet be determined (see core's getProgressInfo) —
+   *  render an indeterminate indicator instead of a fixed fill/count. */
+  pct: number | null
   currentIndex: number
-  total: number
+  total: number | null
 }
 
 /**

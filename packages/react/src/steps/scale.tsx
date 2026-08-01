@@ -2,13 +2,16 @@ import { useEffect } from "react"
 import type { ScaleStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
+import { useFieldValidation } from "./shared/use-field-validation"
+import { FieldError } from "./shared/field-error"
 
 const defaultColors = ["#7D7A75", "#46A171", "#46A171", "#D5803B", "#D5803B", "#E56458", "#E56458"]
 
-export function ScaleStepView({ step, value, onChange }: StepComponentProps<ScaleStep>) {
+export function ScaleStepView({ step, value, onChange, flow, answers, meta, validationAttempt }: StepComponentProps<ScaleStep>) {
   const values = Array.from({ length: step.max - step.min + 1 }, (_, i) => step.min + i)
   const isSlider = step.variant === "slider"
   const current = typeof value === "number" ? value : Math.round((step.min + step.max) / 2)
+  const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
 
   useEffect(() => {
     if (isSlider && typeof value !== "number") onChange(current)
@@ -45,10 +48,12 @@ export function ScaleStepView({ step, value, onChange }: StepComponentProps<Scal
             max={step.max}
             value={current}
             onChange={(e) => onChange(Number(e.target.value))}
+            onBlur={handleBlur}
+            {...ariaProps}
           />
         </>
       ) : (
-        <div className="fk-scale-row">
+        <div className="fk-scale-row" onBlur={handleBlur} {...ariaProps}>
           {values.map((n) => (
             <button
               key={n}
@@ -68,6 +73,7 @@ export function ScaleStepView({ step, value, onChange }: StepComponentProps<Scal
           <span><FlowMarkdown text={step.maxLabel} variant="inline" /></span>
         </div>
       )}
+      <FieldError id={errorId} message={message} />
     </div>
   )
 }

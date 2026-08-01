@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { Answers, Flow } from "@flowkit-io/core"
 import {
   answerKey,
@@ -6,6 +6,7 @@ import {
   canGoNext,
   createFlowState,
   getCurrentStep,
+  getProgressInfo,
   getStepMeta,
   getStepTypeDefinition,
   goToStep,
@@ -13,7 +14,6 @@ import {
   isLastStep,
   next as nextState,
   prev as prevState,
-  progress as flowProgress,
   resolveBranch,
   resolveText,
   setAnswer,
@@ -50,6 +50,13 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   /** Set while the user is editing an answer they reached by clicking a review row;
    *  the next "Continua" jumps back to this index (the review step) instead of +1. */
   const [returnToIndex, setReturnToIndex] = useState<number | null>(null)
+  /** Bumped each time the user tries to advance while the current step is still
+   *  invalid (only reachable when the primary button isn't hard-disabled, e.g. a
+   *  "group" step with requiredChildren: {mode: "any"|"none"} — see group.tsx). Reset
+   *  on every step change. Forces every field's error to show (steps/shared/
+   *  use-field-validation.ts) and moves focus to the first invalid field. */
+  const [attempt, setAttempt] = useState(0)
+  const scopeRef = useRef<HTMLDivElement>(null)
   const step = getCurrentStep(flow, state)
   const StepView = getStepComponent(step.type)
   if (!StepView) {
@@ -60,17 +67,8 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const valid = canGoNext(flow, state)
   const first = isFirstStep(state)
   const last = isLastStep(flow, state)
-  const pct = useMemo(() => Math.round(flowProgress(flow, state) * 100), [flow, state])
-
-  const middleSteps = useMemo(
-    () =>
-      flow.steps.filter((s) => {
-        const role = getStepTypeDefinition(s.type)?.role
-        return role !== "intro" && role !== "confirmation" && role !== "logic"
-      }),
-    [flow],
-  )
-  const middleIndex = middleSteps.findIndex((s) => s.id === step.id)
+  const progressInfo = useMemo(() => getProgressInfo(flow, state), [flow, state])
+  const pct = progressInfo.pct !== null ? Math.round(progressInfo.pct * 100) : null
   const stepRole = getStepTypeDefinition(step.type)?.role
   const isIntro = stepRole === "intro"
   const isConfirmation = stepRole === "confirmation"
@@ -80,8 +78,21 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   const isFinalReviewSubmit = isReviewType && (step as StepWithReviewFields).mode !== "checkpoint"
 
   const layout = useFlowRunnerLayout(step, theme, mode, direction)
-  const progressProps = { pct, currentIndex: middleIndex, total: middleSteps.length }
+  const progressProps = { pct, currentIndex: progressInfo.currentIndex, total: progressInfo.total }
   const visitedStepIds = useMemo(() => new Set([...state.history, step.id]), [state.history, step.id])
+
+  useEffect(() => {
+    setAttempt(0)
+  }, [step.id])
+
+  /** After a failed advance attempt, move focus to the first field the attempt itself
+   *  surfaced as invalid (see use-field-validation.ts's aria-invalid wiring) — runs
+   *  after paint so the aria-invalid attributes from this render are already in the DOM. */
+  useEffect(() => {
+    if (attempt === 0) return
+    const target = scopeRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')
+    target?.focus()
+  }, [attempt])
 
   /** Forward-only flows must also survive the browser's own back button: push a
    *  sentinel history entry and re-push it on every popstate, so the back button
@@ -121,6 +132,10 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
   }
 
   async function handleNext() {
+    if (!canGoNext(flow, state)) {
+      setAttempt((a) => a + 1)
+      return
+    }
     if (isFinalReviewSubmit) {
       await onSubmit?.(state.answers)
     }
@@ -148,6 +163,23 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
 
   function handleRestart() {
     setState(createFlowState())
+  }
+
+  /** Enter in a single-line text-like input (text/email/number/date/…) attempts to
+   *  advance, same as clicking the primary button — the button itself already handles
+   *  Enter/click when enabled, so this only matters while the step is invalid: it's the
+   *  one real way a user can trigger `attempt` (surfacing errors + focusing the first
+   *  invalid field) without the button ever needing to not be `disabled`. Deliberately
+   *  scoped to `<input>` (not textarea/checkbox/radio/file/buttons), which either have
+   *  their own Enter semantics or none worth intercepting. */
+  function handleScopeKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key !== "Enter") return
+    const target = e.target as HTMLElement
+    if (target.tagName !== "INPUT") return
+    const inputType = (target as HTMLInputElement).type
+    if (inputType === "checkbox" || inputType === "radio" || inputType === "file" || inputType === "range") return
+    e.preventDefault()
+    void handleNext()
   }
 
   function handleGoHome() {
@@ -190,9 +222,11 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
               {layout.ProgressComponent && layout.progressPosition === "header" && (
                 <layout.ProgressComponent {...progressProps} />
               )}
-              <span className="fk-stepno">
-                {middleIndex + 1}/{middleSteps.length}
-              </span>
+              {progressInfo.total !== null && (
+                <span className="fk-stepno">
+                  {progressInfo.currentIndex + 1}/{progressInfo.total}
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -203,8 +237,10 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
             <div className="fk-scroll-inner" style={layout.scrollInnerStyle}>
               <div
                 key={step.id}
+                ref={scopeRef}
                 className={`fk-step-theme-scope${layout.animationClass}`}
                 style={layout.scopeStyle}
+                onKeyDown={handleScopeKeyDown}
               >
                 <StepView
                   step={step}
@@ -216,6 +252,7 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
                   meta={getStepMeta(state, step.id)}
                   onMetaChange={handleMetaChange}
                   visitedStepIds={visitedStepIds}
+                  validationAttempt={attempt}
                 />
               </div>
             </div>

@@ -17,6 +17,10 @@ export interface StepComponentProps<T extends Step = Step> {
    *  current step) — lets a review/recap step exclude steps a branch skipped over. See
    *  FlowState.history (core/machine.ts). */
   visitedStepIds?: Set<string>
+  /** Bumped by FlowRunner each time the user tries to advance ("Continua"/"Invia") while
+   *  this step is invalid — see steps/shared/use-field-validation.ts. Force-surfaces a
+   *  field's error even before it's been blurred. 0/undefined = no attempt yet. */
+  validationAttempt?: number
 }
 
 export type FlowSubmitHandler = (answers: Record<string, AnswerValue>) => void | Promise<void>

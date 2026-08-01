@@ -4,6 +4,8 @@ import { resolveFileAccept, resolveText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { useFileUpload } from "./shared/use-file-upload"
 import { FlowMarkdown } from "../markdown"
+import { useFieldValidation } from "./shared/use-field-validation"
+import { FieldError } from "./shared/field-error"
 
 function fileIcon(mimeType: string): string {
   if (mimeType.startsWith("image/")) return "🖼️"
@@ -20,7 +22,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function FileStepView({ step, value, onChange, flow }: StepComponentProps<FileStep>) {
+export function FileStepView({ step, value, onChange, flow, answers, meta, validationAttempt }: StepComponentProps<FileStep>) {
   const [previewId, setPreviewId] = useState<string | null>(null)
   const { items, canAddMore, addFiles, removeItem } = useFileUpload({
     value,
@@ -28,6 +30,7 @@ export function FileStepView({ step, value, onChange, flow }: StepComponentProps
     maxItems: step.maxItems,
     kindOf: () => "file",
   })
+  const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
 
   const accept = resolveFileAccept(step.formatPreset ?? "any", step.customAccept)
 
@@ -39,7 +42,7 @@ export function FileStepView({ step, value, onChange, flow }: StepComponentProps
   const previewItem = items.find((i) => i.id === previewId) ?? null
 
   return (
-    <div className="fk-step fk-step-file">
+    <div className="fk-step fk-step-file" onBlur={handleBlur} {...ariaProps}>
       {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
 
@@ -104,6 +107,7 @@ export function FileStepView({ step, value, onChange, flow }: StepComponentProps
           </button>
         </div>
       )}
+      <FieldError id={errorId} message={message} />
     </div>
   )
 }

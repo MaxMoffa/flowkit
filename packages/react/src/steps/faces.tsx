@@ -2,8 +2,10 @@ import { useEffect } from "react"
 import type { FacesStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown, stripMarkdownToPlainText } from "../markdown"
+import { useFieldValidation } from "./shared/use-field-validation"
+import { FieldError } from "./shared/field-error"
 
-export function FacesStepView({ step, value, onChange }: StepComponentProps<FacesStep>) {
+export function FacesStepView({ step, value, onChange, flow, answers, meta, validationAttempt }: StepComponentProps<FacesStep>) {
   useEffect(() => {
     if (!value) {
       const mid = step.faces[Math.floor(step.faces.length / 2)]
@@ -11,12 +13,13 @@ export function FacesStepView({ step, value, onChange }: StepComponentProps<Face
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
 
   return (
     <div className="fk-step fk-step-faces">
       {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
-      <div className="fk-faces-row">
+      <div className="fk-faces-row" onBlur={handleBlur} {...ariaProps}>
         {step.faces.map((f) => (
           <button
             key={f.value}
@@ -32,6 +35,7 @@ export function FacesStepView({ step, value, onChange }: StepComponentProps<Face
           </button>
         ))}
       </div>
+      <FieldError id={errorId} message={message} />
     </div>
   )
 }

@@ -1,6 +1,8 @@
 import type { DateTimeStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
+import { useFieldValidation } from "./shared/use-field-validation"
+import { FieldError } from "./shared/field-error"
 
 const inputTypeByMode = {
   date: "date",
@@ -15,9 +17,10 @@ function todayMin(mode: DateTimeStep["mode"]): string {
   return mode === "datetime" ? `${isoDate}T00:00` : isoDate
 }
 
-export function DateTimeStepView({ step, value, onChange }: StepComponentProps<DateTimeStep>) {
+export function DateTimeStepView({ step, value, onChange, flow, answers, meta, validationAttempt }: StepComponentProps<DateTimeStep>) {
   const current = typeof value === "string" ? value : (step.defaultValue ?? "")
   const min = step.min ?? (step.disablePast ? todayMin(step.mode) : undefined)
+  const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
 
   return (
     <div className="fk-step fk-step-date-time">
@@ -31,7 +34,10 @@ export function DateTimeStepView({ step, value, onChange }: StepComponentProps<D
         max={step.max}
         step={step.step}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={handleBlur}
+        {...ariaProps}
       />
+      <FieldError id={errorId} message={message} />
     </div>
   )
 }
