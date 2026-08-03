@@ -57,6 +57,47 @@ if it meets a step nobody registered, so a forgotten import fails loudly.
 | `mode` | `"light" \| "dark"` | no (default `"light"`) | Theme variant to use |
 | `onSubmit` | `(answers) => void \| Promise<void>` | no | Called when the user confirms the `review` step (before moving to `confirmation`) |
 | `onChange` | `(answers) => void` | no | Called on every changed answer — useful for autosave/drafts |
+| `onStepChange` | `(step: CurrentStepInfo) => void` | no | Called every time the visibly rendered step changes — see below |
+
+## Reading the current step
+
+`onStepChange` fires with a `CurrentStepInfo` (`packages/core/src/machine.ts`):
+
+```ts
+interface CurrentStepInfo {
+  id: string
+  type: string
+  title: string | null
+  index: number // position within the resolved path, not the full flow schema
+  total: number | null // length of the resolved path, null while it can't be determined yet
+  previousStep: { id: string; type: string; title: string | null; index: number } | null
+  direction: "initial" | "next" | "prev" | "jump" | "popstate" | "branch-change"
+}
+```
+
+`FlowRunner` also exposes a `ref` handle (`FlowRunnerHandle`) with a `currentStep` property that always mirrors the most recent `onStepChange` call — including the very first one, already correct on the initial render, so you can read it without maintaining your own state:
+
+```tsx
+import { useRef } from "react"
+import { FlowRunner, type FlowRunnerHandle } from "@flowkit-io/react"
+
+function App() {
+  const flowRef = useRef<FlowRunnerHandle>(null)
+  return (
+    <FlowRunner
+      ref={flowRef}
+      flow={feedbackFlow}
+      onStepChange={(step) => analytics.track("flow_step", step)}
+    />
+  )
+}
+```
+
+`index`/`total` are branch-aware (same source as the built-in progress bar, see `resolveFlowPath`/`getProgressInfo`): they count the steps actually reachable given the answers collected so far, never the raw count of steps declared in the flow's schema. `total` is `null` while an upcoming branch can't yet be resolved.
+
+A "branch" (`role: "logic"`) step is fully transparent: it never triggers `onStepChange` and never appears as `currentStep` — the callback only fires once FlowRunner has resolved it and landed on the next visible step, and that step's `previousStep` points at the step before the branch, not at the branch itself.
+
+`direction` explains how a step became current: `"initial"` on mount and after `flow.disableBack`-independent restarts (the confirmation step's "restart" action), `"next"`/`"prev"` for the primary/back buttons, `"jump"` for a review-row shortcut (or the "return to review" continue after editing one), and `"branch-change"` for a case with no equivalent in the other directions: the user goes Back past a branch, edits the answer that drives it, and the branch now resolves to a different target than the one they'd already walked. That edit doesn't move the visible step (still whichever field they're editing) but does discard any already-collected answers for the now-unreachable steps and recompute `total` — `onStepChange` fires again for the same `id` so an integration can react to the recount. `"popstate"` is reserved for a future browser-history integration; nothing emits it yet.
 
 `FlowRunner` doesn't render the header/progress bar/Continue button on the `intro` and
 `confirmation` steps ("hero" behavior, no chrome), while for every other step it
