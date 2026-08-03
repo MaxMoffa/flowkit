@@ -1,11 +1,20 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import type { Answers, Flow } from "@flowkit-io/core"
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
+import type { Answers, CurrentStepInfo, Flow, StepChangeDirection } from "@flowkit-io/core"
 import {
   answerKey,
   applyBranch,
   canGoNext,
   createFlowState,
   getCurrentStep,
+  getCurrentStepInfo,
   getProgressInfo,
   getStepMeta,
   getStepTypeDefinition,
@@ -16,7 +25,7 @@ import {
   prev as prevState,
   resolveBranch,
   resolveText,
-  setAnswer,
+  setAnswerAndInvalidateDownstream,
   setStepMeta,
 } from "@flowkit-io/core"
 import type { Theme, ThemeMode } from "@flowkit-io/themes"
@@ -42,11 +51,40 @@ export interface FlowRunnerProps {
   mode?: ThemeMode
   onSubmit?: FlowSubmitHandler
   onChange?: (answers: Answers) => void
+  /** Called every time the visibly rendered step changes (see `CurrentStepInfo`,
+   *  core/machine.ts) — mount, next/back, a review-row jump, and a branch-invalidating
+   *  answer edit ("branch-change"). Never called for a "logic" (branch) step itself:
+   *  those are resolved and skipped before this fires. */
+  onStepChange?: (step: CurrentStepInfo) => void
 }
 
-export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunnerProps) {
+/** Imperative handle exposed via `ref`: a `currentStep` that's always in sync with the
+ *  most recent `onStepChange` call (including the initial one, already correct on first
+ *  render) — lets an integrator read the current step without maintaining their own
+ *  `onStepChange`-fed state. */
+export interface FlowRunnerHandle {
+  currentStep: CurrentStepInfo
+}
+
+export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function FlowRunner(
+  { flow, theme, mode, onSubmit, onChange, onStepChange },
+  ref,
+) {
   const [state, setState] = useState(createFlowState)
   const [direction, setDirection] = useState<"next" | "prev">("next")
+  /** Direction label for the *next* step-change event the emission effect below fires —
+   *  set synchronously by whichever handler initiates a transition (handleNext/Prev/
+   *  NavigateToStep/Restart/Change), read once the resulting state settles on a real
+   *  (non-"logic") step. A chain of "logic" steps resolving in between doesn't touch
+   *  it, so the whole chain still reports under the direction that started it. */
+  const pendingDirectionRef = useRef<StepChangeDirection>("initial")
+  /** Last `CurrentStepInfo` actually reported via `onStepChange`/the ref handle — `null`
+   *  only before the very first emission. Doubles as the source for `previousStep`. */
+  const emittedStepRef = useRef<CurrentStepInfo | null>(null)
+  const [currentStep, setCurrentStep] = useState<CurrentStepInfo>(() =>
+    getCurrentStepInfo(flow, state, "initial", null),
+  )
+  useImperativeHandle(ref, () => ({ currentStep }), [currentStep])
   /** Set while the user is editing an answer they reached by clicking a review row;
    *  the next "Continua" jumps back to this index (the review step) instead of +1. */
   const [returnToIndex, setReturnToIndex] = useState<number | null>(null)
@@ -118,12 +156,43 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     setState((s) => applyBranch(flow, s, target))
   }, [flow, state, stepRole])
 
-  function handleChange(value: Parameters<typeof setAnswer>[2]) {
+  /** Reports the settled current step: skipped while still on a "logic" step (the
+   *  branch-resolution effect above hasn't landed yet — runs first, same commit) so a
+   *  branch is never itself reported, only the visible step it resolves to. Fires once
+   *  per actually-changed id/index/total, so re-renders that don't move anything (or an
+   *  intermediate commit mid a chained-branch resolution) are silent. `currentStep`
+   *  (state, for the ref handle) and the `onStepChange` call are set together here, so
+   *  the two can never observe different values. */
+  useLayoutEffect(() => {
+    if (stepRole === "logic") return
+    const prevInfo = emittedStepRef.current
+    const info = getCurrentStepInfo(flow, state, pendingDirectionRef.current, prevInfo)
+    if (prevInfo && prevInfo.id === info.id && prevInfo.index === info.index && prevInfo.total === info.total) {
+      return
+    }
+    emittedStepRef.current = info
+    setCurrentStep(info)
+    onStepChange?.(info)
+    // onStepChange deliberately omitted: it's an integrator-supplied callback, often a
+    // fresh function identity every render; depending on it would re-fire this effect
+    // (and re-diff/emit) on every unrelated parent render instead of only on real step
+    // changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flow, state, stepRole])
+
+  function handleChange(value: Parameters<typeof setAnswerAndInvalidateDownstream>[3]) {
     // Functional update: a step (e.g. the "smartFill" add-on) may also call
     // onMetaChange in the same event, which queues its own functional update. Using a
     // plain (non-functional) setState here would replace the whole state with one
     // computed from a stale closure, silently discarding that sibling update.
-    setState((s) => setAnswer(s, step, value))
+    setState((s) => {
+      const result = setAnswerAndInvalidateDownstream(flow, s, step, value)
+      // A branch-driving answer just made the (already-answered) downstream path
+      // unreachable: the next settled-step report should say why the total/answers
+      // shifted even though the visible step itself didn't change.
+      if (result.invalidated) pendingDirectionRef.current = "branch-change"
+      return result.state
+    })
     onChange?.({ ...state.answers, [answerKey(step)]: value })
   }
 
@@ -143,25 +212,30 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
     if (returnToIndex !== null) {
       const target = returnToIndex
       setReturnToIndex(null)
+      pendingDirectionRef.current = "jump"
       setState((s) => ({ ...s, index: target }))
       return
     }
+    pendingDirectionRef.current = "next"
     setState((s) => nextState(flow, s))
   }
 
   function handlePrev() {
     if (flow.disableBack) return
     setDirection("prev")
+    pendingDirectionRef.current = "prev"
     setState((s) => prevState(flow, s))
   }
 
   function handleNavigateToStep(stepId: string) {
     setReturnToIndex(state.index)
     setDirection("next")
+    pendingDirectionRef.current = "jump"
     setState((s) => goToStep(flow, s, stepId))
   }
 
   function handleRestart() {
+    pendingDirectionRef.current = "initial"
     setState(createFlowState())
   }
 
@@ -289,4 +363,4 @@ export function FlowRunner({ flow, theme, mode, onSubmit, onChange }: FlowRunner
       </div>
     </ThemeProvider>
   )
-}
+})

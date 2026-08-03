@@ -1,5 +1,5 @@
 export { FlowRunner } from "./flow-runner"
-export type { FlowRunnerProps } from "./flow-runner"
+export type { FlowRunnerProps, FlowRunnerHandle } from "./flow-runner"
 export { ThemeProvider } from "./theme-provider"
 export { stepRegistry, registerStepComponent, getStepComponent } from "./registry"
 export type { StepComponentProps, FlowSubmitHandler } from "./types"
