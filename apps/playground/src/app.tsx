@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"
 import { FlowRunner } from "@flowkit-io/react"
 import { themes, type ThemeMode } from "@flowkit-io/themes"
 import { createLocalAdapter } from "@flowkit-io/adapters"
-import type { Answers } from "@flowkit-io/core"
+import type { Answers, CurrentStepInfo } from "@flowkit-io/core"
 import { presets, presetLabels } from "./presets-registry"
 
 const adapter = createLocalAdapter({ namespace: "flowkit-playground" })
@@ -109,6 +109,11 @@ export function App() {
             onSubmit={async (answers) => {
               await adapter.submit(flow.id, answers)
               setLastSubmission(answers)
+            }}
+            onStepChange={(step) => {
+              // Debug hook, read by e2e/flow-runner-step-change.spec.ts — not part of
+              // the public API, no effect on rendering.
+              ;(window as unknown as { __flowkitCurrentStep?: CurrentStepInfo }).__flowkitCurrentStep = step
             }}
           />
         </div>
