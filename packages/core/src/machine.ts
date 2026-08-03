@@ -332,3 +332,132 @@ export function getProgressInfo(flow: Flow, state: FlowState): ProgressInfo {
   const pct = total !== null ? (currentIndex + 1) / total : null
   return { currentIndex, total, pct }
 }
+
+/** How a `CurrentStepInfo` event came about — see `getCurrentStepInfo`. `"branch-change"`
+ *  is not a movement between steps (the step id can stay the same): it fires when an
+ *  edited answer invalidates the downstream path the user had already walked, see
+ *  `setAnswerAndInvalidateDownstream`. `"popstate"` is reserved for a future browser
+ *  history integration — nothing in this package emits it yet. */
+export type StepChangeDirection = "initial" | "next" | "prev" | "jump" | "popstate" | "branch-change"
+
+/** Lightweight summary of a step, used for `CurrentStepInfo.previousStep` — deliberately
+ *  without its own `previousStep`, so the payload doesn't nest indefinitely. */
+export interface PreviousStepSummary {
+  id: string
+  type: string
+  title: string | null
+  /** Position within the resolved path at the time this step was current — see
+   *  `CurrentStepInfo.index`. */
+  index: number
+}
+
+/** Payload describing the step a `FlowRunner` integration is (or just became) showing.
+ *  `index`/`total` refer to the resolved path (see `resolveFlowPath`/`getProgressInfo`):
+ *  the steps actually reachable given the answers collected so far, not the full flow
+ *  schema — `total` is `null` while that path can't yet be fully determined (an
+ *  unresolved branch further ahead). A "logic" (branch) step never produces one of
+ *  these: callers resolve it and only report the visible step it lands on. */
+export interface CurrentStepInfo {
+  id: string
+  type: string
+  title: string | null
+  index: number
+  total: number | null
+  previousStep: PreviousStepSummary | null
+  direction: StepChangeDirection
+}
+
+function toPreviousStepSummary(info: CurrentStepInfo): PreviousStepSummary {
+  return { id: info.id, type: info.type, title: info.title, index: info.index }
+}
+
+/** Builds the `CurrentStepInfo` for `flow`'s current step in `state`. `direction`
+ *  describes how this step became current (caller's responsibility — the engine itself
+ *  doesn't know whether a transition was a "next" click, a review-row jump, etc.).
+ *  `previousInfo` is the previously reported `CurrentStepInfo` (the return value of the
+ *  prior call), or `null` for the very first call (mount) — carried forward as
+ *  `previousStep` on the result, so consumers never need to track it themselves. */
+export function getCurrentStepInfo(
+  flow: Flow,
+  state: FlowState,
+  direction: StepChangeDirection,
+  previousInfo: CurrentStepInfo | null,
+): CurrentStepInfo {
+  const step = getCurrentStep(flow, state)
+  const progress = getProgressInfo(flow, state)
+  return {
+    id: step.id,
+    type: step.type,
+    title: (step as { title?: string }).title ?? null,
+    index: progress.currentIndex,
+    total: progress.total,
+    previousStep: previousInfo ? toPreviousStepSummary(previousInfo) : null,
+    direction,
+  }
+}
+
+export interface AnswerUpdateResult {
+  state: FlowState
+  /** True when this answer changed the resolved path (see `resolveFlowPath`) — a
+   *  branch further along now (or no longer) applies. Implies any already-collected
+   *  answer/meta for a step the new path dropped got discarded too, but is `true`
+   *  whenever the path diverges even if there was nothing to discard yet (e.g. the
+   *  user hasn't reached that far downstream on this pass) — see
+   *  `setAnswerAndInvalidateDownstream`. */
+  invalidated: boolean
+}
+
+/** `setAnswer`, followed by discarding any already-collected answer/meta for a step that
+ *  the new value just made unreachable — the case where a user goes Back past a
+ *  "branch" step, changes the answer that drives it, and the branch would now send them
+ *  down a different path than the one they'd already walked and answered. Without this,
+ *  those stale answers linger in `state.answers` forever (nothing else in the engine
+ *  ever removes a key once set) and would leak into `onSubmit`/reports even though the
+ *  step that produced them is no longer part of the flow the user is actually taking.
+ *
+ *  `invalidated` reflects the resolved path itself changing (compared right before vs.
+ *  right after this answer), not just whether something was actually deleted — a caller
+ *  driving UI feedback (e.g. `FlowRunner`'s `onStepChange` "branch-change" event) needs
+ *  to know the route changed even on a first pass with nothing yet collected downstream
+ *  to prune.
+ *
+ *  Pruning itself only happens within the span the engine has actually walked/resolved
+ *  (up to the furthest step position appearing in the recomputed `resolveFlowPath`): a
+ *  step beyond an unresolved branch further ahead is left untouched, since whether it's
+ *  reachable genuinely isn't known yet — pruning it now would risk discarding an answer
+ *  that turns out to still be needed. */
+export function setAnswerAndInvalidateDownstream(
+  flow: Flow,
+  state: FlowState,
+  step: Step,
+  value: AnswerValue,
+): AnswerUpdateResult {
+  const beforePath = resolveFlowPath(flow, state)
+  const updated = setAnswer(state, step, value)
+  const path = resolveFlowPath(flow, updated)
+  const reachable = new Set(path.stepIds)
+
+  const pathChanged =
+    path.determinate !== beforePath.determinate ||
+    path.stepIds.length !== beforePath.stepIds.length ||
+    path.stepIds.some((id, i) => id !== beforePath.stepIds[i])
+
+  const indexById = new Map(flow.steps.map((s, i) => [s.id, i] as const))
+  const walkedIndex = path.stepIds.reduce(
+    (max, id) => Math.max(max, indexById.get(id) ?? -1),
+    updated.index,
+  )
+
+  const nextAnswers = { ...updated.answers }
+  const nextMeta = { ...updated.meta }
+
+  flow.steps.forEach((s, idx) => {
+    if (idx <= updated.index || idx > walkedIndex || reachable.has(s.id)) return
+    const key = answerKey(s)
+    delete nextAnswers[key]
+    delete nextMeta[s.id]
+  })
+
+  if (!pathChanged) return { state: updated, invalidated: false }
+  return { state: { ...updated, answers: nextAnswers, meta: nextMeta }, invalidated: true }
+}
