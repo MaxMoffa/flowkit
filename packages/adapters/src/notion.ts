@@ -1,5 +1,6 @@
 import type { AnswerValue, Answers } from "@flowkit-io/core"
 import type { FlowAdapter } from "./types"
+import { requestJson } from "./http"
 
 const NOTION_API_BASE = "https://api.notion.com/v1"
 const NOTION_VERSION = "2022-06-28"
@@ -69,22 +70,23 @@ export function createNotionAdapter(config: NotionAdapterConfig): FlowAdapter {
   }
 
   async function findDraftPageId(flowId: string): Promise<string | null> {
-    const res = await fetchImpl(`${NOTION_API_BASE}/databases/${config.databaseId}/query`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        filter: {
-          and: [
-            { property: "flowId", rich_text: { equals: flowId } },
-            { property: "draft", checkbox: { equals: true } },
-          ],
+    const res = await requestJson(
+      `${NOTION_API_BASE}/databases/${config.databaseId}/query`,
+      "Notion draft search failed",
+      {
+        headers,
+        fetchImpl,
+        body: {
+          filter: {
+            and: [
+              { property: "flowId", rich_text: { equals: flowId } },
+              { property: "draft", checkbox: { equals: true } },
+            ],
+          },
+          page_size: 1,
         },
-        page_size: 1,
-      }),
-    })
-    if (!res.ok) {
-      throw new Error(`Notion draft search failed: ${res.status} ${res.statusText}`)
-    }
+      },
+    )
     const data = (await res.json()) as { results: { id: string }[] }
     return data.results[0]?.id ?? null
   }
@@ -99,16 +101,12 @@ export function createNotionAdapter(config: NotionAdapterConfig): FlowAdapter {
     const url = existingDraftId
       ? `${NOTION_API_BASE}/pages/${existingDraftId}`
       : `${NOTION_API_BASE}/pages`
-    const res = await fetchImpl(url, {
+    await requestJson(url, failure, {
       method: existingDraftId ? "PATCH" : "POST",
       headers,
-      body: JSON.stringify(
-        existingDraftId ? { properties } : { parent: { database_id: config.databaseId }, properties },
-      ),
+      fetchImpl,
+      body: existingDraftId ? { properties } : { parent: { database_id: config.databaseId }, properties },
     })
-    if (!res.ok) {
-      throw new Error(`${failure}: ${res.status} ${res.statusText}`)
-    }
   }
 
   return {
@@ -119,10 +117,11 @@ export function createNotionAdapter(config: NotionAdapterConfig): FlowAdapter {
     async loadDraft(flowId) {
       const pageId = await findDraftPageId(flowId)
       if (!pageId) return null
-      const res = await fetchImpl(`${NOTION_API_BASE}/pages/${pageId}`, { headers })
-      if (!res.ok) {
-        throw new Error(`Notion draft read failed: ${res.status} ${res.statusText}`)
-      }
+      const res = await requestJson(`${NOTION_API_BASE}/pages/${pageId}`, "Notion draft read failed", {
+        method: "GET",
+        headers,
+        fetchImpl,
+      })
       const page = (await res.json()) as { properties: Record<string, unknown> }
       return notionPropertiesToAnswers(page.properties)
     },

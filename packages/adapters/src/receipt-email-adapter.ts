@@ -1,4 +1,5 @@
 import type { Answers } from "@flowkit-io/core"
+import { requestJson } from "./http"
 
 export interface ReceiptEmailAdapterOptions {
   baseUrl: string
@@ -13,18 +14,15 @@ export interface ReceiptEmailAdapter {
 
 /** Adapter that calls a REST endpoint to have the backend send a receipt email. */
 export function createReceiptEmailAdapter(options: ReceiptEmailAdapterOptions): ReceiptEmailAdapter {
-  const fetchImpl = options.fetchImpl ?? fetch
+  const jsonHeaders = { "Content-Type": "application/json", ...options.headers }
 
   return {
     async sendReceiptEmail(flowId, email, answers) {
-      const res = await fetchImpl(`${options.baseUrl}/flows/${flowId}/receipt-email`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...options.headers },
-        body: JSON.stringify({ email, answers }),
+      await requestJson(`${options.baseUrl}/flows/${flowId}/receipt-email`, "Email send failed", {
+        headers: jsonHeaders,
+        body: { email, answers },
+        fetchImpl: options.fetchImpl,
       })
-      if (!res.ok) {
-        throw new Error(`Email send failed: ${res.status} ${res.statusText}`)
-      }
     },
   }
 }
