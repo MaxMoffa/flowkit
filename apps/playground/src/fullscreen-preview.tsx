@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { FlowRunner } from "@flowkit-io/react"
 import { themes, type ThemeMode } from "@flowkit-io/themes"
 import { createLocalAdapter } from "@flowkit-io/adapters"
 import type { Answers } from "@flowkit-io/core"
 import { presets } from "./presets-registry"
+import { ensureOptInStepsRegistered } from "./opt-in-steps"
 
 type SimWidth = 390 | 768 | 1024 | null
 
@@ -27,6 +28,17 @@ export function FullscreenPreview() {
 
   const flow = presets[presetKey]!
   const theme = themes[themeKey]!
+
+  const [optInsReady, setOptInsReady] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    void ensureOptInStepsRegistered(flow).then(() => {
+      if (!cancelled) setOptInsReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [flow])
 
   const onSubmit = useMemo(
     () => async (answers: Answers) => {
@@ -73,7 +85,9 @@ export function FullscreenPreview() {
         </a>
       </div>
       <div className="pg-fullscreen-frame" style={{ width: simWidth ?? "100%" }}>
-        <FlowRunner key={`fullscreen-${presetKey}`} flow={flow} theme={theme} mode={mode} onSubmit={onSubmit} />
+        {optInsReady && (
+          <FlowRunner key={`fullscreen-${presetKey}`} flow={flow} theme={theme} mode={mode} onSubmit={onSubmit} />
+        )}
       </div>
     </div>
   )

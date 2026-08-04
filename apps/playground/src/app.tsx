@@ -1,9 +1,10 @@
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { FlowRunner, type FlowRunnerHandle } from "@flowkit-io/react"
 import { themes, type ThemeMode } from "@flowkit-io/themes"
 import { createLocalAdapter } from "@flowkit-io/adapters"
 import type { Answers, CurrentStepInfo } from "@flowkit-io/core"
 import { presets, presetLabels } from "./presets-registry"
+import { ensureOptInStepsRegistered } from "./opt-in-steps"
 
 const adapter = createLocalAdapter({ namespace: "flowkit-playground" })
 
@@ -34,6 +35,21 @@ export function App() {
   const theme = themes[themeKey]!
 
   const themeOptions = useMemo(() => Object.entries(themes), [])
+
+  /** Opt-in step components (maplibre-gl/leaflet/stripe/verification) are loaded on
+   *  demand per the active preset instead of always-on, so switching to a preset that
+   *  doesn't use them never pays for those dependencies — see opt-in-steps.ts. */
+  const [optInsReady, setOptInsReady] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    setOptInsReady(false)
+    void ensureOptInStepsRegistered(flow).then(() => {
+      if (!cancelled) setOptInsReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [flow])
 
   function restart() {
     setRunKey((k) => k + 1)
@@ -117,29 +133,31 @@ export function App() {
           <span>{flow.title}</span>
         </div>
         <div className="pg-frame">
-          <FlowRunner
-            key={`${presetKey}-${runKey}`}
-            ref={(handle) => {
-              flowRunnerRef.current = handle
-              // Debug hook, read by e2e/flow-runner-resume.spec.ts — not part of the
-              // public API, no effect on rendering.
-              ;(window as unknown as { __flowkitRunner?: FlowRunnerHandle | null }).__flowkitRunner = handle
-            }}
-            flow={flow}
-            theme={theme}
-            mode={mode}
-            initialStep={debugInitialStep}
-            initialAnswers={debugInitialAnswers}
-            onSubmit={async (answers) => {
-              await adapter.submit(flow.id, answers)
-              setLastSubmission(answers)
-            }}
-            onStepChange={(step) => {
-              // Debug hook, read by e2e/flow-runner-step-change.spec.ts — not part of
-              // the public API, no effect on rendering.
-              ;(window as unknown as { __flowkitCurrentStep?: CurrentStepInfo }).__flowkitCurrentStep = step
-            }}
-          />
+          {optInsReady && (
+            <FlowRunner
+              key={`${presetKey}-${runKey}`}
+              ref={(handle) => {
+                flowRunnerRef.current = handle
+                // Debug hook, read by e2e/flow-runner-resume.spec.ts — not part of the
+                // public API, no effect on rendering.
+                ;(window as unknown as { __flowkitRunner?: FlowRunnerHandle | null }).__flowkitRunner = handle
+              }}
+              flow={flow}
+              theme={theme}
+              mode={mode}
+              initialStep={debugInitialStep}
+              initialAnswers={debugInitialAnswers}
+              onSubmit={async (answers) => {
+                await adapter.submit(flow.id, answers)
+                setLastSubmission(answers)
+              }}
+              onStepChange={(step) => {
+                // Debug hook, read by e2e/flow-runner-step-change.spec.ts — not part of
+                // the public API, no effect on rendering.
+                ;(window as unknown as { __flowkitCurrentStep?: CurrentStepInfo }).__flowkitCurrentStep = step
+              }}
+            />
+          )}
         </div>
       </div>
 
