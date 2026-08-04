@@ -3,6 +3,7 @@ import { answerKey, getStepValidationIssue, resolveValidationMessage } from "@fl
 import type { StepComponentProps } from "../types"
 import { getStepComponent } from "../registry"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 
 /**
  * "group" step: renders its child steps inline on the same page. The value
@@ -59,7 +60,7 @@ export function GroupStepView({
 
   return (
     <div className={`fk-step fk-step-group fk-group-${effectiveLayout}`}>
-      {groupStep.title && <h2 className="fk-title"><FlowMarkdown text={groupStep.title} variant="inline" /></h2>}
+      <StepTitle image={groupStep.image} title={groupStep.title} />
       {groupStep.subtitle && <p className="fk-subtitle"><FlowMarkdown text={groupStep.subtitle} variant="block" /></p>}
       {invalidChildren.length >= 2 && (
         <div className="fk-error-summary" role="alert">

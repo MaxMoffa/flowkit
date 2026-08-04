@@ -3,6 +3,7 @@ import type { ReviewStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { ReportRows } from "./shared/report-rows"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 
 export function ReviewStepView({
   step,
@@ -13,7 +14,7 @@ export function ReviewStepView({
 }: StepComponentProps<ReviewStep>) {
   return (
     <div className="fk-step fk-step-review">
-      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      <StepTitle image={step.image} title={step.title} />
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       {step.meta && <div className="fk-review-meta">{step.meta}</div>}
       <ReportRows rows={buildReportRows(flow, answers, visitedStepIds)} onRowClick={onNavigateToStep} />

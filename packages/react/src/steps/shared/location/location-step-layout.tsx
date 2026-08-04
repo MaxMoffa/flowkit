@@ -1,6 +1,7 @@
 import type { AnyLocationStep } from "./types"
 import type { LocationStepState } from "./use-location-step"
 import { FlowMarkdown } from "../../../markdown"
+import { StepTitle } from "../step-title"
 
 interface LocationStepLayoutProps {
   step: AnyLocationStep
@@ -110,7 +111,7 @@ export function LocationStepLayout({ step, state }: LocationStepLayoutProps) {
     return (
       <div className="fk-step fk-step-location fk-step-location--full">
         <div className="fk-map-overlay-top">
-          {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+          <StepTitle image={step.image} title={step.title} />
           {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
           {searchBlock}
         </div>
@@ -134,7 +135,7 @@ export function LocationStepLayout({ step, state }: LocationStepLayoutProps) {
   return (
     <div className={`fk-step fk-step-location${columnsEnabled ? " fk-step-location--columns" : ""}`}>
       <div className="fk-location-controls">
-        {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+        <StepTitle image={step.image} title={step.title} />
         {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
 
         {searchBlock}

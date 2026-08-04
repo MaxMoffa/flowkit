@@ -1,6 +1,7 @@
 import type { TextStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 import { useSmartFill } from "./shared/use-smart-fill"
 import { useFieldValidation } from "./shared/use-field-validation"
 import { FieldError } from "./shared/field-error"
@@ -21,7 +22,7 @@ export function TextStepView({
 
   return (
     <div className="fk-step fk-step-text">
-      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      <StepTitle image={step.image} title={step.title} />
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       {step.multiline ? (
         <textarea

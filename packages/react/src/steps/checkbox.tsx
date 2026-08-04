@@ -1,6 +1,7 @@
 import type { CheckboxStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 import { useFieldValidation } from "./shared/use-field-validation"
 import { FieldError } from "./shared/field-error"
 
@@ -10,7 +11,7 @@ export function CheckboxStepView({ step, value, onChange, flow, answers, meta, v
 
   return (
     <div className="fk-step fk-step-checkbox">
-      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      <StepTitle image={step.image} title={step.title} />
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       <label className="fk-checkbox-row">
         <input

@@ -36,6 +36,23 @@ export const stepImageDemoFlow: Flow = parseFlow({
           "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByeD0iOCIgZmlsbD0iIzI3ODNERSIvPjx0ZXh0IHg9IjI0IiB5PSIzMCIgZm9udC1zaXplPSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiPvCfk4Q8L3RleHQ+PC9zdmc+",
       },
     },
+    {
+      // v2.36: non-intro/info step types now propagate `image` too, rendered inline
+      // next to the title (.fk-title-icon) instead of the intro/info hero badge.
+      id: "select-cards-step",
+      type: "select-cards",
+      title: "Non-intro icon",
+      subtitle: "select-cards con icona inline (.fk-title-icon), non badge",
+      image: { kind: "emoji", value: "🎯" },
+      options: [{ value: "x", label: "X" }],
+    },
+    {
+      id: "no-icon-step",
+      type: "text",
+      title: "Nessuna icona",
+      subtitle: "step senza image: nessuno spazio vuoto accanto al titolo",
+      required: false,
+    },
     { id: "end", type: "confirmation", title: "Grazie!", showHomeButton: false },
   ],
 })

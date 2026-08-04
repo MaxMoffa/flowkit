@@ -1,6 +1,7 @@
 import type { NotesStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 import { useFieldValidation } from "./shared/use-field-validation"
 import { FieldError } from "./shared/field-error"
 
@@ -10,7 +11,7 @@ export function NotesStepView({ step, value, onChange, flow, answers, meta, vali
 
   return (
     <div className="fk-step fk-step-notes">
-      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      <StepTitle image={step.image} title={step.title} />
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       <textarea
         className="fk-textarea"

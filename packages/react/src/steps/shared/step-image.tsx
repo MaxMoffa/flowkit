@@ -8,14 +8,15 @@ export function sanitizeStepIcon(markup: string): string {
   return DOMPurify.sanitize(markup, { USE_PROFILES: { svg: true, svgFilters: true } })
 }
 
-const SIZE_CLASS: Record<"badge" | "review", string> = {
+const SIZE_CLASS: Record<"badge" | "review" | "inline", string> = {
   badge: "fk-intro-badge",
   review: "fk-review-icon",
+  inline: "fk-title-icon",
 }
 
 export interface StepImageProps {
   image: StepImageValue | undefined
-  size: "badge" | "review"
+  size: "badge" | "review" | "inline"
 }
 
 export function StepImage({ image, size }: StepImageProps) {

@@ -6,6 +6,7 @@ import { useFileUpload } from "./shared/use-file-upload"
 import { useMediaCaptureAvailability } from "./shared/use-media-capture-availability"
 import { MediaViewer } from "./shared/media-viewer"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 import { useFieldValidation } from "./shared/use-field-validation"
 import { FieldError } from "./shared/field-error"
 
@@ -40,7 +41,7 @@ export function MediaStepView({ step, value, onChange, flow, answers, meta, vali
 
   return (
     <div className="fk-step fk-step-media" onBlur={handleBlur} {...ariaProps}>
-      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      <StepTitle image={step.image} title={step.title} />
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
 
       {canAddMore && (

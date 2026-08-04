@@ -4,6 +4,7 @@ import { resolveText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { loadExternalScript } from "./shared/external-script"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 
 const PROVIDER_SCRIPT_SRC: Record<VerificationProvider, string> = {
   turnstile: "https://challenges.cloudflare.com/turnstile/v0/api.js",
@@ -104,7 +105,7 @@ export function VerificationStepView({ step, value, onChange, flow }: StepCompon
   if (step.enabled === false) {
     return (
       <div className="fk-step fk-step-verification">
-        {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+        <StepTitle image={step.image} title={step.title} />
         {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       </div>
     )
@@ -114,7 +115,7 @@ export function VerificationStepView({ step, value, onChange, flow }: StepCompon
 
   return (
     <div className="fk-step fk-step-verification">
-      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      <StepTitle image={step.image} title={step.title} />
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       {verified ? (
         <div className="fk-loc-row">

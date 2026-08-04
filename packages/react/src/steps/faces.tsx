@@ -2,6 +2,7 @@ import { useEffect } from "react"
 import type { FacesStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown, stripMarkdownToPlainText } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 import { useFieldValidation } from "./shared/use-field-validation"
 import { FieldError } from "./shared/field-error"
 
@@ -17,7 +18,7 @@ export function FacesStepView({ step, value, onChange, flow, answers, meta, vali
 
   return (
     <div className="fk-step fk-step-faces">
-      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      <StepTitle image={step.image} title={step.title} />
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       <div className="fk-faces-row" onBlur={handleBlur} {...ariaProps}>
         {step.faces.map((f) => (

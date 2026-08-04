@@ -3,6 +3,7 @@ import { listBookingSlotDates, listBookingSlotsForDate } from "@flowkit-io/core"
 import type { AnswerValue, BookingSlot, BookingSlotStep, BookingSlotValue } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 
 const WEEKDAY_LABELS_IT = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"]
 
@@ -51,7 +52,7 @@ export function BookingSlotStepView({ step, value, onChange, flow }: StepCompone
 
   return (
     <div className="fk-step fk-step-booking-slot">
-      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      <StepTitle image={step.image} title={step.title} />
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
 
       {dates.length === 0 ? (

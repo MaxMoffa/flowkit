@@ -2,6 +2,7 @@ import type { SelectCardsStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { useToggleSelection } from "./shared/selection"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 import { useRemoteOptions } from "./shared/use-remote-options"
 import { RemoteLoadMoreButton, RemoteOptionsStatus, RemoteSearchInput } from "./shared/remote-options-ui"
 import { useFieldValidation } from "./shared/use-field-validation"
@@ -16,7 +17,7 @@ export function SelectCardsStepView({ step, value, onChange, flow, answers, meta
 
   return (
     <div className="fk-step fk-step-select-cards">
-      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      <StepTitle image={step.image} title={step.title} />
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       <RemoteSearchInput remote={remote} />
       <RemoteOptionsStatus remote={remote} />

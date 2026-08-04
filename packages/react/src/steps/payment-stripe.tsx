@@ -4,6 +4,7 @@ import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-
 import type { PaymentStripeStep, PaymentStripeValue } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 
 interface PaymentFormProps {
   step: PaymentStripeStep
@@ -91,7 +92,7 @@ export function PaymentStripeStepView({ step, value, onChange }: StepComponentPr
 
   return (
     <div className="fk-step fk-step-payment-stripe">
-      {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      <StepTitle image={step.image} title={step.title} />
       {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
       {step.description && <p className="fk-subtitle"><FlowMarkdown text={step.description} variant="block" /></p>}
       {succeeded ? (

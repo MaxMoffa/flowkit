@@ -20,6 +20,11 @@ describe("StepImage", () => {
     expect(img.getAttribute("src")).toBe("https://example.com/a.png")
   })
 
+  it("renders the 'inline' size (used by non-intro step titles) with the .fk-title-icon class", () => {
+    const { container } = render(<StepImage image={{ kind: "emoji", value: "📍" }} size="inline" />)
+    expect(container.querySelector(".fk-title-icon")?.textContent).toBe("📍")
+  })
+
   it("sanitizes an icon kind's SVG markup before mounting it", () => {
     const { container } = render(
       <StepImage

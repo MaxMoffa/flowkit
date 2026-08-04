@@ -405,6 +405,9 @@
 }
 
 .fk-title {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-sm);
   font-size: 26px;
   line-height: 1.2;
   font-weight: 700;
@@ -642,6 +645,24 @@
 .fk-intro-badge img {
   width: 48px;
   height: 48px;
+  object-fit: contain;
+}
+
+.fk-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.fk-title-icon svg,
+.fk-title-icon img {
+  width: 22px;
+  height: 22px;
   object-fit: contain;
 }
 

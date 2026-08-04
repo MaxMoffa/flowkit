@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import type { SignatureStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 
 interface Point {
   x: number
@@ -225,7 +226,7 @@ export function SignatureStepView({ step, value, onChange }: StepComponentProps<
           ✕
         </button>
       )}
-      {!fullscreen && step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+      {!fullscreen && <StepTitle image={step.image} title={step.title} />}
       {!fullscreen && step.subtitle && (
         <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>
       )}

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 import type { LongContentStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 
 /** How close to the bottom counts as "scrolled to end" — exact equality is brittle
  *  across browsers/zoom levels (sub-pixel scrollHeight rounding). */
@@ -37,7 +38,7 @@ export function LongContentStepView({ step, meta, onMetaChange }: StepComponentP
     <div className="fk-step fk-step-long-content">
       {(step.title || step.subtitle) && (
         <div className="fk-long-content-header">
-          {step.title && <h2 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h2>}
+          <StepTitle image={step.image} title={step.title} />
           {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
         </div>
       )}

@@ -1,6 +1,7 @@
 import type { ConfirmationStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
+import { StepTitle } from "./shared/step-title"
 import { EmailApiAction } from "./confirmation-actions/email-api-action"
 import { EmailShareAction } from "./confirmation-actions/email-share-action"
 import { NativeShareAction, canNativeShare } from "./confirmation-actions/native-share-action"
@@ -37,7 +38,7 @@ export function ConfirmationStepView({
           </svg>
         )}
       </div>
-      <h1 className="fk-title"><FlowMarkdown text={step.title} variant="inline" /></h1>
+      <StepTitle image={step.image} title={step.title} level="h1" />
       {step.message && <p className="fk-subtitle"><FlowMarkdown text={step.message} variant="block" /></p>}
 
       {step.stats && step.stats.length > 0 && (
