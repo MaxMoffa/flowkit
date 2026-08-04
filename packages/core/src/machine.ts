@@ -396,6 +396,90 @@ export function getCurrentStepInfo(
   }
 }
 
+/** Whether `stepId` is reachable given `state` — on `resolveFlowPath`'s resolved path,
+ *  or the trivially-always-reachable-at-index-0 "intro" step, or (once the whole path
+ *  is determinate) the terminal "confirmation" step, which `resolveFlowPath.stepIds`
+ *  excludes by design (see its role checks). Assumes a single confirmation-role step
+ *  per flow, same invariant `isLastStep`/`ConfirmationFooter` already rely on. Unknown
+ *  id, or a path that can't yet reach it, returns `false` — never throws. Used both by
+ *  `computeInitialFlowState` (mount-time `initialStep`) and `FlowRunner`'s imperative
+ *  `goToStep` (runtime jumps). */
+export function isStepReachable(flow: Flow, state: FlowState, stepId: string): boolean {
+  const index = flow.steps.findIndex((s) => s.id === stepId)
+  if (index === -1) return false
+  const def = getStepTypeDefinition(flow.steps[index]!.type)
+  if (def?.role === "intro") return index === 0
+  const path = resolveFlowPath(flow, state)
+  if (def?.role === "confirmation") return path.determinate
+  return path.stepIds.includes(stepId)
+}
+
+/** Keeps only the entries of `rawAnswers` that belong to a real step (matched by
+ *  `answerKey`) and pass that step's own validation rule — the same `validate`
+ *  function `isStepValid` uses (there's no zod schema for an answer *value*, only for
+ *  a step's own config). Unknown keys and values that fail validation are dropped
+ *  silently, never throw. Used by `computeInitialFlowState` (`initialAnswers`) and
+ *  `FlowRunner`'s imperative `setAnswers`. */
+export function filterValidAnswers(flow: Flow, rawAnswers: Answers): Answers {
+  const byKey = new Map(flow.steps.map((s) => [answerKey(s), s] as const))
+  const result: Answers = {}
+  for (const [key, value] of Object.entries(rawAnswers)) {
+    const step = byKey.get(key)
+    if (!step) continue
+    const def = getStepTypeDefinition(step.type)
+    if (def && !def.validate(step, value, rawAnswers, {})) continue
+    result[key] = value
+  }
+  return result
+}
+
+/** Options for `computeInitialFlowState` — how a `FlowRunner` should seed its very
+ *  first `FlowState`, e.g. to resume a flow after a page refresh. */
+export interface InitialFlowStateOptions {
+  /** Id of the step to start on instead of the first step. Silently falls back to the
+   *  normal initial step (index 0) if the id doesn't exist, or isn't reachable given
+   *  `initialAnswers` — never throws. */
+  initialStepId?: string
+  /** Answers to preload before the flow ever renders. Filtered through
+   *  `filterValidAnswers` first. */
+  initialAnswers?: Answers
+}
+
+/** Builds the `FlowState` a `FlowRunner` should start from, honoring `initialStepId`/
+ *  `initialAnswers` (see `InitialFlowStateOptions`) instead of always starting blank at
+ *  index 0. Reachability of `initialStepId` is probed with `state.index` pinned to the
+ *  last step: this is a fresh seed with no "current position" of its own yet, so a
+ *  branch shouldn't be rejected merely for depending on a field the (nonexistent) prior
+ *  session "hadn't reached" — every preloaded answer counts as already given. When the
+ *  target is reachable, `state.history` is backfilled from the resolved path up to that
+ *  point (empty for the intro step, the full resolved path for the confirmation step)
+ *  so the Back button works immediately on a resumed step. */
+export function computeInitialFlowState(flow: Flow, options: InitialFlowStateOptions = {}): FlowState {
+  let state = createFlowState()
+  if (options.initialAnswers) {
+    state = { ...state, answers: filterValidAnswers(flow, options.initialAnswers) }
+  }
+  if (options.initialStepId) {
+    const probe: FlowState = { ...state, index: flow.steps.length - 1 }
+    if (isStepReachable(flow, probe, options.initialStepId)) {
+      const targetIndex = flow.steps.findIndex((s) => s.id === options.initialStepId)!
+      const def = getStepTypeDefinition(flow.steps[targetIndex]!.type)
+      const path = resolveFlowPath(flow, probe)
+      let history: string[]
+      if (def?.role === "intro") {
+        history = []
+      } else if (def?.role === "confirmation") {
+        history = path.stepIds
+      } else {
+        const targetPos = path.stepIds.indexOf(options.initialStepId)
+        history = targetPos > 0 ? path.stepIds.slice(0, targetPos) : []
+      }
+      state = { ...state, index: targetIndex, history }
+    }
+  }
+  return state
+}
+
 export interface AnswerUpdateResult {
   state: FlowState
   /** True when this answer changed the resolved path (see `resolveFlowPath`) — a
