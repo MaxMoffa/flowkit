@@ -57,7 +57,6 @@ export function VerificationStepView({ step, value, onChange, flow }: StepCompon
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step.provider, skipWidget])
 
   useEffect(() => {
