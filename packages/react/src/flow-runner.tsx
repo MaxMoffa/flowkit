@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useLayoutEffect,
@@ -117,6 +118,13 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   const [currentStep, setCurrentStep] = useState<CurrentStepInfo>(() =>
     getCurrentStepInfo(flow, state, "initial", null),
   )
+  /** Defined ahead of the other handlers (all declared further down, after the derived
+   *  step values they close over) because useImperativeHandle's factory below needs a
+   *  stable reference to it right away. */
+  const handleRestart = useCallback(() => {
+    pendingDirectionRef.current = "initial"
+    setState(createFlowState())
+  }, [])
   useImperativeHandle(
     ref,
     () => ({
@@ -133,7 +141,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
       },
       reset: handleRestart,
     }),
-    [currentStep, flow, state],
+    [currentStep, flow, state, handleRestart],
   )
   /** Set while the user is editing an answer they reached by clicking a review row;
    *  the next "Continua" jumps back to this index (the review step) instead of +1. */
@@ -230,27 +238,33 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flow, state, stepRole])
 
-  function handleChange(value: Parameters<typeof setAnswerAndInvalidateDownstream>[3]) {
-    // Functional update: a step (e.g. the "smartFill" add-on) may also call
-    // onMetaChange in the same event, which queues its own functional update. Using a
-    // plain (non-functional) setState here would replace the whole state with one
-    // computed from a stale closure, silently discarding that sibling update.
-    setState((s) => {
-      const result = setAnswerAndInvalidateDownstream(flow, s, step, value)
-      // A branch-driving answer just made the (already-answered) downstream path
-      // unreachable: the next settled-step report should say why the total/answers
-      // shifted even though the visible step itself didn't change.
-      if (result.invalidated) pendingDirectionRef.current = "branch-change"
-      return result.state
-    })
-    onChange?.({ ...state.answers, [answerKey(step)]: value })
-  }
+  const handleChange = useCallback(
+    (value: Parameters<typeof setAnswerAndInvalidateDownstream>[3]) => {
+      // Functional update: a step (e.g. the "smartFill" add-on) may also call
+      // onMetaChange in the same event, which queues its own functional update. Using a
+      // plain (non-functional) setState here would replace the whole state with one
+      // computed from a stale closure, silently discarding that sibling update.
+      setState((s) => {
+        const result = setAnswerAndInvalidateDownstream(flow, s, step, value)
+        // A branch-driving answer just made the (already-answered) downstream path
+        // unreachable: the next settled-step report should say why the total/answers
+        // shifted even though the visible step itself didn't change.
+        if (result.invalidated) pendingDirectionRef.current = "branch-change"
+        return result.state
+      })
+      onChange?.({ ...state.answers, [answerKey(step)]: value })
+    },
+    [flow, step, state.answers, onChange],
+  )
 
-  function handleMetaChange(patch: Record<string, unknown>) {
-    setState((s) => setStepMeta(s, step.id, patch))
-  }
+  const handleMetaChange = useCallback(
+    (patch: Record<string, unknown>) => {
+      setState((s) => setStepMeta(s, step.id, patch))
+    },
+    [step.id],
+  )
 
-  async function handleNext() {
+  const handleNext = useCallback(async () => {
     if (!canGoNext(flow, state)) {
       setAttempt((a) => a + 1)
       return
@@ -268,26 +282,24 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     }
     pendingDirectionRef.current = "next"
     setState((s) => nextState(flow, s))
-  }
+  }, [flow, state, isFinalReviewSubmit, onSubmit, returnToIndex])
 
-  function handlePrev() {
+  const handlePrev = useCallback(() => {
     if (flow.disableBack) return
     setDirection("prev")
     pendingDirectionRef.current = "prev"
     setState((s) => prevState(flow, s))
-  }
+  }, [flow])
 
-  function handleNavigateToStep(stepId: string) {
-    setReturnToIndex(state.index)
-    setDirection("next")
-    pendingDirectionRef.current = "jump"
-    setState((s) => goToStep(flow, s, stepId))
-  }
-
-  function handleRestart() {
-    pendingDirectionRef.current = "initial"
-    setState(createFlowState())
-  }
+  const handleNavigateToStep = useCallback(
+    (stepId: string) => {
+      setReturnToIndex(state.index)
+      setDirection("next")
+      pendingDirectionRef.current = "jump"
+      setState((s) => goToStep(flow, s, stepId))
+    },
+    [flow, state.index],
+  )
 
   /** Enter in a single-line text-like input (text/email/number/date/…) attempts to
    *  advance, same as clicking the primary button — the button itself already handles
@@ -296,24 +308,27 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
    *  invalid field) without the button ever needing to not be `disabled`. Deliberately
    *  scoped to `<input>` (not textarea/checkbox/radio/file/buttons), which either have
    *  their own Enter semantics or none worth intercepting. */
-  function handleScopeKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (e.key !== "Enter") return
-    const target = e.target as HTMLElement
-    if (target.tagName !== "INPUT") return
-    const inputType = (target as HTMLInputElement).type
-    if (inputType === "checkbox" || inputType === "radio" || inputType === "file" || inputType === "range") return
-    e.preventDefault()
-    void handleNext()
-  }
+  const handleScopeKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key !== "Enter") return
+      const target = e.target as HTMLElement
+      if (target.tagName !== "INPUT") return
+      const inputType = (target as HTMLInputElement).type
+      if (inputType === "checkbox" || inputType === "radio" || inputType === "file" || inputType === "range") return
+      e.preventDefault()
+      void handleNext()
+    },
+    [handleNext],
+  )
 
-  function handleGoHome() {
+  const handleGoHome = useCallback(() => {
     const homeUrl = (step as StepWithConfirmationFields).homeUrl
     if (homeUrl) {
       window.location.href = homeUrl
       return
     }
     handleRestart()
-  }
+  }, [step, handleRestart])
 
   const primaryLabel =
     returnToIndex !== null
