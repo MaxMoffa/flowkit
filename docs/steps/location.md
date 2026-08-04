@@ -11,6 +11,8 @@ Not registered by the main entry point:
 import "@flowkit-io/react/map-maplibre" // registers "location"
 ```
 
+<StepPreview type="location" />
+
 ## Config
 
 | Field | Type | Default | Notes |

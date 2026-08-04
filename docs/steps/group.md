@@ -6,6 +6,8 @@ as one normal flow step. Answer value: an aggregated object `{ [childId]: value 
 `Answers`). The "Continue" button stays disabled until every gating child has a valid
 answer. Component: `GroupStepView`.
 
+<StepPreview type="group" />
+
 ## Config
 
 | Field | Type | Default | Notes |

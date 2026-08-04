@@ -15,6 +15,8 @@ Every summary row is clickable: tapping one jumps back to that step for editing,
 the next "Continue" (relabeled "Back to summary") snaps straight back to the review —
 unless `Flow.disableBack` is set, which also disables this shortcut.
 
+<StepPreview type="review" />
+
 ## Config
 
 | Field | Type | Default | Notes |

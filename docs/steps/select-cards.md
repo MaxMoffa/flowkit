@@ -4,6 +4,8 @@
 value: `string` (single) or `string[]` (`multiple: true`). Component:
 `SelectCardsStepView`.
 
+<StepPreview type="select-cards" />
+
 ## Config
 
 | Field | Type | Default | Notes |

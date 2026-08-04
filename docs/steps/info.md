@@ -9,6 +9,8 @@ Adds no field to the flow and no value to collected data: the component never ca
 `onChange`, and the type is excluded from the review/summary step and from the final
 answers payload (`includeInSummary: false`). Component: `InfoStepView`.
 
+<StepPreview type="info" />
+
 ## Config
 
 | Field | Type | Default | Notes |

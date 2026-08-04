@@ -3,6 +3,8 @@
 Generic file upload (any type), multi-item by default. Answer value: `UploadedItem[]`
 (`{ id, name, mimeType, size, dataUrl, kind: "file" }`). Component: `FileStepView`.
 
+<StepPreview type="file" />
+
 ## Config
 
 | Field | Type | Default | Notes |

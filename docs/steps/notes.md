@@ -2,6 +2,8 @@
 
 Free-form textarea. Answer value: `string`. Component: `NotesStepView`.
 
+<StepPreview type="notes" />
+
 ## Config
 
 | Field | Type | Default | Notes |

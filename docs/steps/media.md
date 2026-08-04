@@ -4,6 +4,8 @@ Image and/or video capture/upload, multi-item by default. Answer value:
 `UploadedItem[]` (`{ id, name, mimeType, size, dataUrl, kind: "image" | "video" }`, each
 `dataUrl` read client-side via `FileReader`). Component: `MediaStepView`.
 
+<StepPreview type="media" />
+
 ## Config
 
 | Field | Type | Default | Notes |

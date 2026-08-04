@@ -5,6 +5,8 @@ Single boolean toggle (e.g. privacy consent). Answer value: `boolean`. Component
 `required` field (default `true`): when not `false`, the step only validates once the
 box is checked.
 
+<StepPreview type="checkbox" />
+
 ## Config
 
 | Field | Type | Default | Notes |

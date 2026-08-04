@@ -15,6 +15,8 @@ The component never checks the secret key itself (would require it client-side).
 provider's secret key and calls Cloudflare's/Google's siteverify endpoint, resolving
 `true` only on real success.
 
+<StepPreview type="verification" />
+
 ## Config
 
 | Field | Type | Default | Notes |

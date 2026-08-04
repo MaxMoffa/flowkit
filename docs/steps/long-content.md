@@ -7,6 +7,8 @@ stays fixed and always visible below it, only the content scrolls. Same
 content-only contract as `info`: no field added to the flow, no value in
 collected data (`includeInSummary: false`). Component: `LongContentStepView`.
 
+<StepPreview type="long-content" />
+
 ## Config
 
 | Field | Type | Default | Notes |

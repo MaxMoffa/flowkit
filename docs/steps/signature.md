@@ -4,6 +4,8 @@ Signature drawn with finger, mouse or stylus on a canvas (Pointer Events, unifie
 handler for all input types). Answer value: a `data:image/png;base64,...` data URI —
 valid as soon as the value starts with `data:image/`. Component: `SignatureStepView`.
 
+<StepPreview type="signature" />
+
 ## Config
 
 | Field | Type | Default | Notes |

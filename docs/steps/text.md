@@ -2,6 +2,8 @@
 
 Free text/number/email input. Answer value: `string`. Component: `TextStepView`.
 
+<StepPreview type="text" />
+
 ## Config
 
 | Field | Type | Default | Notes |

@@ -3,6 +3,8 @@
 Generic multi-selection (checklist), with min/max constraints. Answer value:
 `string[]`. Component: `MultiSelectStepView`.
 
+<StepPreview type="multi-select" />
+
 ## Config
 
 | Field | Type | Default | Notes |

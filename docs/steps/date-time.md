@@ -3,6 +3,8 @@
 Native browser date/time input. Answer value: `string` in the matching `<input>`'s
 format (`YYYY-MM-DD`, `HH:mm` or `YYYY-MM-DDTHH:mm`). Component: `DateTimeStepView`.
 
+<StepPreview type="date-time" />
+
 ## Config
 
 | Field | Type | Default | Notes |

@@ -3,6 +3,8 @@
 Row of selectable pills (wraps onto multiple lines). Answer value: `string` or
 `string[]` (`multiple: true`). Component: `ChipsStepView`.
 
+<StepPreview type="chips" />
+
 ## Config
 
 | Field | Type | Default | Notes |

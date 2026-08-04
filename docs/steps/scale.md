@@ -3,6 +3,8 @@
 Numeric rating over a range. Answer value: `number`. Component: `ScaleStepView`. Two
 visual variants.
 
+<StepPreview type="scale" />
+
 ## Config
 
 | Field | Type | Default | Notes |

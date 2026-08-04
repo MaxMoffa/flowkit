@@ -10,6 +10,8 @@ addition — the host's local timezone/DST never leaks in). Component:
 Reads `Flow.timezone` (default `"UTC"`) — a flow-level field, not per-step — and stamps
 it onto the answer so consumers know which zone the wall-clock string refers to.
 
+<StepPreview type="booking-slot" />
+
 ## Config
 
 | Field | Type | Default | Notes |

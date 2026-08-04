@@ -2,6 +2,8 @@
 
 Initial "hero" screen, no header/progress bar. Component: `IntroStepView`.
 
+<StepPreview type="intro" />
+
 ## Config
 
 | Field | Type | Default | Notes |

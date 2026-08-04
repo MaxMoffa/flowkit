@@ -3,6 +3,8 @@
 Row of selectable emoji faces (hedonic scale); wraps onto a new row on narrow screens
 instead of shrinking. Answer value: `string`. Component: `FacesStepView`.
 
+<StepPreview type="faces" />
+
 ## Config
 
 | Field | Type | Default | Notes |

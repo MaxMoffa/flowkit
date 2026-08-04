@@ -17,6 +17,8 @@ the default OpenStreetMap raster tiles
 (`https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`). Use `location` if you need a
 custom basemap.
 
+<StepPreview type="location-leaflet" />
+
 ## Example
 
 ```ts

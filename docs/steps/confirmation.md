@@ -4,6 +4,8 @@ Final screen, no header/progress bar; footer with two buttons. Must be the **las
 step of every flow (`parseFlow` enforces `role: "confirmation"` on the last step).
 Component: `ConfirmationStepView`.
 
+<StepPreview type="confirmation" />
+
 ## Config
 
 | Field | Type | Default | Notes |

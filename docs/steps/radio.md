@@ -4,6 +4,8 @@ Single-selection list, one option per row. Answer value: `string`. Component:
 `RadioStepView`. Same list layout as `multi-select`, but a native
 `<input type="radio">` instead of a checkbox.
 
+<StepPreview type="radio" />
+
 ## Config
 
 | Field | Type | Default | Notes |

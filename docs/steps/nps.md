@@ -2,6 +2,8 @@
 
 Net Promoter Score, 0–10. Answer value: `number`. Component: `NpsStepView`.
 
+<StepPreview type="nps" />
+
 ## Config
 
 | Field | Type | Default | Notes |

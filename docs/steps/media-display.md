@@ -5,6 +5,8 @@ this?"). Distinct from [`media`](./media.md): no file picker, no `UploadedItem[]
 answer, just a configured source to render. Collects no answer — `required` defaults
 to `false` (overriding the usual `true`). Component: `MediaDisplayStepView`.
 
+<StepPreview type="media-display" />
+
 ## Config
 
 | Field | Type | Default | Notes |

@@ -5,4 +5,6 @@ provider), with an optional "skip/continue anonymously" escape hatch. Full confi
 PKCE flow details and playground example live in the dedicated
 [OAuth step](../oauth-step.md) guide.
 
+<StepPreview type="oauth" />
+
 [← All steps](./index.md)

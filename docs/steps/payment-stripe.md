@@ -14,6 +14,8 @@ The component never creates the PaymentIntent itself (would require a secret key
 browser). `createPaymentIntent` is your callback: it must call **your** backend, which
 holds the Stripe secret key, and return the client secret.
 
+<StepPreview type="payment-stripe" />
+
 ## Config
 
 | Field | Type | Default | Notes |
