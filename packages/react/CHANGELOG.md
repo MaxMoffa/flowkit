@@ -1,5 +1,23 @@
 # @flowkit-io/react
 
+## 0.16.1 — 2026-08-04
+
+### Fixed
+
+- `@flowkit-io/react/steps/branch`, `/steps/info` and `/steps/long-content` are now
+  actually built — the tsup config advertised them via the package's `exports` map but
+  never included them in the build, so importing any of the three threw a module-not-
+  found error.
+- Removed a stale `eslint-disable` comment in the verification step (was suppressing
+  nothing).
+
+### Changed
+
+- `FlowRunner`'s internal handlers (`handleChange`, `handleNext`, `handlePrev`, etc.)
+  are now wrapped in `useCallback` instead of being recreated every render — no
+  observable behavior change today (no step component is memoized yet), but removes a
+  prerequisite blocker for doing so in the future.
+
 ## 0.16.0 — 2026-08-04
 
 ### Added

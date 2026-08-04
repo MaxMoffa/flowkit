@@ -1,5 +1,13 @@
 # @flowkit-io/adapters
 
+## 0.2.4 — 2026-08-04
+
+### Changed
+
+- Internal refactor: `rest.ts`, `notion.ts` and `receipt-email-adapter.ts` now share a
+  `requestJson` fetch-and-check helper (`http.ts`) instead of each repeating the same
+  fetch/error-check pattern. No behavior change.
+
 ## 0.2.3 — 2026-08-04
 
 ### Changed

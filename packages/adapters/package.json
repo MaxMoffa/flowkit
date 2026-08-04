@@ -1,6 +1,6 @@
 {
   "name": "@flowkit-io/adapters",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Data adapters (local, rest, supabase stub) for Flowkit flows.",
   "license": "MIT",
   "author": "Massimo Moffa",
