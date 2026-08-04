@@ -1,47 +1,49 @@
-import { odoriFlow, feedbackFlow, restaurantFlow, anagraficaFlow } from "@flowkit-io/presets"
 import type { Flow } from "@flowkit-io/core"
-import { customStepDemoFlow } from "./custom-step-demo"
-import { featuresDemoFlow } from "./features-demo"
-import { customIntroDemoFlow } from "./custom-intro-demo"
-import { resultActionsDemoFlow } from "./result-actions-demo"
-import { fileStepDemoFlow } from "./file-step-demo"
-import { buttonOverflowDemoFlow } from "./button-overflow-demo"
-import { verificationDemoFlow } from "./verification-demo"
-import { mediaDisplayDemoFlow } from "./media-display-demo"
-import { checkpointReviewDemoFlow } from "./checkpoint-review-demo"
-import { disableBackDemoFlow } from "./disable-back-demo"
-import { flowMarkdownDemoFlow } from "./flow-markdown-demo"
-import { smartFillDemoFlow } from "./smart-fill-demo"
-import { remoteDataSourceDemoFlow } from "./remote-data-source-demo"
-import { bookingSlotDemoFlow } from "./booking-slot-demo"
-import { branchDemoFlow } from "./branch-demo"
-import { infoLongContentDemoFlow } from "./info-long-content-demo"
-import { i18nTextsDemoFlow } from "./i18n-texts-demo"
-import { stepImageDemoFlow } from "./step-image-demo"
 
-export const presets: Record<string, Flow> = {
-  odori: odoriFlow,
-  feedback: feedbackFlow,
-  restaurant: restaurantFlow,
-  anagrafica: anagraficaFlow,
-  "custom-step": customStepDemoFlow,
-  "features-demo": featuresDemoFlow,
-  "custom-intro": customIntroDemoFlow,
-  "result-actions-demo": resultActionsDemoFlow,
-  "file-step-demo": fileStepDemoFlow,
-  "button-overflow-demo": buttonOverflowDemoFlow,
-  "verification-demo": verificationDemoFlow,
-  "media-display-demo": mediaDisplayDemoFlow,
-  "checkpoint-review-demo": checkpointReviewDemoFlow,
-  "disable-back-demo": disableBackDemoFlow,
-  "flow-markdown-demo": flowMarkdownDemoFlow,
-  "smart-fill-demo": smartFillDemoFlow,
-  "remote-data-source-demo": remoteDataSourceDemoFlow,
-  "booking-slot-demo": bookingSlotDemoFlow,
-  "branch-demo": branchDemoFlow,
-  "info-long-content-demo": infoLongContentDemoFlow,
-  "i18n-texts-demo": i18nTextsDemoFlow,
-  "step-image-demo": stepImageDemoFlow,
+/** Every demo flow used to be a static top-level import here, bundling all ~21 of them
+ *  (some carry inline base64 media) into one eager chunk regardless of which preset the
+ *  visitor actually opens. Lazy per-key instead: `loadPreset` dynamically imports (and
+ *  caches) only the one selected. */
+const presetLoaders: Record<string, () => Promise<Flow>> = {
+  odori: () => import("@flowkit-io/presets").then((m) => m.odoriFlow),
+  feedback: () => import("@flowkit-io/presets").then((m) => m.feedbackFlow),
+  restaurant: () => import("@flowkit-io/presets").then((m) => m.restaurantFlow),
+  anagrafica: () => import("@flowkit-io/presets").then((m) => m.anagraficaFlow),
+  "custom-step": () => import("./custom-step-demo").then((m) => m.customStepDemoFlow),
+  "features-demo": () => import("./features-demo").then((m) => m.featuresDemoFlow),
+  "custom-intro": () => import("./custom-intro-demo").then((m) => m.customIntroDemoFlow),
+  "result-actions-demo": () => import("./result-actions-demo").then((m) => m.resultActionsDemoFlow),
+  "file-step-demo": () => import("./file-step-demo").then((m) => m.fileStepDemoFlow),
+  "button-overflow-demo": () => import("./button-overflow-demo").then((m) => m.buttonOverflowDemoFlow),
+  "verification-demo": () => import("./verification-demo").then((m) => m.verificationDemoFlow),
+  "media-display-demo": () => import("./media-display-demo").then((m) => m.mediaDisplayDemoFlow),
+  "checkpoint-review-demo": () => import("./checkpoint-review-demo").then((m) => m.checkpointReviewDemoFlow),
+  "disable-back-demo": () => import("./disable-back-demo").then((m) => m.disableBackDemoFlow),
+  "flow-markdown-demo": () => import("./flow-markdown-demo").then((m) => m.flowMarkdownDemoFlow),
+  "smart-fill-demo": () => import("./smart-fill-demo").then((m) => m.smartFillDemoFlow),
+  "remote-data-source-demo": () => import("./remote-data-source-demo").then((m) => m.remoteDataSourceDemoFlow),
+  "booking-slot-demo": () => import("./booking-slot-demo").then((m) => m.bookingSlotDemoFlow),
+  "branch-demo": () => import("./branch-demo").then((m) => m.branchDemoFlow),
+  "info-long-content-demo": () => import("./info-long-content-demo").then((m) => m.infoLongContentDemoFlow),
+  "i18n-texts-demo": () => import("./i18n-texts-demo").then((m) => m.i18nTextsDemoFlow),
+  "step-image-demo": () => import("./step-image-demo").then((m) => m.stepImageDemoFlow),
+}
+
+export const presetKeys: string[] = Object.keys(presetLoaders)
+
+const cache = new Map<string, Promise<Flow>>()
+
+/** Loads (and memoizes) the flow for `key`. Throws synchronously for an unknown key —
+ *  same failure mode the old `presets[key]!` non-null assertion had. */
+export function loadPreset(key: string): Promise<Flow> {
+  const loader = presetLoaders[key]
+  if (!loader) throw new Error(`Unknown preset "${key}"`)
+  let promise = cache.get(key)
+  if (!promise) {
+    promise = loader()
+    cache.set(key, promise)
+  }
+  return promise
 }
 
 export const presetLabels: Record<string, string> = {

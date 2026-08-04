@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { FlowRunner, type FlowRunnerHandle } from "@flowkit-io/react"
 import { themes, type ThemeMode } from "@flowkit-io/themes"
 import { createLocalAdapter } from "@flowkit-io/adapters"
-import type { Answers, CurrentStepInfo } from "@flowkit-io/core"
-import { presets, presetLabels } from "./presets-registry"
+import type { Answers, CurrentStepInfo, Flow } from "@flowkit-io/core"
+import { loadPreset, presetKeys, presetLabels } from "./presets-registry"
 import { ensureOptInStepsRegistered } from "./opt-in-steps"
 
 const adapter = createLocalAdapter({ namespace: "flowkit-playground" })
@@ -24,32 +24,37 @@ const debugInitialAnswers = (() => {
 })()
 
 export function App() {
-  const [presetKey, setPresetKey] = useState<keyof typeof presets>("odori")
+  const [presetKey, setPresetKey] = useState<string>("odori")
   const [themeKey, setThemeKey] = useState<keyof typeof themes>("notion-clean")
   const [mode, setMode] = useState<ThemeMode>("light")
   const [runKey, setRunKey] = useState(0)
   const [lastSubmission, setLastSubmission] = useState<Answers | null>(null)
   const flowRunnerRef = useRef<FlowRunnerHandle>(null)
 
-  const flow = presets[presetKey]!
   const theme = themes[themeKey]!
 
   const themeOptions = useMemo(() => Object.entries(themes), [])
 
-  /** Opt-in step components (maplibre-gl/leaflet/stripe/verification) are loaded on
-   *  demand per the active preset instead of always-on, so switching to a preset that
-   *  doesn't use them never pays for those dependencies — see opt-in-steps.ts. */
-  const [optInsReady, setOptInsReady] = useState(false)
+  /** Both the preset's flow config (code-split per demo, see presets-registry.ts) and
+   *  its opt-in step components (maplibre-gl/leaflet/stripe/verification, see
+   *  opt-in-steps.ts) are loaded on demand — `flow` stays null, and FlowRunner unmounted,
+   *  until both resolve for the currently selected preset. */
+  const [flow, setFlow] = useState<Flow | null>(null)
   useEffect(() => {
     let cancelled = false
-    setOptInsReady(false)
-    void ensureOptInStepsRegistered(flow).then(() => {
-      if (!cancelled) setOptInsReady(true)
-    })
+    setFlow(null)
+    void loadPreset(presetKey)
+      .then(async (loaded) => {
+        await ensureOptInStepsRegistered(loaded)
+        return loaded
+      })
+      .then((loaded) => {
+        if (!cancelled) setFlow(loaded)
+      })
     return () => {
       cancelled = true
     }
-  }, [flow])
+  }, [presetKey])
 
   function restart() {
     setRunKey((k) => k + 1)
@@ -74,11 +79,11 @@ export function App() {
             aria-label="Preset"
             value={presetKey}
             onChange={(e) => {
-              setPresetKey(e.target.value as keyof typeof presets)
+              setPresetKey(e.target.value)
               restart()
             }}
           >
-            {Object.keys(presets).map((k) => (
+            {presetKeys.map((k) => (
               <option key={k} value={k}>
                 {presetLabels[k] ?? k}
               </option>
@@ -130,10 +135,10 @@ export function App() {
         <div className="pg-notch" />
         <div className="pg-statusbar">
           <span>9:41</span>
-          <span>{flow.title}</span>
+          <span>{flow?.title ?? "Caricamento…"}</span>
         </div>
         <div className="pg-frame">
-          {optInsReady && (
+          {flow && (
             <FlowRunner
               key={`${presetKey}-${runKey}`}
               ref={(handle) => {

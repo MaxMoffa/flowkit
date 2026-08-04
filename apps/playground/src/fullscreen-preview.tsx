@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react"
 import { FlowRunner } from "@flowkit-io/react"
 import { themes, type ThemeMode } from "@flowkit-io/themes"
 import { createLocalAdapter } from "@flowkit-io/adapters"
-import type { Answers } from "@flowkit-io/core"
-import { presets } from "./presets-registry"
+import type { Answers, Flow } from "@flowkit-io/core"
+import { loadPreset, presetKeys } from "./presets-registry"
 import { ensureOptInStepsRegistered } from "./opt-in-steps"
 
 type SimWidth = 390 | 768 | 1024 | null
@@ -16,7 +16,7 @@ function readParams() {
   const themeKey = params.get("theme")
   const mode = params.get("mode")
   return {
-    presetKey: presetKey && presetKey in presets ? presetKey : "odori",
+    presetKey: presetKey && presetKeys.includes(presetKey) ? presetKey : "odori",
     themeKey: themeKey && themeKey in themes ? themeKey : "notion-clean",
     mode: (mode === "dark" ? "dark" : "light") as ThemeMode,
   }
@@ -26,25 +26,29 @@ export function FullscreenPreview() {
   const [{ presetKey, themeKey, mode }] = useState(readParams)
   const [simWidth, setSimWidth] = useState<SimWidth>(null)
 
-  const flow = presets[presetKey]!
   const theme = themes[themeKey]!
 
-  const [optInsReady, setOptInsReady] = useState(false)
+  const [flow, setFlow] = useState<Flow | null>(null)
   useEffect(() => {
     let cancelled = false
-    void ensureOptInStepsRegistered(flow).then(() => {
-      if (!cancelled) setOptInsReady(true)
-    })
+    void loadPreset(presetKey)
+      .then(async (loaded) => {
+        await ensureOptInStepsRegistered(loaded)
+        return loaded
+      })
+      .then((loaded) => {
+        if (!cancelled) setFlow(loaded)
+      })
     return () => {
       cancelled = true
     }
-  }, [flow])
+  }, [presetKey])
 
   const onSubmit = useMemo(
     () => async (answers: Answers) => {
-      await adapter.submit(flow.id, answers)
+      if (flow) await adapter.submit(flow.id, answers)
     },
-    [flow.id],
+    [flow],
   )
 
   return (
@@ -85,7 +89,7 @@ export function FullscreenPreview() {
         </a>
       </div>
       <div className="pg-fullscreen-frame" style={{ width: simWidth ?? "100%" }}>
-        {optInsReady && (
+        {flow && (
           <FlowRunner key={`fullscreen-${presetKey}`} flow={flow} theme={theme} mode={mode} onSubmit={onSubmit} />
         )}
       </div>
