@@ -6,6 +6,12 @@
       "@flowkit-io/core": ["packages/core/src/index.ts"],
       "@flowkit-io/themes": ["packages/themes/src/index.ts"],
       "@flowkit-io/react": ["packages/react/src/index.tsx"],
+      "@flowkit-io/react/lean": ["packages/react/src/lean.tsx"],
+      "@flowkit-io/react/steps/*": ["packages/react/src/steps/entries/*.ts"],
+      "@flowkit-io/react/map-maplibre": ["packages/react/src/map-maplibre.ts"],
+      "@flowkit-io/react/map-leaflet": ["packages/react/src/map-leaflet.ts"],
+      "@flowkit-io/react/payment-stripe": ["packages/react/src/payment-stripe.ts"],
+      "@flowkit-io/react/verification": ["packages/react/src/verification.ts"],
       "@flowkit-io/adapters": ["packages/adapters/src/index.ts"],
       "@flowkit-io/presets": ["packages/presets/src/index.ts"]
     }
