@@ -58,6 +58,8 @@ if it meets a step nobody registered, so a forgotten import fails loudly.
 | `onSubmit` | `(answers) => void \| Promise<void>` | no | Called when the user confirms the `review` step (before moving to `confirmation`) |
 | `onChange` | `(answers) => void` | no | Called on every changed answer — useful for autosave/drafts |
 | `onStepChange` | `(step: CurrentStepInfo) => void` | no | Called every time the visibly rendered step changes — see below |
+| `initialStep` | `string` | no | Id of the step to start on instead of the first step — see [Resuming a flow](#resuming-a-flow) |
+| `initialAnswers` | `Answers` | no | Answers to preload before the flow ever renders — see [Resuming a flow](#resuming-a-flow) |
 
 ## Reading the current step
 
@@ -75,7 +77,7 @@ interface CurrentStepInfo {
 }
 ```
 
-`FlowRunner` also exposes a `ref` handle (`FlowRunnerHandle`) with a `currentStep` property that always mirrors the most recent `onStepChange` call — including the very first one, already correct on the initial render, so you can read it without maintaining your own state:
+`FlowRunner` also exposes a `ref` handle (`FlowRunnerHandle`) with a `currentStep` property that always mirrors the most recent `onStepChange` call — including the very first one, already correct on the initial render, so you can read it without maintaining your own state. The handle also lets you drive the flow from outside: `goToStep(stepId)` jumps to a step if it's reachable given the current answers (returns `false` and does nothing otherwise, never throws), `getAnswers()`/`setAnswers(answers)` read and replace the collected answers, and `reset()` returns the flow to its blank starting state (same as the confirmation screen's restart action — ignores `initialStep`/`initialAnswers`, see below).
 
 ```tsx
 import { useRef } from "react"
@@ -97,7 +99,42 @@ function App() {
 
 A "branch" (`role: "logic"`) step is fully transparent: it never triggers `onStepChange` and never appears as `currentStep` — the callback only fires once FlowRunner has resolved it and landed on the next visible step, and that step's `previousStep` points at the step before the branch, not at the branch itself.
 
-`direction` explains how a step became current: `"initial"` on mount and after `flow.disableBack`-independent restarts (the confirmation step's "restart" action), `"next"`/`"prev"` for the primary/back buttons, `"jump"` for a review-row shortcut (or the "return to review" continue after editing one), and `"branch-change"` for a case with no equivalent in the other directions: the user goes Back past a branch, edits the answer that drives it, and the branch now resolves to a different target than the one they'd already walked. That edit doesn't move the visible step (still whichever field they're editing) but does discard any already-collected answers for the now-unreachable steps and recompute `total` — `onStepChange` fires again for the same `id` so an integration can react to the recount. `"popstate"` is reserved for a future browser-history integration; nothing emits it yet.
+`direction` explains how a step became current: `"initial"` on mount and after `flow.disableBack`-independent restarts (the confirmation step's "restart" action), `"next"`/`"prev"` for the primary/back buttons, `"jump"` for a review-row shortcut (or the "return to review" continue after editing one, or an imperative `goToStep`), and `"branch-change"` for a case with no equivalent in the other directions: the user goes Back past a branch, edits the answer that drives it, and the branch now resolves to a different target than the one they'd already walked. That edit doesn't move the visible step (still whichever field they're editing) but does discard any already-collected answers for the now-unreachable steps and recompute `total` — `onStepChange` fires again for the same `id` so an integration can react to the recount. `"popstate"` is reserved for a future browser-history integration; nothing emits it yet.
+
+## Resuming a flow
+
+`initialStep`/`initialAnswers` let you re-mount `FlowRunner` mid-flow — typically to survive a page refresh. Both are read once, at mount: changing them on a later render has no effect (same as a `defaultValue`-style prop). Persist whatever you need from `onChange`/`onStepChange` (e.g. to `localStorage`), then pass it back in on the next mount:
+
+```tsx
+import { useEffect, useRef, useState } from "react"
+import { FlowRunner, type FlowRunnerHandle } from "@flowkit-io/react"
+import type { Answers } from "@flowkit-io/core"
+
+function App() {
+  const [saved] = useState(() => {
+    const raw = localStorage.getItem("flow-progress")
+    return raw ? (JSON.parse(raw) as { stepId: string; answers: Answers }) : null
+  })
+  const flowRef = useRef<FlowRunnerHandle>(null)
+
+  return (
+    <FlowRunner
+      ref={flowRef}
+      flow={feedbackFlow}
+      initialStep={saved?.stepId}
+      initialAnswers={saved?.answers}
+      onStepChange={(step) => {
+        localStorage.setItem(
+          "flow-progress",
+          JSON.stringify({ stepId: step.id, answers: flowRef.current!.getAnswers() }),
+        )
+      }}
+    />
+  )
+}
+```
+
+Neither prop ever throws: an unknown `initialStep` id, or one that isn't reachable given `initialAnswers` (e.g. a branch would route elsewhere), falls back silently to the normal initial step. `initialAnswers` entries are validated the same way a live answer is (each step type's own validation rule) — an invalid value, or a key that doesn't match any step's `key`/`id`, is dropped rather than rejected outright. Both are fully optional and backward compatible: omit them and `FlowRunner` behaves exactly as before.
 
 `FlowRunner` doesn't render the header/progress bar/Continue button on the `intro` and
 `confirmation` steps ("hero" behavior, no chrome), while for every other step it

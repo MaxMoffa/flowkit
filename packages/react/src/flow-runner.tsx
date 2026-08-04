@@ -7,12 +7,14 @@ import {
   useRef,
   useState,
 } from "react"
-import type { Answers, CurrentStepInfo, Flow, StepChangeDirection } from "@flowkit-io/core"
+import type { Answers, CurrentStepInfo, Flow, FlowState, StepChangeDirection } from "@flowkit-io/core"
 import {
   answerKey,
   applyBranch,
   canGoNext,
+  computeInitialFlowState,
   createFlowState,
+  filterValidAnswers,
   getCurrentStep,
   getCurrentStepInfo,
   getProgressInfo,
@@ -21,6 +23,7 @@ import {
   goToStep,
   isFirstStep,
   isLastStep,
+  isStepReachable,
   next as nextState,
   prev as prevState,
   resolveBranch,
@@ -56,21 +59,51 @@ export interface FlowRunnerProps {
    *  answer edit ("branch-change"). Never called for a "logic" (branch) step itself:
    *  those are resolved and skipped before this fires. */
   onStepChange?: (step: CurrentStepInfo) => void
+  /** Step to start on instead of the first step, by id — e.g. to resume a flow after a
+   *  page refresh. Read once, at mount: changing it on a later render has no effect.
+   *  Falls back silently to the normal initial step if the id doesn't exist in `flow`,
+   *  or isn't reachable given `initialAnswers` (e.g. a branch would route elsewhere) —
+   *  never throws. */
+  initialStep?: string
+  /** Answers to preload before the flow ever renders — typically used together with
+   *  `initialStep` to resume a flow after a page refresh. Read once, at mount. Each
+   *  entry is validated against its step's own validation rule and dropped if invalid;
+   *  keys that don't match any step's `key`/`id` are dropped too. Never throws. */
+  initialAnswers?: Answers
 }
 
 /** Imperative handle exposed via `ref`: a `currentStep` that's always in sync with the
  *  most recent `onStepChange` call (including the initial one, already correct on first
  *  render) — lets an integrator read the current step without maintaining their own
- *  `onStepChange`-fed state. */
+ *  `onStepChange`-fed state. `goToStep`/`getAnswers`/`setAnswers`/`reset` let an
+ *  integrator drive the flow from outside (e.g. resuming after a refresh alongside
+ *  `initialStep`/`initialAnswers`, or a custom "jump to step" control). */
 export interface FlowRunnerHandle {
   currentStep: CurrentStepInfo
+  /** Jumps to `stepId` if it exists in the flow and is reachable given the current
+   *  answers (the same rule `initialStep` uses at mount) — returns whether the jump
+   *  happened. An unknown or unreachable id is a no-op that returns `false`; never
+   *  throws. Reports through `onStepChange`/`currentStep` with `direction: "jump"`,
+   *  same as a review-row shortcut. */
+  goToStep: (stepId: string) => boolean
+  /** Current answers snapshot (same shape `onChange` receives). */
+  getAnswers: () => Answers
+  /** Replaces the answers wholesale — same validation/unknown-key filtering as
+   *  `initialAnswers`. Does not itself move the current step. */
+  setAnswers: (answers: Answers) => void
+  /** Resets the flow to its blank starting state — the same action the confirmation
+   *  screen's restart button performs. Ignores `initialStep`/`initialAnswers` (those
+   *  only ever apply at mount). */
+  reset: () => void
 }
 
 export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function FlowRunner(
-  { flow, theme, mode, onSubmit, onChange, onStepChange },
+  { flow, theme, mode, onSubmit, onChange, onStepChange, initialStep, initialAnswers },
   ref,
 ) {
-  const [state, setState] = useState(createFlowState)
+  const [state, setState] = useState<FlowState>(() =>
+    computeInitialFlowState(flow, { initialStepId: initialStep, initialAnswers }),
+  )
   const [direction, setDirection] = useState<"next" | "prev">("next")
   /** Direction label for the *next* step-change event the emission effect below fires —
    *  set synchronously by whichever handler initiates a transition (handleNext/Prev/
@@ -84,7 +117,24 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   const [currentStep, setCurrentStep] = useState<CurrentStepInfo>(() =>
     getCurrentStepInfo(flow, state, "initial", null),
   )
-  useImperativeHandle(ref, () => ({ currentStep }), [currentStep])
+  useImperativeHandle(
+    ref,
+    () => ({
+      currentStep,
+      goToStep: (stepId: string) => {
+        if (!isStepReachable(flow, state, stepId)) return false
+        pendingDirectionRef.current = "jump"
+        setState((s) => goToStep(flow, s, stepId))
+        return true
+      },
+      getAnswers: () => state.answers,
+      setAnswers: (answers: Answers) => {
+        setState((s) => ({ ...s, answers: filterValidAnswers(flow, answers) }))
+      },
+      reset: handleRestart,
+    }),
+    [currentStep, flow, state],
+  )
   /** Set while the user is editing an answer they reached by clicking a review row;
    *  the next "Continua" jumps back to this index (the review step) instead of +1. */
   const [returnToIndex, setReturnToIndex] = useState<number | null>(null)

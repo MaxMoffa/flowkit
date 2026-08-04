@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react"
-import { FlowRunner } from "@flowkit-io/react"
+import { useMemo, useRef, useState } from "react"
+import { FlowRunner, type FlowRunnerHandle } from "@flowkit-io/react"
 import { themes, type ThemeMode } from "@flowkit-io/themes"
 import { createLocalAdapter } from "@flowkit-io/adapters"
 import type { Answers, CurrentStepInfo } from "@flowkit-io/core"
@@ -7,12 +7,28 @@ import { presets, presetLabels } from "./presets-registry"
 
 const adapter = createLocalAdapter({ namespace: "flowkit-playground" })
 
+/** Debug-only, read once at module load: lets e2e/flow-runner-resume.spec.ts drive
+ *  `initialStep`/`initialAnswers` via the URL instead of needing extra playground UI —
+ *  not part of the public API, no effect outside the e2e harness. */
+const debugParams = new URLSearchParams(window.location.search)
+const debugInitialStep = debugParams.get("initialStep") ?? undefined
+const debugInitialAnswers = (() => {
+  const raw = debugParams.get("initialAnswers")
+  if (!raw) return undefined
+  try {
+    return JSON.parse(raw) as Answers
+  } catch {
+    return undefined
+  }
+})()
+
 export function App() {
   const [presetKey, setPresetKey] = useState<keyof typeof presets>("odori")
   const [themeKey, setThemeKey] = useState<keyof typeof themes>("notion-clean")
   const [mode, setMode] = useState<ThemeMode>("light")
   const [runKey, setRunKey] = useState(0)
   const [lastSubmission, setLastSubmission] = useState<Answers | null>(null)
+  const flowRunnerRef = useRef<FlowRunnerHandle>(null)
 
   const flow = presets[presetKey]!
   const theme = themes[themeKey]!
@@ -103,9 +119,17 @@ export function App() {
         <div className="pg-frame">
           <FlowRunner
             key={`${presetKey}-${runKey}`}
+            ref={(handle) => {
+              flowRunnerRef.current = handle
+              // Debug hook, read by e2e/flow-runner-resume.spec.ts — not part of the
+              // public API, no effect on rendering.
+              ;(window as unknown as { __flowkitRunner?: FlowRunnerHandle | null }).__flowkitRunner = handle
+            }}
             flow={flow}
             theme={theme}
             mode={mode}
+            initialStep={debugInitialStep}
+            initialAnswers={debugInitialAnswers}
             onSubmit={async (answers) => {
               await adapter.submit(flow.id, answers)
               setLastSubmission(answers)
