@@ -23,6 +23,9 @@ const stepEntries = [
   "group",
   "signature",
   "booking-slot",
+  "branch",
+  "info",
+  "long-content",
 ]
 
 export default defineConfig({
