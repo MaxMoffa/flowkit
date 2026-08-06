@@ -10,15 +10,19 @@ Single-selection list, one option per row. Answer value: `string`. Component:
 
 | Field | Type | Default | Notes |
 |---|---|---|---|
-| `options` | `{ value, label }[]` | — (min 1, or use `dataSource`) | Options |
+| `options` | `{ value, label, description?, color? }[]` | — (min 1, or use `dataSource`) | Options |
 | `dataSource` | remote data source, see [Core concepts](../core-concepts.md#remote-datasource) | — | Fetch options from a remote API |
+
+`description` renders as helper text below the option label; `color` renders as a small
+swatch dot. Both optional — omit them and options render as before.
 
 ## Example
 
 ```ts
 { id: "contact-method", type: "radio", title: "How should we contact you?",
   options: [
-    { value: "email", label: "Email" }, { value: "phone", label: "Phone" },
+    { value: "email", label: "Email", description: "We reply within 24h" },
+    { value: "phone", label: "Phone" },
   ] }
 ```
 

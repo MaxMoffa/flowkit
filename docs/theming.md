@@ -51,7 +51,7 @@ export interface ThemeTokens {
   layout?: {             // optional: chrome layout (see below)
     headerPosition?: "top" | "bottom"
     footerPosition?: "top" | "bottom"
-    progressVariant?: "bar" | "dots" | "hidden" | string
+    progressVariant?: "bar" | "dots" | "steps" | "hidden" | string
     progressPosition?: "header" | "footer"
   }
   animation?: {          // optional: step transition animation
@@ -107,7 +107,7 @@ const myTheme: Theme = {
     layout: {
       headerPosition: "top",    // "top" (default) | "bottom"
       footerPosition: "bottom", // "top" | "bottom" (default)
-      progressVariant: "dots",  // "bar" (default) | "dots" | "hidden" | custom key
+      progressVariant: "dots",  // "bar" (default) | "dots" | "steps" | "hidden" | custom key
       progressPosition: "header", // "header" (default) | "footer"
     },
     animation: {
@@ -121,7 +121,9 @@ const myTheme: Theme = {
 
 All optional: a theme that doesn't set them behaves exactly like today. The background
 (image or SVG, even as a data-URI) applies behind the cards, which stay opaque.
-`progressVariant: "hidden"` only hides the bar, not the back button. A custom variant
+`progressVariant: "hidden"` only hides the bar, not the back button. `"steps"` renders a
+numbered stepper with each step's `title`/`subtitle` below the connecting line; on mobile
+only the active step's label is shown to avoid crowding. A custom variant
 registers like step components:
 
 ```ts

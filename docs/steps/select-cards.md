@@ -11,8 +11,11 @@ value: `string` (single) or `string[]` (`multiple: true`). Component:
 | Field | Type | Default | Notes |
 |---|---|---|---|
 | `multiple` | `boolean` | `false` | Single or multiple selection |
-| `options` | `{ value, label, emoji?, description? }[]` | — (min 1, or use `dataSource`) | Grid options |
+| `options` | `{ value, label, emoji?, description?, color? }[]` | — (min 1, or use `dataSource`) | Grid options |
 | `dataSource` | remote data source, see [Core concepts](../core-concepts.md#remote-datasource) | — | Fetch options from a remote API instead of/alongside static `options` |
+
+`color` renders as a small swatch dot next to the emoji/label. Optional — omit it and
+cards render as before.
 
 Validation: if `multiple`, requires at least one item selected; otherwise a non-empty
 string.

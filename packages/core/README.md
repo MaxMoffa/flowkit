@@ -91,6 +91,15 @@ const myFlow: Flow = parseFlow({
 - **multi-select** – Multi-select from options, with min/max constraints.
 - **radio** – Radio-button single select.
 - **chips** – Compact single or multi-select chips.
+
+Options on `select-cards`/`multi-select`/`radio`/`chips` accept two optional fields besides `value`/`label`: `description` (helper text shown below the label) and `color` (rendered as a small swatch). Both are backward compatible — omit them and options render exactly as before:
+
+```typescript
+options: [
+  { value: "product", label: "Product", description: "Bugs, features, general feedback", color: "#2783DE" },
+  { value: "support", label: "Support" },
+]
+```
 - **faces** – Single-select from emoji faces (mood/sentiment).
 - **scale** – Numeric scale (e.g., 1–10).
 - **nps** – Net Promoter Score (0–10 scale with labels).
