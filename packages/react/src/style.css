@@ -266,6 +266,132 @@
   }
 }
 
+.fk-progress-steps {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: var(--fk-space-xs);
+}
+
+.fk-progress-step {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.fk-progress-step-track {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.fk-progress-step-circle {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--fk-canvas);
+  color: var(--fk-text2);
+  border: var(--fk-border-width) solid var(--fk-border);
+  transition:
+    background 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+}
+
+.fk-progress-step--active .fk-progress-step-circle,
+.fk-progress-step--completed .fk-progress-step-circle {
+  background: var(--fk-accent);
+  border-color: var(--fk-accent);
+  color: #fff;
+}
+
+.fk-progress-step-line {
+  flex: 1;
+  height: 2px;
+  min-width: 8px;
+  margin: 0 4px;
+  background: var(--fk-border);
+  transition: background 200ms ease;
+}
+
+.fk-progress-step-line--filled {
+  background: var(--fk-accent);
+}
+
+.fk-progress-step-label {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--fk-space-xs);
+  min-width: 0;
+}
+
+.fk-progress-step-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fk-text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fk-progress-step-subtitle {
+  font-size: 11px;
+  color: var(--fk-text2);
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fk-progress-step--active .fk-progress-step-title {
+  color: var(--fk-text);
+  font-weight: 700;
+}
+
+.fk-progress-step--active .fk-progress-step-subtitle {
+  opacity: 1;
+}
+
+/* Mobile: only the active step's label is shown, to keep long titles/many steps from
+   crowding or wrapping the header/footer row — the circles + connecting line alone
+   still convey overall position. */
+@media (max-width: 767px) {
+  .fk-progress-step:not(.fk-progress-step--active) .fk-progress-step-label {
+    display: none;
+  }
+
+  .fk-progress-step-circle {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Desktop: room to show full labels without truncating. */
+@media (min-width: 1024px) {
+  .fk-progress-step-title,
+  .fk-progress-step-subtitle {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fk-progress-step-circle,
+  .fk-progress-step-line {
+    transition: none;
+  }
+}
+
 .fk-stepno {
   font-size: 12px;
   color: var(--fk-text2);

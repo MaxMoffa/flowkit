@@ -28,6 +28,7 @@ import {
   next as nextState,
   prev as prevState,
   resolveBranch,
+  resolveFlowPath,
   resolveText,
   setAnswerAndInvalidateDownstream,
   setStepMeta,
@@ -174,7 +175,23 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   const isFinalReviewSubmit = isReviewType && (step as StepWithReviewFields).mode !== "checkpoint"
 
   const layout = useFlowRunnerLayout(step, theme, mode, direction)
-  const progressProps = { pct, currentIndex: progressInfo.currentIndex, total: progressInfo.total }
+  /** Title/subtitle of the resolved path's steps, for progress variants (e.g. the
+   *  numbered stepper) that render per-step labels — undefined while the path isn't
+   *  fully determined yet, same as `total: null`. */
+  const progressSteps = useMemo(() => {
+    if (progressInfo.total === null) return undefined
+    const stepsById = new Map(flow.steps.map((s) => [s.id, s]))
+    return resolveFlowPath(flow, state).stepIds.map((id) => {
+      const s = stepsById.get(id) as { title?: string; subtitle?: string } | undefined
+      return { title: s?.title, subtitle: s?.subtitle }
+    })
+  }, [flow, state, progressInfo.total])
+  const progressProps = {
+    pct,
+    currentIndex: progressInfo.currentIndex,
+    total: progressInfo.total,
+    steps: progressSteps,
+  }
   const visitedStepIds = useMemo(() => new Set([...state.history, step.id]), [state.history, step.id])
 
   useEffect(() => {

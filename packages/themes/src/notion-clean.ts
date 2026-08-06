@@ -20,8 +20,9 @@ export interface ThemeLayoutTokens {
   /** Position of the header (back button + progress) and footer (CTA). Default: "top"/"bottom" (current behavior). */
   headerPosition?: "top" | "bottom"
   footerPosition?: "top" | "bottom"
-  /** Progress bar variant: solid bar, dots, hidden, or the key of a registered custom component. Default: "bar". */
-  progressVariant?: "bar" | "dots" | "hidden" | string
+  /** Progress bar variant: solid bar, dots, numbered stepper, hidden, or the key of a
+   *  registered custom component. Default: "bar". */
+  progressVariant?: "bar" | "dots" | "steps" | "hidden" | string
   /** Where the progress bar itself renders: inside the header (default), or above the
    *  back/continue row in the footer, merging progress + navigation into one footer block. */
   progressPosition?: "header" | "footer"
