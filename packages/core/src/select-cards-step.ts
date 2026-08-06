@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { registerStepType, type ValidationIssue } from "./registry"
-import { baseStepFields, requireOptionsOrDataSource, optionsOrDataSourceIssue } from "./schema"
+import { baseStepFields, optionSchema, requireOptionsOrDataSource, optionsOrDataSourceIssue } from "./schema"
 import { remoteDataSourceSchema } from "./remote-data-source"
 
 export const selectCardsStepSchema = z
@@ -9,14 +9,7 @@ export const selectCardsStepSchema = z
     type: z.literal("select-cards"),
     multiple: z.boolean().default(false),
     options: z
-      .array(
-        z.object({
-          value: z.string(),
-          label: z.string(),
-          emoji: z.string().optional(),
-          description: z.string().optional(),
-        }),
-      )
+      .array(optionSchema.extend({ emoji: z.string().optional() }))
       .default([]),
     /** Remote data source (v2.30): fetches options instead of/alongside the static list. */
     dataSource: remoteDataSourceSchema.optional(),

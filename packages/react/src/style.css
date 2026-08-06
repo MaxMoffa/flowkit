@@ -404,6 +404,33 @@
   color: var(--fk-text);
 }
 
+.fk-list-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fk-list-text .fk-list-label {
+  flex: none;
+}
+
+.fk-list-description {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--fk-text2);
+}
+
+/* Per-option color swatch (select-cards/multi-select/radio/chips): a small dot,
+ * rendered only when the option sets `color` — absent it takes no space, no markup. */
+.fk-option-swatch {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  border: var(--fk-border-width) solid var(--fk-border);
+}
+
 .fk-title {
   display: flex;
   align-items: center;
@@ -1450,6 +1477,9 @@
   transition: all 0.15s;
   font-family: inherit;
   color: var(--fk-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .fk-chip-selected {
@@ -1457,6 +1487,26 @@
   background: var(--fk-accent-soft);
   color: var(--fk-accent);
   font-weight: 600;
+}
+
+/* A chip whose option carries a `description` grows from a pill into a small column
+ * card so the extra line has room; chips without one keep the compact pill above. */
+.fk-chip-with-description {
+  flex-direction: column;
+  align-items: flex-start;
+  border-radius: var(--fk-radius-md);
+  text-align: left;
+}
+
+.fk-chip-description {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--fk-text2);
+}
+
+.fk-chip-selected .fk-chip-description {
+  color: var(--fk-accent);
 }
 
 /* Faces (hedonic) */

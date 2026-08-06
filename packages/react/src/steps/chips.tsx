@@ -11,7 +11,10 @@ import { FieldError } from "./shared/field-error"
 export function ChipsStepView({ step, value, onChange, flow, answers, meta, validationAttempt }: StepComponentProps<ChipsStep>) {
   const { selected, toggle } = useToggleSelection({ multiple: step.multiple }, value, onChange)
   const remote = useRemoteOptions(step.dataSource, answers)
-  const options = remote.isRemote ? remote.options : step.options
+  // Remote options carry no description/color (RemoteOption is {value,label} only).
+  const options = remote.isRemote
+    ? remote.options.map((opt) => ({ ...opt, description: undefined, color: undefined }))
+    : step.options
   const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
 
   return (
@@ -25,10 +28,16 @@ export function ChipsStepView({ step, value, onChange, flow, answers, meta, vali
           <button
             key={opt.value}
             type="button"
-            className={`fk-chip ${selected.includes(opt.value) ? "fk-chip-selected" : ""}`}
+            className={`fk-chip ${selected.includes(opt.value) ? "fk-chip-selected" : ""}${opt.description ? " fk-chip-with-description" : ""}`}
             onClick={() => toggle(opt.value)}
           >
+            {opt.color && (
+              <span className="fk-option-swatch" style={{ backgroundColor: opt.color }} aria-hidden="true" />
+            )}
             <FlowMarkdown text={opt.label} variant="inline" />
+            {opt.description && (
+              <span className="fk-chip-description"><FlowMarkdown text={opt.description} variant="block" /></span>
+            )}
           </button>
         ))}
       </div>

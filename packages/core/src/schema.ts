@@ -65,6 +65,22 @@ export const stepImageSchema = z.discriminatedUnion("kind", [
 
 export type StepImage = z.infer<typeof stepImageSchema>
 
+/**
+ * Shared by every option-list step (select-cards, multi-select, radio, chips): one
+ * entry a visitor can pick. `description` renders under the label (especially useful
+ * on multi-select); `color` is a CSS color (hex/rgb/named) used as a swatch/accent —
+ * both optional, absent = current unstyled rendering (no regression for existing
+ * configs). select-cards extends this with its own `emoji` field.
+ */
+export const optionSchema = z.object({
+  value: z.string(),
+  label: z.string(),
+  description: z.string().optional(),
+  color: z.string().optional(),
+})
+
+export type Option = z.infer<typeof optionSchema>
+
 export const baseStepFields = {
   id: z.string().min(1),
   title: z.string().optional(),

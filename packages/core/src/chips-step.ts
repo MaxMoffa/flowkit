@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { registerStepType, type ValidationIssue } from "./registry"
-import { baseStepFields, requireOptionsOrDataSource, optionsOrDataSourceIssue } from "./schema"
+import { baseStepFields, optionSchema, requireOptionsOrDataSource, optionsOrDataSourceIssue } from "./schema"
 import { remoteDataSourceSchema } from "./remote-data-source"
 
 export const chipsStepSchema = z
@@ -8,7 +8,7 @@ export const chipsStepSchema = z
     ...baseStepFields,
     type: z.literal("chips"),
     multiple: z.boolean().default(true),
-    options: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
+    options: z.array(optionSchema).default([]),
     dataSource: remoteDataSourceSchema.optional(),
   })
   .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)
