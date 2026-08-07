@@ -2330,3 +2330,41 @@
   right: var(--fk-space-lg);
   z-index: 51;
 }
+
+/* Group step hierarchy: every child step renders its own StepTitle/subtitle (the
+   same shared component used by all ~24 standalone step types), which otherwise
+   looks identical to the group's own heading/description sitting right above
+   .fk-group-items — flattening the page into a wall of same-size headings. Demote
+   the nested ones to a field-label tier (smaller, upright tracking, tighter
+   spacing) purely via this descendant scope, so the ~24 step components that call
+   StepTitle stay untouched and every other consumer keeps its existing look.
+   Declared last in the file (rather than near .fk-group-items above) so its
+   necessarily-higher specificity never trips stylelint's no-descending-specificity
+   against the many unrelated .fk-title/.fk-title-icon/img/svg rules elsewhere. */
+.fk-group-item .fk-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: normal;
+  margin: 0 0 4px;
+}
+
+.fk-group-item .fk-title:not(:has(+ .fk-subtitle)) {
+  margin-bottom: var(--fk-space-sm);
+}
+
+.fk-group-item .fk-subtitle {
+  font-size: 13px;
+  margin: 0 0 var(--fk-space-sm);
+}
+
+.fk-group-item .fk-title-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 16px;
+}
+
+.fk-group-item .fk-title-icon svg,
+.fk-group-item .fk-title-icon img {
+  width: 16px;
+  height: 16px;
+}

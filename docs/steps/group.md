@@ -16,6 +16,8 @@ answer. Component: `GroupStepView`.
 | `steps` | `Step[]` | — (min 1) | Child steps, same syntax as flow-level `steps[]` |
 | `requiredChildren` | `{ mode: "all" \| "any" \| "none", ids?: string[] }` | — | Conditional advancing. Unset: every child gates the group by its own `required` flag. Set: only children in `ids` gate it (all of them if omitted), replacing (not merging) their individual `required` flag — `"all"` requires every one, `"any"` at least one, `"none"` never blocks |
 
+Child step titles render smaller than the group's own title — nested titles are styled as field labels (15px, medium weight) to maintain visual hierarchy.
+
 ## Example
 
 ```ts

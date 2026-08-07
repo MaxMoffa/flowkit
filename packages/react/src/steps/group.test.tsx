@@ -91,6 +91,42 @@ describe("GroupStepView", () => {
     expect(container.querySelector(".fk-step-group")?.className).toContain("fk-group-columns")
   })
 
+  it("keeps the group's own title outside .fk-group-item and scopes each child's title inside it (visual hierarchy)", () => {
+    const { container } = render(
+      <GroupStepView
+        step={groupStep({
+          title: "Group heading",
+          subtitle: "Group description",
+          steps: [
+            { id: "notes-a", type: "notes", required: false, title: "Field A" } as never,
+            { id: "notes-b", type: "notes", required: false, title: "Field B" } as never,
+          ],
+        })}
+        value={null}
+        onChange={() => {}}
+        flow={baseFlow}
+        answers={{}}
+        meta={{}}
+        onMetaChange={() => {}}
+      />,
+    )
+    // The group's own heading is a direct child of the step root, not nested under
+    // .fk-group-item, so it keeps the full-size .fk-title styling.
+    const ownTitle = container.querySelector(".fk-step-group > .fk-title")
+    expect(ownTitle?.textContent).toContain("Group heading")
+    expect(container.querySelector(".fk-step-group > .fk-subtitle")?.textContent).toContain("Group description")
+
+    // Each child's own StepTitle lands inside .fk-group-item, which demotes it to a
+    // field-label tier via CSS (see .fk-group-item .fk-title in style.css) so it reads
+    // as distinct from the group heading above.
+    const nestedTitles = container.querySelectorAll(".fk-group-item .fk-title")
+    expect(nestedTitles).toHaveLength(2)
+    expect(nestedTitles[0]?.textContent).toContain("Field A")
+    expect(nestedTitles[1]?.textContent).toContain("Field B")
+    // None of the nested titles are the group's own title element.
+    nestedTitles.forEach((el) => expect(el).not.toBe(ownTitle))
+  })
+
   it("scopes a child's onMetaChange patch under meta.children.<childId>, preserving siblings", () => {
     const textChild = {
       id: "cf",
