@@ -6,9 +6,11 @@ export interface ProgressComponentProps {
   pct: number | null
   currentIndex: number
   total: number | null
-  /** Title/subtitle of every step on the resolved path, in order — undefined while the
-   *  path can't yet be fully determined (mirrors `total: null`) or for variants that
-   *  don't need it. Populated by FlowRunner; bar/dots ignore it. */
+  /** Title/subtitle (description) of every step on the resolved path, in order —
+   *  undefined while the path can't yet be fully determined (mirrors `total: null`) or
+   *  for variants that don't need it. Populated by FlowRunner; bar/dots ignore it.
+   *  A variant is free to show only part of it: the built-in "steps" stepper renders
+   *  the descriptions of the current step only. */
   steps?: { title?: string; subtitle?: string }[]
 }
 

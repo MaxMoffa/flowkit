@@ -266,9 +266,18 @@
   }
 }
 
-.fk-progress-steps {
+/* Numbered stepper (progressVariant: "steps"). Establishes its own containment context
+   so the per-step titles react to the width the stepper itself gets — header vs footer,
+   desktop vs an embedder's narrow frame on a wide screen — rather than to the browser
+   viewport, same reasoning as .fk-scroll's fk-step container. */
+.fk-progress-stepper {
   flex: 1;
   min-width: 0;
+  container-type: inline-size;
+  container-name: fk-progress;
+}
+
+.fk-progress-steps {
   display: flex;
   align-items: flex-start;
   list-style: none;
@@ -290,7 +299,8 @@
   width: 100%;
 }
 
-.fk-progress-step-circle {
+.fk-progress-step-circle,
+.fk-progress-step-ellipsis {
   flex: none;
   width: 24px;
   height: 24px;
@@ -300,20 +310,63 @@
   justify-content: center;
   font-size: 11px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   background: var(--fk-canvas);
   color: var(--fk-text2);
   border: var(--fk-border-width) solid var(--fk-border);
   transition:
     background 200ms ease,
     color 200ms ease,
-    border-color 200ms ease;
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 }
 
-.fk-progress-step--active .fk-progress-step-circle,
+/* Collapsed run of steps: keeps the rhythm of the row but carries no chrome — it marks
+   "there is more here", it is never a position the user can be on. */
+.fk-progress-step-ellipsis {
+  width: 16px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* Very narrow container (phone frame with several steps): tighten circles and the gaps
+   between them so the row still fits without horizontal overflow. */
+@container fk-progress (max-width: 340px) {
+  .fk-progress-step-circle {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+
+  .fk-progress-step-line {
+    min-width: 6px;
+    margin: 0 3px;
+  }
+}
+
 .fk-progress-step--completed .fk-progress-step-circle {
   background: var(--fk-accent);
   border-color: var(--fk-accent);
   color: #fff;
+}
+
+/* "You are here" reads differently from "done": the current step is an accent outline
+   with a soft halo on the canvas colour, the completed ones are solid accent discs. */
+.fk-progress-step--active .fk-progress-step-circle {
+  background: var(--fk-canvas);
+  border-color: var(--fk-accent);
+  color: var(--fk-accent);
+  box-shadow: 0 0 0 3px var(--fk-accent-soft);
+}
+
+/* Many steps: smaller circles, since they carry the whole indicator on their own
+   (inline titles are not rendered at all above MAX_INLINE_LABEL_STEPS). */
+.fk-progress-stepper--dense .fk-progress-step-circle {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
 }
 
 .fk-progress-step-line {
@@ -321,6 +374,7 @@
   height: 2px;
   min-width: 8px;
   margin: 0 4px;
+  border-radius: 99px;
   background: var(--fk-border);
   transition: background 200ms ease;
 }
@@ -329,14 +383,16 @@
   background: var(--fk-accent);
 }
 
+/* Inline per-step titles are opt-in by width: hidden by default (mobile-first), revealed
+   by the container query below once there is room for them to be readable. */
 .fk-progress-step-label {
-  display: flex;
-  flex-direction: column;
+  display: none;
   margin-top: var(--fk-space-xs);
   min-width: 0;
 }
 
 .fk-progress-step-title {
+  display: block;
   font-size: 12px;
   font-weight: 500;
   color: var(--fk-text2);
@@ -345,43 +401,47 @@
   white-space: nowrap;
 }
 
-.fk-progress-step-subtitle {
-  font-size: 11px;
-  color: var(--fk-text2);
-  opacity: 0.75;
+/* The current step's title + description, on their own full-width line under the row:
+   the one place a description is shown, and the only place a long title has the room to
+   be read instead of being cut down to a couple of characters inside a 1/n column. */
+.fk-progress-current {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--fk-space-xs);
+  min-width: 0;
+}
+
+.fk-progress-current-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fk-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.fk-progress-step--active .fk-progress-step-title {
-  color: var(--fk-text);
-  font-weight: 700;
+.fk-progress-current-subtitle {
+  font-size: 11px;
+  color: var(--fk-text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.fk-progress-step--active .fk-progress-step-subtitle {
-  opacity: 1;
-}
+/* Wide enough for per-step titles: show them, highlight the current one, and drop the
+   now-redundant title from the current row (its description stays). */
+@container fk-progress (min-width: 480px) {
+  .fk-progress-stepper:not(.fk-progress-stepper--dense) .fk-progress-step-label {
+    display: block;
+  }
 
-/* Mobile: only the active step's label is shown, to keep long titles/many steps from
-   crowding or wrapping the header/footer row — the circles + connecting line alone
-   still convey overall position. */
-@media (max-width: 767px) {
-  .fk-progress-step:not(.fk-progress-step--active) .fk-progress-step-label {
+  .fk-progress-stepper:not(.fk-progress-stepper--dense) .fk-progress-current-title {
     display: none;
   }
 
-  .fk-progress-step-circle {
-    width: 22px;
-    height: 22px;
-  }
-}
-
-/* Desktop: room to show full labels without truncating. */
-@media (min-width: 1024px) {
-  .fk-progress-step-title,
-  .fk-progress-step-subtitle {
-    white-space: normal;
+  .fk-progress-stepper:not(.fk-progress-stepper--dense) .fk-progress-step--active .fk-progress-step-title {
+    color: var(--fk-text);
+    font-weight: 600;
   }
 }
 

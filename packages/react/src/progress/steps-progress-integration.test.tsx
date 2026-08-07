@@ -34,6 +34,24 @@ function makeFlow() {
   })
 }
 
+function makeLongFlow() {
+  return parseFlow({
+    id: "steps-progress-integration-long",
+    title: "Test",
+    steps: [
+      { id: "welcome", type: "intro", cta: "Inizia" },
+      ...Array.from({ length: 9 }, (_, i) => ({
+        id: `s${i + 1}`,
+        type: "text" as const,
+        title: `Passo ${i + 1}`,
+        subtitle: `Descrizione ${i + 1}`,
+        required: false,
+      })),
+      { id: "end", type: "confirmation" },
+    ],
+  })
+}
+
 describe("FlowRunner + steps progress variant", () => {
   it("passes every resolved step's title/subtitle to the registered 'steps' component", () => {
     const { container } = render(<FlowRunner flow={makeFlow()} theme={makeTheme("steps")} initialStep="a" />)
@@ -43,6 +61,28 @@ describe("FlowRunner + steps progress variant", () => {
     expect(items[0]!.className).toContain("fk-progress-step--active")
     expect(items[1]!.querySelector(".fk-progress-step-title")?.textContent).toBe("Contenuto")
     expect(items[2]!.querySelector(".fk-progress-step-title")?.textContent).toBe("Dettagli")
+  })
+
+  it("shows the current step's title and description in the dedicated row", () => {
+    const { container } = render(<FlowRunner flow={makeFlow()} theme={makeTheme("steps")} initialStep="b" />)
+    expect(container.querySelector(".fk-progress-current-title")?.textContent).toBe("Contenuto")
+    expect(container.querySelector(".fk-progress-current-subtitle")?.textContent).toBe(
+      "Rivedi gli step generati",
+    )
+  })
+
+  it("collapses a long path and drops the inline titles, keeping the current one", () => {
+    const { container } = render(
+      <FlowRunner flow={makeLongFlow()} theme={makeTheme("steps")} initialStep="s5" />,
+    )
+    expect(container.querySelector(".fk-progress-stepper")!.className).toContain(
+      "fk-progress-stepper--dense",
+    )
+    expect(container.querySelectorAll(".fk-progress-step-title")).toHaveLength(0)
+    expect(container.querySelectorAll(".fk-progress-step-ellipsis").length).toBeGreaterThan(0)
+    expect(container.querySelectorAll(".fk-progress-step").length).toBeLessThanOrEqual(7)
+    expect(container.querySelector(".fk-progress-current-title")?.textContent).toBe("Passo 5")
+    expect(container.querySelector(".fk-progress-current-subtitle")?.textContent).toBe("Descrizione 5")
   })
 
   it("advances the active circle as the user moves through steps", () => {
