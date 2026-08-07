@@ -1,5 +1,6 @@
 import type { ChipsStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { optionColorClass, optionColorStyle } from "./shared/option-color"
 import { useToggleSelection } from "./shared/selection"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -28,12 +29,10 @@ export function ChipsStepView({ step, value, onChange, flow, answers, meta, vali
           <button
             key={opt.value}
             type="button"
-            className={`fk-chip ${selected.includes(opt.value) ? "fk-chip-selected" : ""}${opt.description ? " fk-chip-with-description" : ""}`}
+            className={`fk-chip ${selected.includes(opt.value) ? "fk-chip-selected" : ""}${opt.description ? " fk-chip-with-description" : ""} ${optionColorClass(opt.color)}`}
+            style={optionColorStyle(opt.color)}
             onClick={() => toggle(opt.value)}
           >
-            {opt.color && (
-              <span className="fk-option-swatch" style={{ backgroundColor: opt.color }} aria-hidden="true" />
-            )}
             <FlowMarkdown text={opt.label} variant="inline" />
             {opt.description && (
               <span className="fk-chip-description"><FlowMarkdown text={opt.description} variant="block" /></span>

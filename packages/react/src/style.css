@@ -607,16 +607,6 @@
   color: var(--fk-text2);
 }
 
-/* Per-option color swatch (select-cards/multi-select/radio/chips): a small dot,
- * rendered only when the option sets `color` — absent it takes no space, no markup. */
-.fk-option-swatch {
-  width: 10px;
-  height: 10px;
-  flex: none;
-  border-radius: 50%;
-  border: var(--fk-border-width) solid var(--fk-border);
-}
-
 .fk-title {
   display: flex;
   align-items: center;
@@ -1693,6 +1683,48 @@
 
 .fk-chip-selected .fk-chip-description {
   color: var(--fk-accent);
+}
+
+/* Per-option custom color (select-cards/chips/radio/multi-select): when an option
+ * sets `color`, the step component bridges it onto the `--fk-option-color` custom
+ * property (see shared/option-color.ts) and adds this `fk-option-colored` modifier
+ * class, so it now tints the whole card/chip/list-item — previously `color` only
+ * drew a small 10px swatch dot next to an otherwise plain container. Backgrounds use
+ * `color-mix` at 88% instead of the raw color so the theme's own canvas/accent-soft
+ * still contributes a little, keeping default text legible against arbitrary
+ * user-picked hues without a full per-color luminance/contrast computation. Selected
+ * state keeps the option's color visible (an accent border + inset ring signal
+ * "selected" instead of the flat `--fk-accent-soft` fill used when there's no color,
+ * which would otherwise hide the chosen color right when it's most relevant). */
+.fk-card.fk-option-colored {
+  background: color-mix(in srgb, var(--fk-option-color) 88%, var(--fk-canvas));
+  border-color: color-mix(in srgb, var(--fk-option-color) 55%, var(--fk-border));
+}
+
+.fk-card-selected.fk-option-colored {
+  background: color-mix(in srgb, var(--fk-option-color) 88%, var(--fk-accent-soft));
+  box-shadow: inset 0 0 0 var(--fk-border-width) var(--fk-accent);
+}
+
+.fk-chip.fk-option-colored {
+  background: color-mix(in srgb, var(--fk-option-color) 88%, var(--fk-canvas));
+  border-color: color-mix(in srgb, var(--fk-option-color) 55%, var(--fk-border));
+}
+
+.fk-chip-selected.fk-option-colored {
+  background: color-mix(in srgb, var(--fk-option-color) 88%, var(--fk-accent-soft));
+  color: var(--fk-text);
+  box-shadow: inset 0 0 0 var(--fk-border-width) var(--fk-accent);
+}
+
+.fk-list-item.fk-option-colored {
+  background: color-mix(in srgb, var(--fk-option-color) 88%, var(--fk-canvas));
+  border-color: color-mix(in srgb, var(--fk-option-color) 55%, var(--fk-border));
+}
+
+.fk-list-item-selected.fk-option-colored {
+  background: color-mix(in srgb, var(--fk-option-color) 88%, var(--fk-accent-soft));
+  box-shadow: inset 0 0 0 var(--fk-border-width) var(--fk-accent);
 }
 
 /* Faces (hedonic) */

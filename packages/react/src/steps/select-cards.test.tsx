@@ -31,11 +31,13 @@ function renderStep(step: SelectCardsStep) {
 }
 
 describe("SelectCardsStepView: option color", () => {
-  it("applies the color as a swatch background", () => {
+  it("applies the color to the whole card (not just a swatch)", () => {
     const { container } = renderStep(baseStep([{ value: "a", label: "Option A", color: "#46A171" }]))
-    const swatch = container.querySelector(".fk-option-swatch") as HTMLElement | null
-    expect(swatch).not.toBeNull()
-    expect(swatch?.style.backgroundColor).toBe("rgb(70, 161, 113)")
+    const card = container.querySelector(".fk-card") as HTMLElement | null
+    expect(card).not.toBeNull()
+    expect(card?.classList.contains("fk-option-colored")).toBe(true)
+    expect(card?.style.getPropertyValue("--fk-option-color")).toBe("#46A171")
+    expect(container.querySelector(".fk-option-swatch")).toBeNull()
   })
 
   it("still renders description as before (unaffected by the new color field)", () => {
@@ -43,8 +45,11 @@ describe("SelectCardsStepView: option color", () => {
     expect(getByText("desc")).not.toBeNull()
   })
 
-  it("renders unchanged (no swatch) when color is absent", () => {
+  it("renders unchanged (no color class/variable) when color is absent", () => {
     const { container } = renderStep(baseStep([{ value: "a", label: "Option A" }]))
+    const card = container.querySelector(".fk-card") as HTMLElement | null
+    expect(card?.classList.contains("fk-option-colored")).toBe(false)
+    expect(card?.style.getPropertyValue("--fk-option-color")).toBe("")
     expect(container.querySelector(".fk-option-swatch")).toBeNull()
   })
 })

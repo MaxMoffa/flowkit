@@ -1,5 +1,6 @@
 import type { SelectCardsStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
+import { optionColorClass, optionColorStyle } from "./shared/option-color"
 import { useToggleSelection } from "./shared/selection"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -26,13 +27,11 @@ export function SelectCardsStepView({ step, value, onChange, flow, answers, meta
           <button
             key={opt.value}
             type="button"
-            className={`fk-card ${selected.includes(opt.value) ? "fk-card-selected" : ""}`}
+            className={`fk-card ${selected.includes(opt.value) ? "fk-card-selected" : ""} ${optionColorClass(opt.color)}`}
+            style={optionColorStyle(opt.color)}
             onClick={() => toggle(opt.value)}
           >
             {opt.emoji && <span className="fk-emoji">{opt.emoji}</span>}
-            {opt.color && (
-              <span className="fk-option-swatch" style={{ backgroundColor: opt.color }} aria-hidden="true" />
-            )}
             <span className="fk-card-label"><FlowMarkdown text={opt.label} variant="inline" /></span>
             {opt.description && (
               <span className="fk-card-description"><FlowMarkdown text={opt.description} variant="block" /></span>

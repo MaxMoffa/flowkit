@@ -68,9 +68,10 @@ export type StepImage = z.infer<typeof stepImageSchema>
 /**
  * Shared by every option-list step (select-cards, multi-select, radio, chips): one
  * entry a visitor can pick. `description` renders under the label (especially useful
- * on multi-select); `color` is a CSS color (hex/rgb/named) used as a swatch/accent —
- * both optional, absent = current unstyled rendering (no regression for existing
- * configs). select-cards extends this with its own `emoji` field.
+ * on multi-select); `color` is a CSS color (hex/rgb/named) that tints the whole
+ * card/chip/list-item container the option renders as (in @flowkit-io/react) — both
+ * optional, absent = current unstyled rendering (no regression for existing configs).
+ * select-cards extends this with its own `emoji` field.
  */
 export const optionSchema = z.object({
   value: z.string(),

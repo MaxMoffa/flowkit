@@ -39,13 +39,15 @@ describe("MultiSelectStepView: option description/color", () => {
     expect(container.querySelector(".fk-list-description")).not.toBeNull()
   })
 
-  it("applies the color as a swatch background", () => {
+  it("applies the color to the whole row (not just a swatch)", () => {
     const { container } = renderStep(
       baseStep([{ value: "a", label: "Option A", color: "#2783DE" }]),
     )
-    const swatch = container.querySelector(".fk-option-swatch") as HTMLElement | null
-    expect(swatch).not.toBeNull()
-    expect(swatch?.style.backgroundColor).toBe("rgb(39, 131, 222)")
+    const row = container.querySelector(".fk-list-item") as HTMLElement | null
+    expect(row).not.toBeNull()
+    expect(row?.classList.contains("fk-option-colored")).toBe(true)
+    expect(row?.style.getPropertyValue("--fk-option-color")).toBe("#2783DE")
+    expect(container.querySelector(".fk-option-swatch")).toBeNull()
   })
 
   it("renders unchanged (no swatch, no description) when both are absent", () => {

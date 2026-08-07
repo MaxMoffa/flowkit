@@ -1,4 +1,5 @@
 import { FlowMarkdown } from "../../markdown"
+import { optionColorClass, optionColorStyle } from "./option-color"
 
 interface OptionListProps {
   options: { value: string; label: string; description?: string; color?: string }[]
@@ -13,7 +14,9 @@ interface OptionListProps {
 /** The `.fk-list` rows shared by the radio and multi-select steps: same markup, same
  *  selected/disabled classes, only the input type and the pick semantics differ.
  *  `description`/`color` are optional per-option extras (schema.ts's optionSchema):
- *  left unset, an option renders exactly as before (no swatch, no description line). */
+ *  left unset, an option renders exactly as before (no tint, no description line).
+ *  `color`, when set, tints the whole row background (see option-color.ts and
+ *  style.css's `.fk-list-item.fk-option-colored` rules), not just a small swatch dot. */
 export function OptionList({
   options,
   isSelected,
@@ -27,7 +30,11 @@ export function OptionList({
       {options.map((opt) => {
         const selected = isSelected(opt.value)
         return (
-          <label key={opt.value} className={`fk-list-item${selected ? " fk-list-item-selected" : ""}`}>
+          <label
+            key={opt.value}
+            className={`fk-list-item${selected ? " fk-list-item-selected" : ""} ${optionColorClass(opt.color)}`}
+            style={optionColorStyle(opt.color)}
+          >
             <input
               type={inputType}
               className="fk-list-input"
@@ -36,9 +43,6 @@ export function OptionList({
               onChange={() => onPick(opt.value)}
               disabled={isDisabled?.(opt.value) ?? false}
             />
-            {opt.color && (
-              <span className="fk-option-swatch" style={{ backgroundColor: opt.color }} aria-hidden="true" />
-            )}
             {opt.description ? (
               <span className="fk-list-text">
                 <span className="fk-list-label"><FlowMarkdown text={opt.label} variant="inline" /></span>

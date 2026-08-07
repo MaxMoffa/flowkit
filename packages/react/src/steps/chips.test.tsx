@@ -39,11 +39,13 @@ describe("ChipsStepView: option description/color", () => {
     expect(container.querySelector(".fk-chip-with-description")).not.toBeNull()
   })
 
-  it("applies the color as a swatch background", () => {
+  it("applies the color to the whole chip (not just a swatch)", () => {
     const { container } = renderStep(baseStep([{ value: "a", label: "Persistente", color: "#D5803B" }]))
-    const swatch = container.querySelector(".fk-option-swatch") as HTMLElement | null
-    expect(swatch).not.toBeNull()
-    expect(swatch?.style.backgroundColor).toBe("rgb(213, 128, 59)")
+    const chip = container.querySelector(".fk-chip") as HTMLElement | null
+    expect(chip).not.toBeNull()
+    expect(chip?.classList.contains("fk-option-colored")).toBe(true)
+    expect(chip?.style.getPropertyValue("--fk-option-color")).toBe("#D5803B")
+    expect(container.querySelector(".fk-option-swatch")).toBeNull()
   })
 
   it("renders unchanged (plain pill) when both are absent", () => {
