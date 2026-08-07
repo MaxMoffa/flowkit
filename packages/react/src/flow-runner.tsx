@@ -12,6 +12,7 @@ import type { Answers, CurrentStepInfo, Flow, FlowState, StepChangeDirection } f
 import {
   answerKey,
   applyBranch,
+  canGoBack,
   canGoNext,
   computeInitialFlowState,
   createFlowState,
@@ -22,7 +23,6 @@ import {
   getStepMeta,
   getStepTypeDefinition,
   goToStep,
-  isFirstStep,
   isLastStep,
   isStepReachable,
   next as nextState,
@@ -30,6 +30,7 @@ import {
   resolveBranch,
   resolveFlowPath,
   resolveText,
+  returnToStep,
   setAnswerAndInvalidateDownstream,
   setStepMeta,
 } from "@flowkit-io/core"
@@ -116,6 +117,12 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   /** Last `CurrentStepInfo` actually reported via `onStepChange`/the ref handle — `null`
    *  only before the very first emission. Doubles as the source for `previousStep`. */
   const emittedStepRef = useRef<CurrentStepInfo | null>(null)
+  /** Set by `handleChange` when an answer rerouted the flow, cleared by the emission
+   *  effect below: forces that one report through even when id/index/total all stay the
+   *  same (two branches of equal length), because the *steps ahead* changed and the
+   *  answers behind them were dropped — something a consumer tracking flow state has to
+   *  hear about. */
+  const branchChangeRef = useRef(false)
   const [currentStep, setCurrentStep] = useState<CurrentStepInfo>(() =>
     getCurrentStepInfo(flow, state, "initial", null),
   )
@@ -144,9 +151,13 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     }),
     [currentStep, flow, state, handleRestart],
   )
-  /** Set while the user is editing an answer they reached by clicking a review row;
-   *  the next "Continua" jumps back to this index (the review step) instead of +1. */
-  const [returnToIndex, setReturnToIndex] = useState<number | null>(null)
+  /** Set while the user is editing an answer they reached by clicking a review row: the
+   *  next "Continua" returns to `reviewStepId` instead of moving +1. Recorded together
+   *  with the step the jump landed on (`editStepId`) and only honored while that step is
+   *  still the current one — the detour is over the moment the user leaves it by any
+   *  other route (Back, a branch re-route), and a leftover shortcut there would relabel
+   *  and hijack the review step's own submit button. */
+  const [returnTo, setReturnTo] = useState<{ reviewStepId: string; editStepId: string } | null>(null)
   /** Bumped each time the user tries to advance while the current step is still
    *  invalid (only reachable when the primary button isn't hard-disabled, e.g. a
    *  "group" step with requiredChildren: {mode: "any"|"none"} — see group.tsx). Reset
@@ -162,8 +173,14 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     )
   }
   const valid = canGoNext(flow, state)
-  const first = isFirstStep(state)
   const last = isLastStep(flow, state)
+  /** The pending review round trip, but only while the user is still standing on the
+   *  step the review row sent them to — see `returnTo`. */
+  const activeReturnTo = returnTo?.editStepId === step.id ? returnTo : null
+  /** Back is offered when there is somewhere to go back *to* (the real traversal
+   *  history), not merely when the index is > 0: a branch jump or a resumed session can
+   *  land on a high index with a short history, and vice versa. */
+  const backDisabled = !canGoBack(flow, state)
   const progressInfo = useMemo(() => getProgressInfo(flow, state), [flow, state])
   const pct = progressInfo.pct !== null ? Math.round(progressInfo.pct * 100) : null
   const stepRole = getStepTypeDefinition(step.type)?.role
@@ -240,9 +257,17 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
    *  the two can never observe different values. */
   useLayoutEffect(() => {
     if (stepRole === "logic") return
+    const forced = branchChangeRef.current
+    branchChangeRef.current = false
     const prevInfo = emittedStepRef.current
     const info = getCurrentStepInfo(flow, state, pendingDirectionRef.current, prevInfo)
-    if (prevInfo && prevInfo.id === info.id && prevInfo.index === info.index && prevInfo.total === info.total) {
+    if (
+      !forced &&
+      prevInfo &&
+      prevInfo.id === info.id &&
+      prevInfo.index === info.index &&
+      prevInfo.total === info.total
+    ) {
       return
     }
     emittedStepRef.current = info
@@ -257,21 +282,32 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
 
   const handleChange = useCallback(
     (value: Parameters<typeof setAnswerAndInvalidateDownstream>[3]) => {
+      const result = setAnswerAndInvalidateDownstream(flow, state, step, value)
+      if (result.invalidated) {
+        // A branch-driving answer just rerouted the flow: the next settled-step report
+        // should say why the total/answers shifted even though the visible step itself
+        // didn't change.
+        pendingDirectionRef.current = "branch-change"
+        branchChangeRef.current = true
+        // The steps ahead are no longer the ones the user already walked, so a pending
+        // "back to the review" shortcut has to go: continuing must walk the *new* path
+        // (whose steps have never been answered), not teleport past it to the review.
+        setReturnTo(null)
+      }
       // Functional update: a step (e.g. the "smartFill" add-on) may also call
       // onMetaChange in the same event, which queues its own functional update. Using a
       // plain (non-functional) setState here would replace the whole state with one
-      // computed from a stale closure, silently discarding that sibling update.
-      setState((s) => {
-        const result = setAnswerAndInvalidateDownstream(flow, s, step, value)
-        // A branch-driving answer just made the (already-answered) downstream path
-        // unreachable: the next settled-step report should say why the total/answers
-        // shifted even though the visible step itself didn't change.
-        if (result.invalidated) pendingDirectionRef.current = "branch-change"
-        return result.state
-      })
-      onChange?.({ ...state.answers, [answerKey(step)]: value })
+      // computed from a stale closure, silently discarding that sibling update. Pure —
+      // `result` above is only the same computation on this render's state, used for the
+      // side effects (which must not live inside an updater).
+      setState((s) => setAnswerAndInvalidateDownstream(flow, s, step, value).state)
+      // Post-invalidation answers, not just "previous + this one": an edit that reroutes
+      // a branch also drops the answers of the steps it just made unreachable, and a
+      // consumer persisting this payload (e.g. into the URL, to resume later) must not
+      // keep resurrecting them.
+      onChange?.(result.state.answers)
     },
-    [flow, step, state.answers, onChange],
+    [flow, step, state, onChange],
   )
 
   const handleMetaChange = useCallback(
@@ -290,16 +326,15 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
       await onSubmit?.(state.answers)
     }
     setDirection("next")
-    if (returnToIndex !== null) {
-      const target = returnToIndex
-      setReturnToIndex(null)
+    if (activeReturnTo) {
+      setReturnTo(null)
       pendingDirectionRef.current = "jump"
-      setState((s) => ({ ...s, index: target }))
+      setState((s) => returnToStep(flow, s, activeReturnTo.reviewStepId))
       return
     }
     pendingDirectionRef.current = "next"
     setState((s) => nextState(flow, s))
-  }, [flow, state, isFinalReviewSubmit, onSubmit, returnToIndex])
+  }, [flow, state, isFinalReviewSubmit, onSubmit, activeReturnTo])
 
   const handlePrev = useCallback(() => {
     if (flow.disableBack) return
@@ -310,12 +345,12 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
 
   const handleNavigateToStep = useCallback(
     (stepId: string) => {
-      setReturnToIndex(state.index)
+      setReturnTo({ reviewStepId: step.id, editStepId: stepId })
       setDirection("next")
       pendingDirectionRef.current = "jump"
       setState((s) => goToStep(flow, s, stepId))
     },
-    [flow, state.index],
+    [flow, step.id],
   )
 
   /** Enter in a single-line text-like input (text/email/number/date/…) attempts to
@@ -348,7 +383,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   }, [step, handleRestart])
 
   const primaryLabel =
-    returnToIndex !== null
+    activeReturnTo
       ? resolveText(flow, "returnToReview")
       : isFinalReviewSubmit
         ? ((step as StepWithReviewFields).submitLabel ?? resolveText(flow, "submit"))
@@ -369,7 +404,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
                   type="button"
                   className="fk-back"
                   onClick={handlePrev}
-                  disabled={first}
+                  disabled={backDisabled}
                   aria-label={resolveText(flow, "backAriaLabel")}
                 >
                   ←
@@ -418,7 +453,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
           <StepFooter
             order={layout.footerOrder}
             showBack={showHeader && !flow.disableBack}
-            backDisabled={first}
+            backDisabled={backDisabled}
             onBack={handlePrev}
             backLabel={resolveText(flow, "back")}
             primaryLabel={primaryLabel}

@@ -8,6 +8,7 @@ import {
   parseFlow,
   prev,
   resolveBranch,
+  resolveFlowPath,
   setAnswer,
   setAnswerAndInvalidateDownstream,
   setStepMeta,
@@ -194,18 +195,20 @@ describe("setAnswerAndInvalidateDownstream: branch-change invalidation", () => {
       ],
     })
 
-    // q3 already has a leftover answer from some earlier state (simulated directly —
-    // router2 depends on q2, which hasn't been reached again yet from index 0, so the
-    // path stays indeterminate past q1/q2 and q3 must be left alone).
+    // The user is on q1; q3 already carries a leftover answer from some earlier pass.
+    // Answering q1="a" routes router1 to q2, and router2 (gated on q2, neither reached
+    // nor answered) leaves everything past q2 undetermined — so q3, which may well turn
+    // out to be on the path again, must be left alone.
     const state: Parameters<typeof setAnswerAndInvalidateDownstream>[1] = {
-      index: 0,
+      index: 1,
       answers: { q3: "leftover" },
       meta: {},
-      history: [],
+      history: ["welcome"],
     }
 
-    const result = setAnswerAndInvalidateDownstream(flow, state, stepByIdInFlow(flow, "q1"), "b")
-    expect(result.invalidated).toBe(false)
+    const result = setAnswerAndInvalidateDownstream(flow, state, stepByIdInFlow(flow, "q1"), "a")
+    expect(result.invalidated).toBe(true)
+    expect(resolveFlowPath(flow, result.state)).toEqual({ stepIds: ["q1", "q2"], determinate: false })
     expect(result.state.answers.q3).toBe("leftover")
   })
 })

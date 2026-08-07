@@ -192,6 +192,97 @@ describe("resolveFlowPath: nested/unresolvable branches stay indeterminate", () 
   })
 })
 
+describe("resolveFlowPath: what counts as 'not yet determinable'", () => {
+  function makeFlow(): Flow {
+    return parseFlow({
+      id: "late-branch",
+      title: "Late branch",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "q1", type: "text", required: false },
+        { id: "q2", type: "radio", options: [{ value: "a", label: "A" }, { value: "b", label: "B" }] },
+        {
+          id: "router",
+          type: "branch",
+          rules: [{ when: { key: "q2", op: "eq", value: "a" }, goTo: "review" }],
+        },
+        { id: "q3", type: "text", required: false },
+        { id: "review", type: "text", title: "Review", required: false },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+  }
+
+  it("an already-answered dependency keeps the path determinate after going back", () => {
+    const flow = makeFlow()
+    // The user walked the whole flow (q2 = "a" routes past q3) and then went back to q1:
+    // the branch's dependency now sits ahead of the current index, but it's answered —
+    // the route is known, so the progress total must not blank out on the way back.
+    const state = { index: 1, answers: { q1: "hi", q2: "a" }, meta: {}, history: ["welcome"] }
+    const path = resolveFlowPath(flow, state)
+    expect(path).toEqual({ stepIds: ["q1", "q2", "review"], determinate: true })
+    expect(getProgressInfo(flow, state).total).toBe(3)
+  })
+
+  it("an unanswered dependency ahead of the user still makes the path indeterminate", () => {
+    const flow = makeFlow()
+    const state = { index: 1, answers: { q1: "hi" }, meta: {}, history: ["welcome"] }
+    expect(resolveFlowPath(flow, state).determinate).toBe(false)
+  })
+
+  it("a condition key no step can ever fill doesn't freeze the path as indeterminate", () => {
+    // Same thing a `group` child's key does (its value lives nested in the group's own
+    // answer, never flat in `answers`) — and what a plain typo does. The runtime jump
+    // evaluates it as false and moves on, so the path has to agree instead of blanking
+    // the total forever.
+    const flow = parseFlow({
+      id: "unknown-key",
+      title: "Unknown key",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "q1", type: "text", required: false },
+        {
+          id: "router",
+          type: "branch",
+          rules: [{ when: { key: "not_a_step_key", op: "truthy" }, goTo: "review" }],
+        },
+        { id: "q2", type: "text", required: false },
+        { id: "review", type: "text", title: "Review", required: false },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const path = resolveFlowPath(flow, createFlowState())
+    expect(path).toEqual({ stepIds: ["q1", "q2", "review"], determinate: true })
+  })
+
+  it("mirrors resolveBranch when a branch target id doesn't exist", () => {
+    const flow = parseFlow({
+      id: "typo-target",
+      title: "Typo target",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "q1", type: "text", required: false },
+        {
+          id: "router",
+          type: "branch",
+          rules: [{ when: { key: "q1", op: "truthy" }, goTo: "typo-id" }],
+        },
+        { id: "q2", type: "text", required: false },
+        { id: "review", type: "text", title: "Review", required: false },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    let state = createFlowState()
+    state = next(flow, state)
+    state = setAnswer(state, stepByIdInFlow(flow, "q1"), "hi")
+    const path = resolveFlowPath(flow, state)
+    expect(path).toEqual({ stepIds: ["q1", "q2", "review"], determinate: true })
+
+    const atBranch = { ...state, index: 2 }
+    expect(resolveBranch(flow, atBranch)).toBe("q2")
+  })
+})
+
 describe("resolveFlowPath: goToStep (review jump) still resolves", () => {
   it("stays determinate when jumping via goToStep after answers are already known", () => {
     const flow = parseFlow({

@@ -24,7 +24,11 @@ export interface InitialFlowStateOptions {
  *  session "hadn't reached" — every preloaded answer counts as already given. When the
  *  target is reachable, `state.history` is backfilled from the resolved path up to that
  *  point (empty for the intro step, the full resolved path for the confirmation step)
- *  so the Back button works immediately on a resumed step. */
+ *  so the Back button works immediately on a resumed step. The flow's own intro step is
+ *  prepended, since `resolveFlowPath` leaves it out of the path by design but a real
+ *  walk does push it: without it, Back from a resumed session would dead-end one step
+ *  early — and, landing straight on the *first* path step, would produce an empty
+ *  history (an enabled-looking Back button that does nothing). */
 export function computeInitialFlowState(flow: Flow, options: InitialFlowStateOptions = {}): FlowState {
   let state = createFlowState()
   if (options.initialAnswers) {
@@ -36,14 +40,17 @@ export function computeInitialFlowState(flow: Flow, options: InitialFlowStateOpt
       const targetIndex = flow.steps.findIndex((s) => s.id === options.initialStepId)!
       const def = getStepTypeDefinition(flow.steps[targetIndex]!.type)
       const path = resolveFlowPath(flow, probe)
+      const introStep = flow.steps[0]
+      const introPrefix =
+        introStep && getStepTypeDefinition(introStep.type)?.role === "intro" ? [introStep.id] : []
       let history: string[]
       if (def?.role === "intro") {
         history = []
       } else if (def?.role === "confirmation") {
-        history = path.stepIds
+        history = [...introPrefix, ...path.stepIds]
       } else {
         const targetPos = path.stepIds.indexOf(options.initialStepId)
-        history = targetPos > 0 ? path.stepIds.slice(0, targetPos) : []
+        history = [...introPrefix, ...(targetPos > 0 ? path.stepIds.slice(0, targetPos) : [])]
       }
       state = { ...state, index: targetIndex, history }
     }
@@ -105,14 +112,22 @@ export function setAnswerAndInvalidateDownstream(
 
   const nextAnswers = { ...updated.answers }
   const nextMeta = { ...updated.meta }
+  const dropped = new Set<string>()
 
   flow.steps.forEach((s, idx) => {
     if (idx <= updated.index || idx > walkedIndex || reachable.has(s.id)) return
     const key = answerKey(s)
     delete nextAnswers[key]
     delete nextMeta[s.id]
+    dropped.add(s.id)
   })
 
   if (!pathChanged) return { state: updated, invalidated: false }
-  return { state: { ...updated, answers: nextAnswers, meta: nextMeta }, invalidated: true }
+  // A step the new route drops is no longer part of the flow the user is taking, so it
+  // must leave the traversal history too: it's what Back walks down, and what the
+  // review/report use to tell an actually-visited step from one a branch skipped —
+  // leaving it there would resurrect the step as an empty row and as a Back stop on a
+  // path that no longer exists.
+  const nextHistory = dropped.size > 0 ? updated.history.filter((id) => !dropped.has(id)) : updated.history
+  return { state: { ...updated, answers: nextAnswers, meta: nextMeta, history: nextHistory }, invalidated: true }
 }

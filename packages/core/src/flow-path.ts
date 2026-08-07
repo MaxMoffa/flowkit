@@ -1,19 +1,90 @@
-import type { Flow } from "./schema"
+import type { Flow, Step } from "./schema"
 import { getStepTypeDefinition } from "./registry"
 import { evaluateCondition, type BranchStep, type Condition } from "./branch-step"
-import { answerKey, getCurrentStep, type FlowState } from "./flow-state"
+import { answerKey, getCurrentStep, type Answers, type FlowState } from "./flow-state"
 
-/** Evaluates a "branch" step's rules against the current answers and returns the id of
- *  the step to jump to: the first matching rule's `goTo`, else `fallback`, else the
- *  natural next step in flow order. Pure — doesn't itself change state, see applyBranch. */
-export function resolveBranch(flow: Flow, state: FlowState): string {
-  const step = getCurrentStep(flow, state) as unknown as BranchStep
-  for (const rule of step.rules) {
-    if (evaluateCondition(rule.when, state.answers)) return rule.goTo
+function isLogicStep(step: Step): boolean {
+  return getStepTypeDefinition(step.type)?.role === "logic"
+}
+
+/** Index of the first step that can actually be rendered from `from` onwards, falling
+ *  back to the closest one *before* it — the escape hatch for a branch that resolves
+ *  nowhere renderable (cycle, or a target past the end of the flow). `-1` only for the
+ *  degenerate flow made of nothing but "logic" steps. */
+function firstVisibleIndex(flow: Flow, from: number): number {
+  for (let i = Math.max(from, 0); i < flow.steps.length; i += 1) {
+    if (!isLogicStep(flow.steps[i]!)) return i
   }
-  if (step.fallback) return step.fallback
-  const nextStep = flow.steps[state.index + 1]
-  return nextStep ? nextStep.id : step.id
+  for (let i = Math.min(from, flow.steps.length) - 1; i >= 0; i -= 1) {
+    if (!isLogicStep(flow.steps[i]!)) return i
+  }
+  return -1
+}
+
+/** Resolves one "branch" step to the *index* of its target: the first matching rule's
+ *  `goTo`, else `fallback`, else the natural next step in flow order (which may be one
+ *  past the last step — callers handle that). Shared by `resolveBranch` (runtime jump)
+ *  and `resolveFlowPath` (path/progress), so the two can never disagree on where a
+ *  branch leads.
+ *
+ *  A `goTo`/`fallback` naming a step that doesn't exist (a config typo — nothing
+ *  validates these ids at parse time) is skipped rather than honored: the flow degrades
+ *  to the next candidate and ultimately to the natural next step, instead of dead-ending
+ *  on a target that can't be reached. */
+function resolveBranchTargetIndex(
+  flow: Flow,
+  branch: BranchStep,
+  pos: number,
+  answers: Answers,
+  indexById: Map<string, number>,
+): number {
+  let matched: string | undefined
+  for (const rule of branch.rules) {
+    if (evaluateCondition(rule.when, answers)) {
+      matched = rule.goTo
+      break
+    }
+  }
+  for (const candidate of [matched, branch.fallback]) {
+    if (candidate === undefined) continue
+    const index = indexById.get(candidate)
+    if (index !== undefined) return index
+  }
+  return pos + 1
+}
+
+function buildIndexById(flow: Flow): Map<string, number> {
+  return new Map(flow.steps.map((s, i) => [s.id, i] as const))
+}
+
+/** Resolves the "branch" (role: "logic") step the state is currently on and returns the
+ *  id of the step to jump to: the first matching rule's `goTo`, else `fallback`, else
+ *  the natural next step in flow order. Pure — doesn't itself change state, see
+ *  applyBranch.
+ *
+ *  Chained branches (a branch whose target is another branch) are followed through to
+ *  the first step that can actually be rendered, so the returned id is always a real,
+ *  non-"logic" step: a caller can jump to it in one move, and a config whose branches
+ *  loop back onto each other degrades to the nearest renderable step instead of
+ *  spinning forever (`FlowRunner` resolves branches in an effect — a cycle there would
+ *  be an infinite render loop). Called on a non-logic step, returns that step's own id. */
+export function resolveBranch(flow: Flow, state: FlowState): string {
+  const start = state.index
+  const current = getCurrentStep(flow, state)
+  if (!isLogicStep(current)) return current.id
+
+  const indexById = buildIndexById(flow)
+  const seen = new Set<number>()
+  let pos = start
+  while (pos >= 0 && pos < flow.steps.length && isLogicStep(flow.steps[pos]!) && !seen.has(pos)) {
+    seen.add(pos)
+    pos = resolveBranchTargetIndex(flow, flow.steps[pos] as unknown as BranchStep, pos, state.answers, indexById)
+  }
+  const landed = flow.steps[pos]
+  if (landed && !isLogicStep(landed)) return landed.id
+
+  const escape = firstVisibleIndex(flow, start + 1)
+  return escape === -1 ? current.id : flow.steps[escape]!.id
 }
 
 /** Jumps to a branch's resolved target. Unlike next()/goToStep(), doesn't push the
@@ -55,22 +126,37 @@ export interface ResolvedPath {
  * unlike `flow.steps`, which lists every step regardless of whether a branch skips it.
  *
  * A branch can only be resolved once every field its rules reference has had the
- * chance to be answered for real: a rule referencing a step at an index beyond
- * `state.index` (not yet reached by the user) makes the whole path from that branch
- * onward `determinate: false` — resolving it now would be a guess that's likely to
- * flip once the user actually answers that field (imagine a nested branch: the
- * dependency step might itself be skipped by an earlier, still-unresolved branch).
+ * chance to be answered for real: a rule referencing a step that is both beyond
+ * `state.index` (not yet reached by the user) and still unanswered makes the whole path
+ * from that branch onward `determinate: false` — resolving it now would be a guess
+ * that's likely to flip once the user actually answers that field (imagine a nested
+ * branch: the dependency step might itself be skipped by an earlier, still-unresolved
+ * branch). An answer that's already there is *not* a guess, even when it belongs to a
+ * step further down the flow: that's the user having gone back to edit an earlier step
+ * (the whole path is still known, and blanking the total behind them would be a visible
+ * regression), or a resumed session's preloaded answers.
  * A branch at or before `state.index` was necessarily already resolved for real (branch
  * steps are never rendered — FlowRunner jumps through them synchronously), so replaying
  * it here with the same answers reproduces that same jump deterministically, including
  * after the user goes back and changes the answer that drove it.
+ *
+ * A key no top-level step can ever produce (a typo, or a `group` child's key — those
+ * live nested inside the group's own aggregate value, not flat in `answers`) never
+ * blocks resolution: it evaluates the same way now and forever, and the runtime jump
+ * (`resolveBranch`) doesn't wait for it either — the path must mirror what navigation
+ * actually does, not be more conservative than it.
  */
 export function resolveFlowPath(flow: Flow, state: FlowState): ResolvedPath {
   const indexByKey = new Map<string, number>()
-  const indexById = new Map<string, number>()
+  const indexById = buildIndexById(flow)
   flow.steps.forEach((s, i) => {
     indexByKey.set(answerKey(s), i)
-    indexById.set(s.id, i)
+    // A group's children answer into the same flat key namespace as top-level steps
+    // (resolveStepKeys enforces flow-wide uniqueness across both), but are only ever
+    // filled in when the group step itself is reached — so they gate a branch at the
+    // group's own position.
+    const children = (s as { steps?: Step[] }).steps
+    if (Array.isArray(children)) children.forEach((child) => indexByKey.set(answerKey(child), i))
   })
 
   const stepIds: string[] = []
@@ -91,26 +177,11 @@ export function resolveFlowPath(flow: Flow, state: FlowState): ResolvedPath {
 
       const unresolvable = Array.from(dependencyKeys).some((key) => {
         const depIndex = indexByKey.get(key)
-        return depIndex === undefined || depIndex > state.index
+        return depIndex !== undefined && depIndex > state.index && !(key in state.answers)
       })
       if (unresolvable) return { stepIds, determinate: false }
 
-      let target: string | undefined
-      for (const rule of branch.rules) {
-        if (evaluateCondition(rule.when, state.answers)) {
-          target = rule.goTo
-          break
-        }
-      }
-      target ??= branch.fallback
-      if (!target) {
-        const nextStep = flow.steps[pos + 1]
-        target = nextStep ? nextStep.id : current.id
-      }
-
-      const targetIndex = indexById.get(target)
-      if (targetIndex === undefined) return { stepIds, determinate: false }
-      pos = targetIndex
+      pos = resolveBranchTargetIndex(flow, branch, pos, state.answers, indexById)
       continue
     }
 

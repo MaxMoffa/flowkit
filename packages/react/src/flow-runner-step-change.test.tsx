@@ -38,6 +38,30 @@ function makeBranchFlow() {
   })
 }
 
+/** Like `makeBranchFlow`, but the two sides converge (the "skip" branch jumps the
+ *  adult side straight to the end): both routes are exactly one step long, so a reroute
+ *  leaves id/index/total untouched. */
+function makeConvergingBranchFlow() {
+  return parseFlow({
+    id: "step-change-converging",
+    title: "Test",
+    steps: [
+      { id: "welcome", type: "intro", cta: "Inizia" },
+      { id: "age", type: "text", key: "age", required: false, placeholder: "Età" },
+      {
+        id: "router",
+        type: "branch",
+        rules: [{ when: { key: "age", op: "eq", value: "21" }, goTo: "adult-step" }],
+        fallback: "minor-step",
+      },
+      { id: "adult-step", type: "text", key: "adult", title: "Contenuto adulti", required: false },
+      { id: "skip", type: "branch", rules: [], fallback: "end" },
+      { id: "minor-step", type: "text", key: "minor", title: "Contenuto minori", required: false },
+      { id: "end", type: "confirmation" },
+    ],
+  })
+}
+
 describe("FlowRunner: onStepChange / currentStep — mount and linear navigation", () => {
   it("emits the initial step on mount, already aligned with the ref's currentStep", () => {
     const onStepChange = vi.fn()
@@ -136,5 +160,48 @@ describe("FlowRunner: onStepChange — branch-change invalidation", () => {
     const branchChange = onStepChange.mock.calls[0]![0] as CurrentStepInfo
     expect(branchChange).toMatchObject({ id: "age", direction: "branch-change" })
     expect(branchChange.total).not.toBe(onAdult.total)
+  })
+
+  it("still fires when the two branches are the same length (id/index/total all unchanged)", () => {
+    const onStepChange = vi.fn()
+    render(<FlowRunner flow={makeConvergingBranchFlow()} onStepChange={onStepChange} />)
+
+    fireEvent.click(screen.getByText("Inizia"))
+    fireEvent.change(screen.getByPlaceholderText("Età"), { target: { value: "21" } })
+    fireEvent.click(screen.getByText("Continua")) // -> adult-step
+    fireEvent.click(screen.getByLabelText("Indietro")) // -> age
+    const before = onStepChange.mock.calls.at(-1)![0] as CurrentStepInfo
+
+    onStepChange.mockClear()
+    fireEvent.change(screen.getByPlaceholderText("Età"), { target: { value: "5" } })
+
+    // Both routes are one step long: nothing about the *current* step changed, but the
+    // route ahead did — a consumer tracking flow state has to hear about it.
+    expect(onStepChange).toHaveBeenCalledTimes(1)
+    const branchChange = onStepChange.mock.calls[0]![0] as CurrentStepInfo
+    expect(branchChange).toMatchObject({ id: "age", direction: "branch-change", total: before.total })
+
+    // ...and only once: further edits that don't reroute anything stay silent.
+    onStepChange.mockClear()
+    fireEvent.change(screen.getByPlaceholderText("Età"), { target: { value: "6" } })
+    expect(onStepChange).not.toHaveBeenCalled()
+  })
+
+  it("onChange reports the answers minus the ones the reroute dropped", () => {
+    const onChange = vi.fn()
+    render(<FlowRunner flow={makeConvergingBranchFlow()} onChange={onChange} />)
+
+    fireEvent.click(screen.getByText("Inizia"))
+    fireEvent.change(screen.getByPlaceholderText("Età"), { target: { value: "21" } })
+    fireEvent.click(screen.getByText("Continua")) // -> adult-step
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "solo adulti" } })
+    expect(onChange.mock.calls.at(-1)![0]).toEqual({ age: "21", adult: "solo adulti" })
+
+    fireEvent.click(screen.getByLabelText("Indietro")) // -> age
+    fireEvent.change(screen.getByPlaceholderText("Età"), { target: { value: "5" } })
+
+    // "adult-step" is off the path now: a consumer persisting this payload (to resume
+    // later, say) must not carry its answer around anymore.
+    expect(onChange.mock.calls.at(-1)![0]).toEqual({ age: "5" })
   })
 })

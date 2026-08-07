@@ -13,6 +13,7 @@ import {
   prev,
   registerStepType,
   resolveBranch,
+  returnToStep,
   setAnswer,
   setStepMeta,
 } from "./index"
@@ -171,6 +172,34 @@ describe("goToStep", () => {
   })
 })
 
+describe("returnToStep", () => {
+  it("undoes a goToStep round trip without leaving a duplicate history entry", () => {
+    const flow = makeFlow()
+    const state = { index: 2, answers: {}, meta: {}, history: ["welcome", "mood"] }
+    const jumped = goToStep(flow, state, "mood")
+    expect(jumped.history).toEqual(["welcome", "mood", "notes"])
+
+    const back = returnToStep(flow, jumped, "notes")
+    expect(back.index).toBe(2)
+    expect(back.history).toEqual(["welcome", "mood"])
+    // Back from there goes one real step further, instead of landing on "notes" again.
+    expect(flow.steps[prev(flow, back).index]!.id).toBe("mood")
+  })
+
+  it("leaves history alone when the target isn't the entry the jump pushed", () => {
+    const flow = makeFlow()
+    const state = { index: 1, answers: {}, meta: {}, history: ["welcome"] }
+    const back = returnToStep(flow, state, "notes")
+    expect(back.index).toBe(2)
+    expect(back.history).toEqual(["welcome"])
+  })
+
+  it("throws for an unknown step id", () => {
+    const flow = makeFlow()
+    expect(() => returnToStep(flow, createFlowState(), "does-not-exist")).toThrow(/no step with id/)
+  })
+})
+
 describe("branching", () => {
   function makeBranchFlow(): Flow {
     return parseFlow({
@@ -210,6 +239,58 @@ describe("branching", () => {
     const jumped = applyBranch(flow, state, resolveBranch(flow, state))
     expect(jumped.index).toBe(3)
     expect(jumped.history).toEqual(["welcome", "age"])
+  })
+
+  it("resolveBranch follows a chain of branches through to the first renderable step", () => {
+    const flow = parseFlow({
+      id: "chained",
+      title: "Chained",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "age", type: "text", required: false },
+        { id: "r1", type: "branch", rules: [{ when: { key: "age", op: "truthy" }, goTo: "r2" }], fallback: "b" },
+        { id: "r2", type: "branch", rules: [], fallback: "c" },
+        { id: "b", type: "text", required: false },
+        { id: "c", type: "text", required: false },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const state = { index: 2, answers: { age: "21" }, meta: {}, history: ["welcome", "age"] }
+    // Not "r2": a caller can land on the returned id in a single jump.
+    expect(resolveBranch(flow, state)).toBe("c")
+  })
+
+  it("resolveBranch escapes a cyclic branch config instead of looping forever", () => {
+    const flow = parseFlow({
+      id: "cyclic",
+      title: "Cyclic",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "r1", type: "branch", rules: [], fallback: "r2" },
+        { id: "r2", type: "branch", rules: [], fallback: "r1" },
+        { id: "b", type: "text", required: false },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const state = { index: 1, answers: {}, meta: {}, history: ["welcome"] }
+    expect(resolveBranch(flow, state)).toBe("b")
+  })
+
+  it("resolveBranch ignores a target id that doesn't exist instead of dead-ending on it", () => {
+    const flow = parseFlow({
+      id: "typo",
+      title: "Typo",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "age", type: "text", required: false },
+        { id: "r1", type: "branch", rules: [{ when: { key: "age", op: "truthy" }, goTo: "typo-id" }], fallback: "b" },
+        { id: "b", type: "text", required: false },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const state = { index: 2, answers: { age: "21" }, meta: {}, history: ["welcome", "age"] }
+    expect(resolveBranch(flow, state)).toBe("b")
+    expect(() => applyBranch(flow, state, resolveBranch(flow, state))).not.toThrow()
   })
 
   it("Back after a branch returns to the step before the branch, not the untaken side", () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  canGoBack,
   computeInitialFlowState,
   createFlowState,
   filterValidAnswers,
@@ -133,7 +134,8 @@ describe("computeInitialFlowState", () => {
     const flow = linearFlow()
     const state = computeInitialFlowState(flow, { initialStepId: "b" })
     expect(state.index).toBe(2)
-    expect(state.history).toEqual(["a"])
+    // Intro included: a real walk pushes it too, so Back from a resumed step reaches it.
+    expect(state.history).toEqual(["welcome", "a"])
   })
 
   it("initialStepId targeting the confirmation step backfills the full resolved path", () => {
@@ -143,7 +145,22 @@ describe("computeInitialFlowState", () => {
       initialAnswers: { b: "hello" },
     })
     expect(state.index).toBe(3)
-    expect(state.history).toEqual(["a", "b"])
+    expect(state.history).toEqual(["welcome", "a", "b"])
+  })
+
+  it("landing on the very first step after the intro still has somewhere to go back to", () => {
+    const flow = linearFlow()
+    const state = computeInitialFlowState(flow, { initialStepId: "a" })
+    expect(state.index).toBe(1)
+    expect(state.history).toEqual(["welcome"])
+    expect(canGoBack(flow, state)).toBe(true)
+  })
+
+  it("landing on the intro itself has nothing to go back to", () => {
+    const flow = linearFlow()
+    const state = computeInitialFlowState(flow, { initialStepId: "welcome" })
+    expect(state.history).toEqual([])
+    expect(canGoBack(flow, state)).toBe(false)
   })
 
   it("falls back to index 0 for a nonexistent step id, without throwing", () => {

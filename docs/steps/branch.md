@@ -12,6 +12,12 @@ appears in the answers object, the review/summary, or a PDF/print export — and
 Back button, after a branch, returns to the step the flow was actually on before the
 jump (not to whichever step the jump skipped).
 
+The same holds *retroactively*: when the user edits the answer that drove a branch (via
+Back, or via a review row) and the branch now points elsewhere, the steps that dropped
+off the route leave the collected answers, the review/summary and the Back path with
+it, and continuing walks the newly opened route — which has never been answered —
+instead of returning straight to the review.
+
 ## Config
 
 | Field | Type | Default | Notes |
@@ -21,6 +27,13 @@ jump (not to whichever step the jump skipped).
 
 `BranchRule` = `{ when: Condition, goTo: string }` — `goTo` is a step **`id`** (the
 same target namespace as a clickable review row / `goToStep`), not a `key`.
+
+A branch may target another branch: the chain is followed through in one move, to the
+first step that can actually be rendered. Nothing validates target ids at parse time,
+so a `goTo`/`fallback` naming a step that doesn't exist is ignored (the flow falls
+through to the next candidate, ultimately to the natural next step), and branches that
+loop back onto each other resolve to the nearest renderable step instead of hanging —
+a config typo degrades the routing, it never breaks navigation.
 
 ## Condition syntax
 

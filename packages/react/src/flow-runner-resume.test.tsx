@@ -62,6 +62,14 @@ describe("FlowRunner: initialStep", () => {
     fireEvent.click(screen.getByLabelText("Indietro"))
     expect(screen.getByPlaceholderText("Campo A")).not.toBeNull()
   })
+
+  it("Back from the first step after the intro reaches the intro, as it would on a real walk", () => {
+    render(<FlowRunner flow={makeLinearFlow()} initialStep="a" />)
+    const back = screen.getByLabelText("Indietro")
+    expect(back.hasAttribute("disabled")).toBe(false)
+    fireEvent.click(back)
+    expect(screen.getByText("Inizia")).not.toBeNull()
+  })
 })
 
 describe("FlowRunner: initialAnswers", () => {

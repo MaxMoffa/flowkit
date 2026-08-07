@@ -38,6 +38,25 @@ export function goToStep(flow: Flow, state: FlowState, stepId: string): FlowStat
   return { ...state, index, history: [...state.history, current.id] }
 }
 
+/** Undoes a `goToStep` jump: goes back to `stepId` *and* pops the history entry that
+ *  jump pushed, instead of stacking a second one on top of it. This is what the review
+ *  step's "torna al riepilogo" does after the user edited an answer they reached from a
+ *  clickable review row — a round trip, not two forward moves. Without the pop, the
+ *  review step would sit on its own history stack twice over and the next Back would be
+ *  a silent no-op (pop "review", land on "review").
+ *
+ *  The pop only happens when `stepId` really is the top of the stack, i.e. the flow came
+ *  straight back from the jump; if the user navigated elsewhere in between, history is
+ *  left alone and this behaves exactly like `goToStep` minus the push. */
+export function returnToStep(flow: Flow, state: FlowState, stepId: string): FlowState {
+  const index = flow.steps.findIndex((s) => s.id === stepId)
+  if (index === -1) {
+    throw new Error(`Flow "${flow.id}" has no step with id "${stepId}"`)
+  }
+  const isTop = state.history[state.history.length - 1] === stepId
+  return { ...state, index, history: isTop ? state.history.slice(0, -1) : state.history }
+}
+
 export function canGoNext(flow: Flow, state: FlowState): boolean {
   const step = getCurrentStep(flow, state)
   return isStepValid(step, state.answers, getStepMeta(state, step.id))
