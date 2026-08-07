@@ -1,5 +1,32 @@
 # @flowkit-io/core
 
+## 0.15.0 — 2026-08-07
+
+### Added
+
+- `returnToStep(flow, state, stepId)`: undoes a `goToStep` jump — goes back to `stepId`
+  *and* pops the history entry that jump pushed, instead of stacking a second one on
+  top. Used by the review step's "torna al riepilogo" after editing an answer reached
+  from a clickable review row (a round trip, not two forward moves).
+
+### Fixed
+
+- Editing the answer that drives a branch — via Back, or via a review row — now
+  retroactively drops the collected answers for the steps that fell off the newly
+  resolved route, instead of leaving them stale in the answers object, the
+  review/summary and any PDF/print export.
+- Without `returnToStep`, going back to review after editing a review-reached answer
+  stacked a duplicate history entry, so the *next* Back silently no-opped (popped
+  "review", landed back on "review") — this is what caused the double-submit reported
+  on the review step.
+- A branch may now target another branch: the chain is followed through in one move to
+  the first step that can actually be rendered, instead of only resolving one hop.
+- Malformed branch config — a `goTo`/`fallback` naming a step id that doesn't exist, or
+  branches that loop back onto each other — now degrades gracefully (falls through to
+  the next candidate, ultimately the natural next step) instead of crashing or hanging.
+- `resolveFlowPath`'s resolved path (used for `total`/the progress bar) now agrees with
+  the actual runtime route in every branch case above, including chained branches.
+
 ## 0.13.1 — 2026-08-04
 
 ### Changed

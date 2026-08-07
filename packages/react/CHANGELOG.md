@@ -1,5 +1,39 @@
 # @flowkit-io/react
 
+## 0.18.0 — 2026-08-07
+
+### Added
+
+- Depends on `@flowkit-io/core` `^0.15.0` for its new `returnToStep` navigation helper
+  (used internally by `FlowRunner`'s review round trip — see core's changelog).
+
+### Fixed
+
+- Nested step titles inside a `group` step's items no longer inherit the same visual
+  weight as the step's own title — CSS-only fix, descendant-scoped rules demote titles
+  nested inside `.fk-group-item`.
+- `FlowRunner`: fixed the branch/fork issues from `@flowkit-io/core` 0.15.0 on the
+  rendering side — no more double-submit when returning to review after editing an
+  answer reached from a clickable review row, `onChange` now receives the
+  post-invalidation answers (not stale ones) after a branch-driving edit drops
+  now-unreachable steps, and the Back button is now offered based on actual traversal
+  history (`canGoBack`) rather than `index > 0`, which could be wrong after a branch
+  jump or a resumed session.
+
+### Changed
+
+- "steps" progress variant overhauled: built from the steps of the *resolved* path
+  (branches included). Inline per-step titles now render only for paths of up to 5
+  steps and only once the stepper's own box is at least 480px wide (a CSS container
+  query, not a viewport one — a flow embedded in a narrow frame on a wide screen keeps
+  the compact layout); the current step's title/subtitle always get their own
+  full-width row under the circles, which is now the only place a subtitle is shown.
+  Paths longer than 7 steps collapse: first, last and the current step ±1 stay as
+  numbered circles, every other contiguous run becomes a single `…` marker.
+- CSS class `.fk-progress-step-subtitle` renamed to `.fk-progress-current-subtitle`
+  (presentational only — not part of the zod config schema — but a breaking rename for
+  any consumer overriding it by name).
+
 ## 0.16.1 — 2026-08-04
 
 ### Fixed
