@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test"
 
 test("fullscreen preview: desktop 1024px centers step content in a readable column", async ({ page }) => {
-  await page.goto("/fullscreen.html?preset=odori&theme=notion-clean&mode=light")
+  await page.goto("/fullscreen.html?preset=odori&theme=warm-paper&mode=light")
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.getByRole("button", { name: "Desktop 1024px" }).click()
 
@@ -26,7 +26,7 @@ test("fullscreen preview: desktop 1024px centers step content in a readable colu
 test("fullscreen preview: desktop (100%) does not artificially constrain a fullContainer map step", async ({
   page,
 }) => {
-  await page.goto("/fullscreen.html?preset=features-demo&theme=notion-clean&mode=light")
+  await page.goto("/fullscreen.html?preset=features-demo&theme=warm-paper&mode=light")
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.getByRole("button", { name: "Prova" }).click()
   await page.getByRole("button", { name: "Continua senza account" }).click()

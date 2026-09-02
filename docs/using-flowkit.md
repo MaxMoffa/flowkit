@@ -2,7 +2,7 @@
 
 ```tsx
 import { FlowRunner } from "@flowkit-io/react"
-import { notionClean } from "@flowkit-io/themes"
+import { warmPaper } from "@flowkit-io/themes"
 import { createLocalAdapter } from "@flowkit-io/adapters"
 import { feedbackFlow } from "@flowkit-io/presets"
 import "@flowkit-io/react/style.css" // base component styles (fk-*), required
@@ -13,7 +13,7 @@ function App() {
   return (
     <FlowRunner
       flow={feedbackFlow}
-      theme={notionClean}
+      theme={warmPaper}
       mode="light"
       onSubmit={(answers) => adapter.submit(feedbackFlow.id, answers)}
       onChange={(answers) => console.log("draft", answers)}
@@ -54,7 +54,7 @@ if it meets a step nobody registered, so a forgotten import fails loudly.
 | Prop | Type | Required | Description |
 |---|---|---|---|
 | `flow` | `Flow` | yes | The flow config, typically the result of `parseFlow(...)` |
-| `theme` | `Theme` | no (default `notionClean`) | Theme to apply, see [Configuring a theme](./theming.md) |
+| `theme` | `Theme` | no (default `warmPaper`) | Theme to apply, see [Configuring a theme](./theming.md) |
 | `mode` | `"light" \| "dark"` | no (default `"light"`) | Theme variant to use |
 | `onSubmit` | `(answers) => void \| Promise<void>` | no | Called when the user confirms the `review` step (before moving to `confirmation`) |
 | `onChange` | `(answers) => void` | no | Called on every changed answer — useful for autosave/drafts. Receives the answers as they stand *after* the change, including the removal of any answer the change made unreachable (see `"branch-change"` below), so a persisted draft never resurrects a step the flow no longer goes through |

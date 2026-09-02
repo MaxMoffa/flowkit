@@ -13,17 +13,18 @@ npm install
 The package is available as `@flowkit-io/themes` in workspace imports:
 
 ```typescript
-import { notionClean } from "@flowkit-io/themes"
+import { warmPaper } from "@flowkit-io/themes"
 ```
 
 ## Main exports
 
 - **Pre-built themes (light + dark variants):**
-  - `notionClean` (default, minimal warm aesthetic)
+  - `warmPaper` (default, minimal warm aesthetic)
   - `mintFresh` (fresh, modern)
   - `midnightInk` (dark, professional)
   - `sunsetClay` (warm, earthy)
   - `roseQuartz` (soft, pink)
+  - `scarletInk` (warm, scarlet red)
   - `showcase` (demo/experimental features)
   - `themes` – Record of all themes by name
 - **Theme utilities:**
@@ -44,8 +45,8 @@ Each theme has light and dark variants. A `Theme` object:
 
 ```typescript
 interface Theme {
-  name: string                  // e.g., "notion-clean"
-  label: string                 // e.g., "Notion Clean"
+  name: string                  // e.g., "warm-paper"
+  label: string                 // e.g., "Warm Paper"
   light: ThemeTokens           // Light mode colors, spacing, fonts, etc.
   dark: ThemeTokens            // Dark mode colors, spacing, fonts, etc.
 }
@@ -109,10 +110,10 @@ interface Theme {
 ## Basic example
 
 ```typescript
-import { notionClean, themeToCssVars, createThemeTokens } from "@flowkit-io/themes"
+import { warmPaper, themeToCssVars, createThemeTokens } from "@flowkit-io/themes"
 
 // Use a pre-built theme
-const theme = notionClean
+const theme = warmPaper
 const cssVars = themeToCssVars(theme, "light")  // Returns { "--fk-accent": "#2783DE", ... }
 
 // Create a custom theme
@@ -128,11 +129,11 @@ const customTheme = {
   name: "my-theme",
   label: "My Custom Theme",
   light: {
-    ...notionClean.light,
+    ...warmPaper.light,
     accent: "#FF6B6B",  // Override accent color
   },
   dark: {
-    ...notionClean.dark,
+    ...warmPaper.dark,
     accent: "#FF8787",  // Override dark mode accent
   },
 }
@@ -144,13 +145,13 @@ Pass a theme to `FlowRunner` or `ThemeProvider` from @flowkit-io/react:
 
 ```typescript
 import { FlowRunner } from "@flowkit-io/react"
-import { notionClean } from "@flowkit-io/themes"
+import { warmPaper } from "@flowkit-io/themes"
 
 export function App() {
   return (
     <FlowRunner
       flow={myFlow}
-      theme={notionClean}
+      theme={warmPaper}
       themeMode="light"
       onSubmit={handleSubmit}
     />
@@ -165,7 +166,7 @@ import { ThemeProvider } from "@flowkit-io/react"
 
 export function App() {
   return (
-    <ThemeProvider theme={notionClean} mode="light">
+    <ThemeProvider theme={warmPaper} mode="light">
       <FlowRunner flow={myFlow} onSubmit={handleSubmit} />
     </ThemeProvider>
   )

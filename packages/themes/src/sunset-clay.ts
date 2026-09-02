@@ -1,4 +1,4 @@
-import type { ThemeTokens } from "./notion-clean"
+import type { ThemeTokens } from "./warm-paper"
 import { createThemeTokens } from "./create-theme"
 
 export const sunsetClayLight: ThemeTokens = createThemeTokens({

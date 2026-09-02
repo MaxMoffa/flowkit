@@ -111,7 +111,7 @@ flowRef.current?.reset()            // Reset flow to initial state
 import React, { useRef } from "react"
 import { FlowRunner, type FlowRunnerHandle } from "@flowkit-io/react"
 import { ThemeProvider } from "@flowkit-io/react"
-import { notionClean } from "@flowkit-io/themes"
+import { warmPaper } from "@flowkit-io/themes"
 import { parseFlow } from "@flowkit-io/core"
 import "@flowkit-io/react/style.css"
 
@@ -154,11 +154,11 @@ export function MyFlowApp() {
   }
 
   return (
-    <ThemeProvider theme={notionClean} mode="light">
+    <ThemeProvider theme={warmPaper} mode="light">
       <FlowRunner
         ref={flowRef}
         flow={myFlow}
-        theme={notionClean}
+        theme={warmPaper}
         mode="light"
         onSubmit={handleSubmit}
         onStepChange={handleStepChange}

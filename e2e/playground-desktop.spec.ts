@@ -52,7 +52,7 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
   test("progress bar spans the full width and back moves into the footer row next to primary", async ({
     page,
   }) => {
-    await page.goto("/fullscreen.html?preset=features-demo&theme=notion-clean&mode=light")
+    await page.goto("/fullscreen.html?preset=features-demo&theme=warm-paper&mode=light")
     await page.getByRole("button", { name: "Desktop (100%)" }).click()
     await page.getByRole("button", { name: "Prova" }).click()
 
@@ -86,7 +86,7 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
   })
 
   test("clicking the footer back button navigates to the previous step", async ({ page }) => {
-    await page.goto("/fullscreen.html?preset=features-demo&theme=notion-clean&mode=light")
+    await page.goto("/fullscreen.html?preset=features-demo&theme=warm-paper&mode=light")
     await page.getByRole("button", { name: "Desktop (100%)" }).click()
     await page.getByRole("button", { name: "Prova" }).click()
 

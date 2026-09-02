@@ -109,7 +109,7 @@ resultActions: {
 body `{ email, answers }`: your backend is the one that actually sends the email. As a
 starting point for the HTML to send, `@flowkit-io/react` exports
 `renderReceiptEmailHtml({ title, message?, answers })`, a template with inline styles
-matching the notion-clean look (images from `media`/`file` answers are inlined as
+matching the warm-paper look (images from `media`/`file` answers are inlined as
 `<img>` tags when present) — a reference function for the consumer's backend, not
 called from any client-side code in this repo.
 

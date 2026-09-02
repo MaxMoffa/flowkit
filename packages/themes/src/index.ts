@@ -1,18 +1,20 @@
-import type { ThemeTokens } from "./notion-clean"
-import { notionCleanDark, notionCleanLight } from "./notion-clean"
+import type { ThemeTokens } from "./warm-paper"
+import { warmPaperDark, warmPaperLight } from "./warm-paper"
 import { mintFreshDark, mintFreshLight } from "./mint-fresh"
 import { midnightInkDark, midnightInkLight } from "./midnight-ink"
 import { sunsetClayDark, sunsetClayLight } from "./sunset-clay"
 import { roseQuartzDark, roseQuartzLight } from "./rose-quartz"
+import { scarletInkDark, scarletInkLight } from "./scarlet-ink"
 import { showcaseDark, showcaseLight } from "./showcase"
 
 export type { ThemeTokens }
 export { createThemeTokens, type ThemeColors } from "./create-theme"
-export { notionCleanLight, notionCleanDark }
+export { warmPaperLight, warmPaperDark }
 export { mintFreshLight, mintFreshDark }
 export { midnightInkLight, midnightInkDark }
 export { sunsetClayLight, sunsetClayDark }
 export { roseQuartzLight, roseQuartzDark }
+export { scarletInkLight, scarletInkDark }
 export { showcaseLight, showcaseDark }
 
 export type ThemeMode = "light" | "dark"
@@ -24,11 +26,11 @@ export interface Theme {
   dark: ThemeTokens
 }
 
-export const notionClean: Theme = {
-  name: "notion-clean",
-  label: "Notion Clean",
-  light: notionCleanLight,
-  dark: notionCleanDark,
+export const warmPaper: Theme = {
+  name: "warm-paper",
+  label: "Warm Paper",
+  light: warmPaperLight,
+  dark: warmPaperDark,
 }
 
 export const mintFresh: Theme = {
@@ -59,6 +61,13 @@ export const roseQuartz: Theme = {
   dark: roseQuartzDark,
 }
 
+export const scarletInk: Theme = {
+  name: "scarlet-ink",
+  label: "Scarlet Ink",
+  light: scarletInkLight,
+  dark: scarletInkDark,
+}
+
 export const showcase: Theme = {
   name: "showcase",
   label: "Showcase (demo feature)",
@@ -67,11 +76,12 @@ export const showcase: Theme = {
 }
 
 export const themes: Record<string, Theme> = {
-  "notion-clean": notionClean,
+  "warm-paper": warmPaper,
   "mint-fresh": mintFresh,
   "midnight-ink": midnightInk,
   "sunset-clay": sunsetClay,
   "rose-quartz": roseQuartz,
+  "scarlet-ink": scarletInk,
   showcase: showcase,
 }
 

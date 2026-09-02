@@ -9,7 +9,7 @@ export function App() {
   return (
     <FlowRunner
       flow={feedbackFlow}
-      theme={themes["notion-clean"]}
+      theme={themes["warm-paper"]}
       onSubmit={async (answers) => {
         await adapter.submit(feedbackFlow.id, answers)
         console.log("Feedback inviato:", answers)

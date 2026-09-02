@@ -53,7 +53,7 @@ function formatAnswerValue(value: unknown, attachmentSuffix: string): string {
 
 /**
  * Generates the HTML (inline styles, email-client compatible) for the receipt email a
- * backend sends via resultActions.emailApi. Colors/radii taken 1:1 from the notion-clean
+ * backend sends via resultActions.emailApi. Colors/radii taken 1:1 from the warm-paper
  * (light) theme because email clients don't support CSS variables: they must be inlined.
  * A reference function for the consumer's backend — not called from any client-side code
  * in this repo, the actual email send always happens server-side.

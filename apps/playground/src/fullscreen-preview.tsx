@@ -21,7 +21,7 @@ function readParams() {
   return {
     presetKey: presetKey && presetKeys.includes(presetKey) ? presetKey : "odori",
     stepPreviewType,
-    themeKey: themeKey && themeKey in themes ? themeKey : "notion-clean",
+    themeKey: themeKey && themeKey in themes ? themeKey : "warm-paper",
     mode: (modeParam === "dark" ? "dark" : "light") as ThemeMode,
     // A step preview is meant to be embedded (docs page iframe): chromeless by default.
     // A regular preset fullscreen preview keeps the toolbar by default. Either can be

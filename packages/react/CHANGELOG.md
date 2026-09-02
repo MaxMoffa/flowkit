@@ -14,6 +14,8 @@
   tokens (accent, text, surfaces, radius, font).
 - `review` step: renders a highlighted **total** callout when the flow has a collected
   payment; its submit button becomes "Completa pagamento e invia".
+- Default theme renamed `notion-clean` → `warm-paper` (see `@flowkit-io/themes`); the
+  `ThemeProvider` / `FlowRunner` default now resolves to `warmPaper`. Same palette.
 
 ### Added
 

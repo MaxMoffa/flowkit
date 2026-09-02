@@ -1,21 +1,21 @@
 import { describe, expect, it } from "vitest"
 import { render } from "@testing-library/react"
 import { parseFlow } from "@flowkit-io/core"
-import { notionClean } from "@flowkit-io/themes"
+import { warmPaper } from "@flowkit-io/themes"
 import { FlowRunner } from "../flow-runner"
 import "../steps/builtins"
 import "./builtins"
 
 function makeTheme(progressVariant: string) {
   return {
-    ...notionClean,
+    ...warmPaper,
     light: {
-      ...notionClean.light,
-      layout: { ...notionClean.light.layout, progressVariant },
+      ...warmPaper.light,
+      layout: { ...warmPaper.light.layout, progressVariant },
     },
     dark: {
-      ...notionClean.dark,
-      layout: { ...notionClean.dark.layout, progressVariant },
+      ...warmPaper.dark,
+      layout: { ...warmPaper.dark.layout, progressVariant },
     },
   }
 }

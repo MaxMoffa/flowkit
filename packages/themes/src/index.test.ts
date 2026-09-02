@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest"
-import { notionClean, themeToCssVars, injectThemeFontLinks, themes } from "./index"
+import { warmPaper, themeToCssVars, injectThemeFontLinks, themes } from "./index"
 import type { Theme } from "./index"
 
 describe("themes registry", () => {
   it("includes all built-in themes with distinct accents", () => {
     expect(Object.keys(themes)).toEqual([
-      "notion-clean",
+      "warm-paper",
       "mint-fresh",
       "midnight-ink",
       "sunset-clay",
       "rose-quartz",
+      "scarlet-ink",
       "showcase",
     ])
     const accents = new Set(Object.values(themes).map((t) => t.light.accent))
@@ -19,13 +20,13 @@ describe("themes registry", () => {
 
 describe("themeToCssVars", () => {
   it("maps existing tokens without regressions", () => {
-    const vars = themeToCssVars(notionClean, "light")
+    const vars = themeToCssVars(warmPaper, "light")
     expect(vars["--fk-accent"]).toBe("#2783DE")
     expect(vars["--fk-radius-md"]).toBe("14px")
   })
 
   it("does not add font/image vars when tokens are absent", () => {
-    const vars = themeToCssVars(notionClean, "light")
+    const vars = themeToCssVars(warmPaper, "light")
     expect(vars["--fk-font-heading"]).toBeUndefined()
     expect(vars["--fk-image-background"]).toBeUndefined()
   })
@@ -35,11 +36,11 @@ describe("themeToCssVars", () => {
       name: "custom",
       label: "Custom",
       light: {
-        ...notionClean.light,
+        ...warmPaper.light,
         fonts: { heading: "'Fraunces', serif", body: "'Inter', sans-serif" },
         images: { background: "/bg.jpg", logo: "/logo.svg" },
       },
-      dark: notionClean.dark,
+      dark: warmPaper.dark,
     }
     const vars = themeToCssVars(theme, "light")
     expect(vars["--fk-font-heading"]).toBe("'Fraunces', serif")
@@ -51,7 +52,7 @@ describe("themeToCssVars", () => {
 
 describe("injectThemeFontLinks", () => {
   it("returns an empty array when no font URLs are configured", () => {
-    expect(injectThemeFontLinks(notionClean, "light")).toEqual([])
+    expect(injectThemeFontLinks(warmPaper, "light")).toEqual([])
   })
 
   it("returns configured font URLs", () => {
@@ -59,13 +60,13 @@ describe("injectThemeFontLinks", () => {
       name: "custom",
       label: "Custom",
       light: {
-        ...notionClean.light,
+        ...warmPaper.light,
         fonts: {
           headingFontUrl: "https://fonts.example/heading.css",
           bodyFontUrl: "https://fonts.example/body.css",
         },
       },
-      dark: notionClean.dark,
+      dark: warmPaper.dark,
     }
     expect(injectThemeFontLinks(theme, "light")).toEqual([
       "https://fonts.example/heading.css",

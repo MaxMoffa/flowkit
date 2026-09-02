@@ -5,7 +5,7 @@ import { createLocalAdapter } from "@flowkit-io/adapters"
 import type { Flow } from "@flowkit-io/core"
 
 const adapter = createLocalAdapter({ namespace: "my-app" })
-const theme = themes["notion-clean"]
+const theme = themes["warm-paper"]
 
 // Replace with your own flow: see packages/presets or the "Defining a flow"
 // section of the flowkit README for the full structure (available steps,

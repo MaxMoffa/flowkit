@@ -29,7 +29,7 @@ features:
     details: Register your own step type with registerStepType/registerStepComponent (core + react). Custom steps behave exactly like built-ins — same validation, review row, theming.
   - icon: 🎨
     title: Themeable, not hardcoded
-    details: Every color/radius/spacing/font/animation is a CSS variable. Ships with 5 themes (notion-clean, mint-fresh, midnight-ink, rose-quartz, sunset-clay) plus per-step theme overrides.
+    details: Every color/radius/spacing/font/animation is a CSS variable. Ships with 6 themes (warm-paper, mint-fresh, midnight-ink, rose-quartz, sunset-clay, scarlet-ink) plus per-step theme overrides.
   - icon: 📦
     title: Small, tree-shakeable footprint
     details: Map/payment/verification renderers are opt-in entry points — installing @flowkit-io/react never forces maplibre-gl, leaflet or Stripe.js onto a project that doesn't use them.
