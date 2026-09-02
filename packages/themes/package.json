@@ -1,8 +1,8 @@
 {
   "name": "@flowkit-io/themes",
-  "version": "0.4.1",
+  "version": "1.0.0",
   "description": "Design tokens and CSS variables themes for Flowkit (default: notion-clean).",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.md",
   "author": "Massimo Moffa",
   "homepage": "https://github.com/MaxMoffa/flowkit#readme",
   "repository": {
@@ -10,7 +10,11 @@
     "url": "git+https://github.com/MaxMoffa/flowkit.git",
     "directory": "packages/themes"
   },
-  "keywords": ["flowkit", "theme", "design-tokens"],
+  "keywords": [
+    "flowkit",
+    "theme",
+    "design-tokens"
+  ],
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -21,7 +25,10 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "LICENSE.md"
+  ],
   "publishConfig": {
     "access": "public"
   },

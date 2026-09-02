@@ -1,5 +1,29 @@
 # @flowkit-io/core
 
+## 1.0.0 — 2026-09-01
+
+### Added
+
+- `radio` / `multi-select` steps: opt-in `otherOption` (`{ label?, placeholder? }`). When
+  present, the step shows an "Altro" choice with a free-text input; what the user types
+  becomes the answer value (a string not matching any option). New i18n keys `otherOption`
+  ("Altro" / "Other") and `otherOptionPlaceholder`.
+- `confirmation` step: `showRestartButton` (boolean, default `true`) hides the secondary
+  restart ("nuova segnalazione") button. Its label was already configurable via
+  `secondaryCta`. With both `showRestartButton` and `showHomeButton` `false`, the
+  confirmation step renders no footer.
+
+### Changed
+
+- Review recap: a `file` step answer now lists the uploaded file **names** (`📎 a.pdf,
+  b.pdf`) instead of a bare count — a `media` step stays a count.
+- **License:** relicensed from MIT to the **PolyForm Shield License 1.0.0**, effective
+  this version — permanent, source-available, no competing use with FlowKit or Flowlab,
+  no conversion to an open-source license. See the root `CHANGELOG.md`, `LICENSE.md` and
+  `LICENSING.md`.
+- `@flowkit-io/core` `0.x` releases remain under the MIT License and are now
+  legacy / unmaintained.
+
 ## 0.15.0 — 2026-08-07
 
 ### Added

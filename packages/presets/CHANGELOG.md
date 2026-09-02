@@ -1,5 +1,14 @@
 # @flowkit-io/presets
 
+## 1.0.0 — 2026-09-01
+
+### Changed
+
+- **License:** relicensed from MIT to the **PolyForm Shield License 1.0.0**, effective
+  this version — permanent, no competing use, no conversion. No config changes.
+- Internal `@flowkit-io/core` dependency range bumped to `^1.0.0`.
+- `0.x` releases remain MIT and are now legacy / unmaintained.
+
 ## 0.3.3 — 2026-08-07
 
 ### Changed

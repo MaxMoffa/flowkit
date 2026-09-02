@@ -1,5 +1,41 @@
 # @flowkit-io/react
 
+## 1.0.0 — 2026-09-01
+
+### Added
+
+- `radio` / `multi-select` step views render the opt-in `otherOption` "Altro" row: a
+  free-text input (inside the choice card) whose value becomes (or is added to) the
+  answer. New CSS `.fk-list-item-other` / `.fk-list-other-head` / `.fk-list-other-input`.
+- `<FlowRunner>` `haptics` prop (default `true`): fires a short device vibration on the
+  navigation buttons — continue/back/submit, review-row jumps, confirmation restart — and
+  a distinct longer buzz on a blocked-while-invalid attempt. Needs the Vibration API
+  (Android); a silent no-op on iOS Safari / desktop. Set `false` to opt out.
+- `confirmation` step footer: honours the new `showRestartButton` flag (hide the restart
+  button), and drops the footer bar entirely when both `showRestartButton` and
+  `showHomeButton` are `false`. Restart button label stays configurable via `secondaryCta`.
+- `<FlowOverlay>` (new opt-in subpath `@flowkit-io/react/overlay`): presents a flow in a
+  portal as a bottom **drawer** (mobile-web sheet, swipe-down to dismiss), a centered
+  **dialog**, or a **fullscreen** takeover, for embedding a flow without a dedicated page.
+  Composes `<FlowRunner>` — all its props (incl. `haptics`) and the `ref` handle are
+  forwarded. Controlled via `open` / `onOpenChange`;
+  `presentation="drawer" | "dialog" | "fullscreen" | "auto"` (auto switches at a 640px
+  viewport width). `dismissible`, `showCloseButton` (default on), `showTitle` (flow name
+  top-right, like the playground status bar), `fixedHeight` (default on — a phone-portrait
+  height via `--fk-overlay-height`), `closeOnSubmit`, `container`, `ariaLabel` props.
+  Hand-rolled focus trap, body-scroll lock and Escape handling — no new runtime
+  dependency. New CSS: `.fk-overlay*` classes and the `--fk-overlay-height` /
+  `--fk-overlay-dialog-width` / `--fk-overlay-z` variables. Not re-exported from the main
+  or `/lean` entry — use it alongside them.
+
+### Changed
+
+- **License:** relicensed from MIT to the **PolyForm Shield License 1.0.0**, effective
+  this version — permanent, source-available, no competing use, no conversion.
+- Internal `@flowkit-io/core` and `@flowkit-io/themes` dependency ranges bumped to
+  `^1.0.0`.
+- `0.x` releases remain MIT and are now legacy / unmaintained.
+
 ## 0.18.0 — 2026-08-07
 
 ### Added

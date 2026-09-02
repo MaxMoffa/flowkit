@@ -1,5 +1,15 @@
 # @flowkit-io/create-flowkit
 
+## 1.0.0 — 2026-09-01
+
+### Changed
+
+- **License:** relicensed from MIT to the **PolyForm Shield License 1.0.0**, effective
+  this version — permanent, no competing use, no conversion.
+- Scaffold template (`templates/feedback/react`) now pins `@flowkit-io/*` at
+  `^1.0.0`.
+- `0.x` releases remain MIT and are now legacy / unmaintained.
+
 ## 0.2.3 — 2026-08-04
 
 ### Fixed

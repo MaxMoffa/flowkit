@@ -1,8 +1,8 @@
 {
   "name": "@flowkit-io/core",
-  "version": "0.16.0",
+  "version": "1.0.0",
   "description": "Headless config schema, flow state machine, validation and i18n for Flowkit.",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.md",
   "author": "Massimo Moffa",
   "homepage": "https://github.com/MaxMoffa/flowkit#readme",
   "repository": {
@@ -27,7 +27,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE.md"
   ],
   "publishConfig": {
     "access": "public"
