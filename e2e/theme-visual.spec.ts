@@ -1,7 +1,14 @@
 import { test, expect } from "@playwright/test"
 import { openPreset } from "./helpers/open-preset"
 
-const themes = ["notion-clean", "mint-fresh", "midnight-ink", "sunset-clay", "rose-quartz"] as const
+const themes = [
+  "warm-paper",
+  "mint-fresh",
+  "midnight-ink",
+  "sunset-clay",
+  "rose-quartz",
+  "scarlet-ink",
+] as const
 
 for (const theme of themes) {
   test(`intro screen renders consistently for theme "${theme}"`, async ({ page }) => {

@@ -26,7 +26,7 @@ const debugInitialAnswers = (() => {
 
 export function App() {
   const [presetKey, setPresetKey] = useState<string>("odori")
-  const [themeKey, setThemeKey] = useState<keyof typeof themes>("notion-clean")
+  const [themeKey, setThemeKey] = useState<keyof typeof themes>("warm-paper")
   const [mode, setMode] = useState<ThemeMode>("light")
   const [runKey, setRunKey] = useState(0)
   const [lastSubmission, setLastSubmission] = useState<Answers | null>(null)

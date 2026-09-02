@@ -1,7 +1,7 @@
 {
   "name": "@flowkit-io/themes",
   "version": "1.0.0",
-  "description": "Design tokens and CSS variables themes for Flowkit (default: notion-clean).",
+  "description": "Design tokens and CSS variables themes for Flowkit (default: warm-paper).",
   "license": "SEE LICENSE IN LICENSE.md",
   "author": "Massimo Moffa",
   "homepage": "https://github.com/MaxMoffa/flowkit#readme",

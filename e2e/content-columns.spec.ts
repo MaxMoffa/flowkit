@@ -10,7 +10,7 @@ test.describe("location step: columns only with enough content", () => {
     // assertion for that case) — columns are container-width-based (v2.25), so they can only
     // ever activate on a page whose actual container gets wide. Use the fullscreen preview
     // (no fixed frame) to exercise the "container genuinely wide enough" path end to end.
-    await page.goto("/fullscreen.html?preset=features-demo&theme=notion-clean&mode=light")
+    await page.goto("/fullscreen.html?preset=features-demo&theme=warm-paper&mode=light")
     await page.getByRole("button", { name: "Prova" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
 

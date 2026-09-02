@@ -68,7 +68,7 @@ export interface ThemeTokens {
   animation?: ThemeAnimationTokens
 }
 
-export const notionCleanLight: ThemeTokens = {
+export const warmPaperLight: ThemeTokens = {
   text: "#2C2C2B",
   text2: "#7D7A75",
   canvas: "#FFFFFF",
@@ -98,7 +98,7 @@ export const notionCleanLight: ThemeTokens = {
   },
 }
 
-export const notionCleanDark: ThemeTokens = {
+export const warmPaperDark: ThemeTokens = {
   text: "#EDECEA",
   text2: "#9B9892",
   canvas: "#1C1C1B",
@@ -117,5 +117,5 @@ export const notionCleanDark: ThemeTokens = {
   radiusMd: "14px",
   radiusLg: "20px",
   radiusXl: "28px",
-  spacing: notionCleanLight.spacing,
+  spacing: warmPaperLight.spacing,
 }

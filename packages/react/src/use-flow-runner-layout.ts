@@ -1,7 +1,7 @@
 import type { CSSProperties, ComponentType } from "react"
 import type { Step } from "@flowkit-io/core"
 import type { Theme, ThemeMode, ThemeTokens } from "@flowkit-io/themes"
-import { notionClean, partialTokensToCssVars } from "@flowkit-io/themes"
+import { warmPaper, partialTokensToCssVars } from "@flowkit-io/themes"
 import { getProgressComponent, type ProgressComponentProps } from "./progress-registry"
 import { BarProgress } from "./progress/bar-progress"
 
@@ -38,7 +38,7 @@ export function useFlowRunnerLayout(
   mode: ThemeMode | undefined,
   direction: "next" | "prev",
 ): FlowRunnerLayout {
-  const tokens = mode === "dark" ? (theme ?? notionClean).dark : (theme ?? notionClean).light
+  const tokens = mode === "dark" ? (theme ?? warmPaper).dark : (theme ?? warmPaper).light
 
   const stepBgUrl =
     tokens.images?.stepBackground?.[step.id] ?? tokens.images?.stepBackground?.[step.type]

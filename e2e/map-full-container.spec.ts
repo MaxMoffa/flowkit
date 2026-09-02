@@ -63,7 +63,7 @@ test("map step: fullContainer (leaflet) renders map edge-to-edge with floating o
 test("map step: fullContainer GPS button is an icon-only control that shares a row with the detected-location card", async ({
   page,
 }) => {
-  await page.goto("/fullscreen.html?preset=features-demo&theme=notion-clean&mode=light")
+  await page.goto("/fullscreen.html?preset=features-demo&theme=warm-paper&mode=light")
   await page.getByRole("button", { name: "Desktop (100%)" }).click()
   await page.getByRole("button", { name: "Prova" }).click()
   for (let i = 0; i < 6; i++) {
@@ -87,7 +87,7 @@ test("map step: fullContainer GPS button is an icon-only control that shares a r
 
 test("map step: fullContainer stays usable on a short (landscape-phone) viewport", async ({ page }) => {
   await page.setViewportSize({ width: 667, height: 360 })
-  await page.goto("/fullscreen.html?preset=features-demo&theme=notion-clean&mode=light")
+  await page.goto("/fullscreen.html?preset=features-demo&theme=warm-paper&mode=light")
   await page.getByRole("button", { name: "Desktop (100%)" }).click()
   await page.getByRole("button", { name: "Prova" }).click()
   for (let i = 0; i < 6; i++) {

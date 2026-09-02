@@ -211,13 +211,14 @@ export const featuresDemoFlow: Flow = parseFlow({
       id: "pick-payment",
       type: "payment-stripe",
       title: "Completa il pagamento",
-      subtitle: "Demo pubblica: nessun backend reale collegato, la creazione del PaymentIntent fallisce volutamente.",
+      subtitle:
+        "Demo pubblica: seleziona un metodo di pagamento. L'addebito vero avverrebbe alla conferma finale (qui non c'è backend, quindi non succede nulla).",
       required: false,
-      publishableKey: "pk_test_demo_not_a_real_key",
+      // Stripe's own well-known public test key — safe to embed, test-mode only.
+      publishableKey: "pk_test_TYooMQauvdEDq54NiTphI7jx",
       amount: 1000,
       currency: "eur",
       description: "Ordine demo",
-      createPaymentIntent: () => Promise.reject(new Error("Nessun backend di pagamento configurato in questa demo.")),
     },
     { id: "end", type: "confirmation", title: "Grazie!" },
   ],

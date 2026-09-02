@@ -118,7 +118,7 @@ Each preset is a `Flow` object (from @flowkit-io/core) ready to use with `FlowRu
 ```typescript
 import { feedbackFlow } from "@flowkit-io/presets"
 import { FlowRunner } from "@flowkit-io/react"
-import { notionClean } from "@flowkit-io/themes"
+import { warmPaper } from "@flowkit-io/themes"
 
 export function FeedbackApp() {
   const handleSubmit = async (answers: Record<string, any>) => {
@@ -133,7 +133,7 @@ export function FeedbackApp() {
   return (
     <FlowRunner
       flow={feedbackFlow}  // Note: presets are in Italian (locale: "it")
-      theme={notionClean}
+      theme={warmPaper}
       onSubmit={handleSubmit}
     />
   )

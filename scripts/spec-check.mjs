@@ -4,7 +4,7 @@ const required = [
   "packages/core", "packages/react", "packages/themes",
   "packages/adapters", "packages/presets", "apps/playground",
   "packages/presets/src/odori.ts", "packages/presets/src/feedback.ts",
-  "packages/themes/src/notion-clean.ts",
+  "packages/themes/src/warm-paper.ts",
 ]
 
 const missing = required.filter((p) => !existsSync(p))

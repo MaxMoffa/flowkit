@@ -29,7 +29,7 @@ npm monorepo (workspaces) made up of:
 ```
 packages/core            # Flow/Step schema (zod), open step registry, state machine, oauth, geocoding, i18n
 packages/react            # <FlowRunner>, <ThemeProvider>, components for every step type (incl. oauth, real map)
-packages/themes            # notion-clean, mint-fresh, midnight-ink, sunset-clay, rose-quartz, showcase themes (tokens + CSS vars, light/dark, custom fonts/images)
+packages/themes            # warm-paper, mint-fresh, midnight-ink, sunset-clay, rose-quartz, scarlet-ink, showcase themes (tokens + CSS vars, light/dark, custom fonts/images)
 packages/adapters           # answer persistence: local, rest, notion, receipt-email, supabase (stub)
 packages/presets              # ready-to-use flows: "odori", "feedback", "restaurant", "anagrafica"
 packages/create-flowkit         # CLI: `create-flowkit` (scaffold) and `flowkit-init` (installer)
@@ -49,7 +49,7 @@ npm run dev --workspace=@flowkit-io/playground
 
 ```tsx
 import { FlowRunner } from "@flowkit-io/react"
-import { notionClean } from "@flowkit-io/themes"
+import { warmPaper } from "@flowkit-io/themes"
 import { createLocalAdapter } from "@flowkit-io/adapters"
 import { feedbackFlow } from "@flowkit-io/presets"
 import "@flowkit-io/react/style.css"
@@ -60,7 +60,7 @@ function App() {
   return (
     <FlowRunner
       flow={feedbackFlow}
-      theme={notionClean}
+      theme={warmPaper}
       onSubmit={(answers) => adapter.submit(feedbackFlow.id, answers)}
     />
   )

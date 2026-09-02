@@ -40,7 +40,7 @@ test.describe("long-content step", () => {
   })
 
   test("full-width independent scroll region on desktop too", async ({ page }) => {
-    await page.goto("/fullscreen.html?preset=info-long-content-demo&theme=notion-clean&mode=light")
+    await page.goto("/fullscreen.html?preset=info-long-content-demo&theme=warm-paper&mode=light")
     await page.getByRole("button", { name: "Desktop (100%)" }).click()
     await page.getByRole("button", { name: "Prova" }).click()
 

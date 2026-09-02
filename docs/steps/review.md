@@ -23,7 +23,13 @@ unless `Flow.disableBack` is set, which also disables this shortcut.
 |---|---|---|---|
 | `mode` | `"final" \| "checkpoint"` | `"final"` | See above |
 | `meta` | `string` | — | Info banner above the summary |
-| `submitLabel` | `string` | `"Invia segnalazione ✓"` | Only used by a `"final"` review — the submit button's text |
+| `submitLabel` | `string` | `"Invia segnalazione ✓"` | Only used by a `"final"` review — the submit button's text. Overrides the payment label below |
+| `paymentSummary` | `"auto" \| "hidden"` | `"auto"` | When the flow has a [`payment-stripe`](./payment-stripe.md) step: `"auto"` shows the amount as a total callout at the top; `"hidden"` omits it |
+
+When the flow contains a `payment-stripe` step, a `"final"` review's submit button
+becomes `submitWithPayment` ("Completa pagamento e invia ✓") — because pressing it
+is what actually charges the card. A rejected charge (throw from `onSubmit`) keeps
+the user here and shows the error under the button.
 
 ## Example
 

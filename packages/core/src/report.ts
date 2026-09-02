@@ -23,6 +23,43 @@ export function optionLabel(step: Step, rawValue: string): string {
   return rawValue
 }
 
+/** Stripe payment method type → user-facing label for the report row. Types not
+ *  listed fall through to a Title-Cased version of the raw type ("us_bank_account"
+ *  → "Us Bank Account" is unlikely; the common ones are all covered). */
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  card: "Carta",
+  paypal: "PayPal",
+  klarna: "Klarna",
+  revolut_pay: "Revolut Pay",
+  ideal: "iDEAL",
+  bancontact: "Bancontact",
+  sepa_debit: "Addebito SEPA",
+  link: "Link",
+  eps: "EPS",
+  giropay: "giropay",
+  p24: "Przelewy24",
+  sofort: "Sofort",
+  affirm: "Affirm",
+  afterpay_clearpay: "Afterpay",
+  amazon_pay: "Amazon Pay",
+  cashapp: "Cash App Pay",
+}
+
+function formatPaymentMethod(value: unknown): string {
+  if (value === null || typeof value !== "object") return "—"
+  const v = value as { summary?: { type?: string; brand?: string; last4?: string } }
+  const summary = v.summary
+  if (!summary || typeof summary.type !== "string") return "—"
+  if (summary.type === "card" && summary.last4) {
+    const brand = summary.brand ? summary.brand.replace(/\b\w/g, (c) => c.toUpperCase()) : "Carta"
+    return `💳 ${brand} •••• ${summary.last4}`
+  }
+  const label =
+    PAYMENT_METHOD_LABELS[summary.type] ??
+    summary.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  return `💳 ${label}`
+}
+
 export function formatAnswer(step: Step, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—"
   if (step.type === "media" || step.type === "file") {
@@ -37,6 +74,7 @@ export function formatAnswer(step: Step, value: unknown): string {
   }
   if (step.type === "checkbox") return value === true ? "✓ Accettato" : "—"
   if (step.type === "signature") return "✍️ Firma"
+  if (step.type === "payment-stripe") return formatPaymentMethod(value)
   if (Array.isArray(value)) return value.map((v) => optionLabel(step, String(v))).join(", ")
   if ((step.type as string) === "group") {
     const children = (step as unknown as { steps: Step[] }).steps
@@ -68,6 +106,7 @@ const DEFAULT_TYPE_EMOJI: Record<string, string> = {
   media: "📷",
   file: "📎",
   "date-time": "🗓️",
+  "payment-stripe": "💳",
 }
 
 export function defaultIcon(step: Step): StepImage {

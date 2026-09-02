@@ -4,14 +4,14 @@ A theme (`packages/themes/src/index.ts`) has this shape:
 
 ```ts
 export interface Theme {
-  name: string   // unique slug, e.g. "notion-clean"
-  label: string  // human-readable label for a selector UI, e.g. "Notion Clean"
+  name: string   // unique slug, e.g. "warm-paper"
+  label: string  // human-readable label for a selector UI, e.g. "Warm Paper"
   light: ThemeTokens
   dark: ThemeTokens
 }
 ```
 
-`ThemeTokens` (`packages/themes/src/notion-clean.ts`) is the single place where
+`ThemeTokens` (`packages/themes/src/warm-paper.ts`) is the single place where
 colors, base measurements and (optionally) fonts/images live:
 
 ```ts
@@ -74,7 +74,7 @@ const myTheme: Theme = {
   name: "brand",
   label: "Brand",
   light: {
-    ...notionClean.light,
+    ...warmPaper.light,
     fonts: {
       heading: "'Fraunces', serif",
       body: "'Inter', sans-serif",
@@ -83,7 +83,7 @@ const myTheme: Theme = {
     },
     images: { background: "/brand-bg.jpg", logo: "/brand-logo.svg" },
   },
-  dark: notionClean.dark,
+  dark: warmPaper.dark,
 }
 ```
 
@@ -99,7 +99,7 @@ const myTheme: Theme = {
   name: "brand",
   label: "Brand",
   light: {
-    ...notionClean.light,
+    ...warmPaper.light,
     images: {
       background: "/brand-bg.jpg",        // global background for all pages
       stepBackground: { intro: "/brand-hero.jpg" }, // override for a specific step id or type
@@ -115,7 +115,7 @@ const myTheme: Theme = {
       duration: 250,  // ms
     },
   },
-  dark: notionClean.dark,
+  dark: warmPaper.dark,
 }
 ```
 
@@ -231,7 +231,7 @@ set CSS variables by hand on a container around `FlowRunner`:
 
 ```tsx
 <div className="my-wrapper">
-  <FlowRunner flow={myFlow} theme={notionClean} />
+  <FlowRunner flow={myFlow} theme={warmPaper} />
 </div>
 ```
 
@@ -247,17 +247,18 @@ injectThemeFontLinks(theme, mode) // -> string[] of font URLs to inject (see abo
 
 | `name` | `label` | Palette |
 |---|---|---|
-| `notion-clean` | Notion Clean | Warm neutral, blue accent `#2783DE` (default) |
+| `warm-paper` | Warm Paper | Warm neutral, blue accent `#2783DE` (default) |
 | `mint-fresh` | Mint Fresh | Green neutral, emerald green accent `#16A87E` |
 | `midnight-ink` | Midnight Ink | Purple-ish neutral, indigo accent `#6753E0` |
 | `sunset-clay` | Sunset Clay | Warm neutral, terracotta accent |
 | `rose-quartz` | Rose Quartz | Soft neutral, rose accent |
+| `scarlet-ink` | Scarlet Ink | Warm neutral, scarlet-red accent `#E04442` |
 | `showcase` | Showcase (demo) | Demonstrates background image, dots progress in the footer, footer-on-top and slide animation together — not meant for production use |
 
 ```ts
-import { themes, notionClean, mintFresh, midnightInk } from "@flowkit-io/themes"
+import { themes, warmPaper, mintFresh, midnightInk } from "@flowkit-io/themes"
 
-Object.entries(themes) // [["notion-clean", notionClean], ["mint-fresh", mintFresh], ...]
+Object.entries(themes) // [["warm-paper", warmPaper], ["mint-fresh", mintFresh], ...]
 ```
 
 Back to the [docs index](./README.md).

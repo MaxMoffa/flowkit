@@ -98,7 +98,7 @@ see [`branch`](./branch.md) for the condition syntax.
 | [`confirmation`](./confirmation.md) | — | Closing screen, last step of every flow |
 | [`group`](./group.md) | `{[childId]: value}` | Multiple steps on one page |
 | [`signature`](./signature.md) | `data:image/png;base64,...` | Canvas signature pad |
-| [`payment-stripe`](./payment-stripe.md) | `{status,paymentIntentId?}` | Stripe Payment Element, opt-in |
+| [`payment-stripe`](./payment-stripe.md) | `{status,confirmationTokenId,summary}` | Stripe Payment Element, deferred charge, opt-in |
 | [`verification`](./verification.md) | `{verified,token?,provider}` | Turnstile/reCAPTCHA, opt-in |
 | [`media-display`](./media-display.md) | — | Read-only image/video, no answer |
 | [`info`](./info.md) | — | Content-only, same look as `intro`; repeatable, no positional constraint |

@@ -5,7 +5,7 @@ test.use({ viewport: { width: 1280, height: 900 } })
 test("map step (maplibre): desktop two-column layout has equal-height columns", async ({ page }) => {
   // Columns are container-width-based (v2.25): use the fullscreen preview (no fixed
   // ~390px frame like the main playground page) so the container actually gets wide.
-  await page.goto("/fullscreen.html?preset=features-demo&theme=notion-clean&mode=light")
+  await page.goto("/fullscreen.html?preset=features-demo&theme=warm-paper&mode=light")
   await page.getByRole("button", { name: "Prova" }).click()
   await page.getByRole("button", { name: "Continua", exact: true }).click() // skip oauth
 
@@ -26,7 +26,7 @@ test("map step (maplibre): desktop two-column layout has equal-height columns", 
 test("location-leaflet step: desktop two-column layout has equal-height columns", async ({ page }) => {
   // Columns are container-width-based (v2.25): use the fullscreen preview (no fixed
   // ~390px frame like the main playground page) so the container actually gets wide.
-  await page.goto("/fullscreen.html?preset=features-demo&theme=notion-clean&mode=light")
+  await page.goto("/fullscreen.html?preset=features-demo&theme=warm-paper&mode=light")
   await page.getByRole("button", { name: "Prova" }).click()
   for (let i = 0; i < 7; i++) {
     await page.getByRole("button", { name: "Continua", exact: true }).click()

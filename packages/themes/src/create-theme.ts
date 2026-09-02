@@ -1,5 +1,5 @@
-import type { ThemeTokens } from "./notion-clean"
-import { notionCleanLight } from "./notion-clean"
+import type { ThemeTokens } from "./warm-paper"
+import { warmPaperLight } from "./warm-paper"
 
 /** The tokens that actually distinguish one theme from another. */
 export type ThemeColors = Pick<
@@ -21,7 +21,7 @@ export type ThemeColors = Pick<
 >
 
 /** Radii are part of the design language, not of the palette: every shipped theme uses
- *  these, and notion-clean spells them out because it is the documented reference. */
+ *  these, and warm-paper spells them out because it is the documented reference. */
 const SHARED_RADII = {
   radiusSm: "10px",
   radiusMd: "14px",
@@ -41,7 +41,7 @@ export function createThemeTokens(
   return {
     ...colors,
     ...SHARED_RADII,
-    spacing: notionCleanLight.spacing,
+    spacing: warmPaperLight.spacing,
     ...extra,
   }
 }
