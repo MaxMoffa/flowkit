@@ -1,5 +1,27 @@
 # @flowkit-io/react
 
+## Unreleased
+
+### Changed
+
+- **`payment-stripe` step: deferred model (breaking).** No more pay button on the step —
+  it only collects a payment method (Stripe Payment Element in deferred mode, no network
+  call on mount). The charge is your responsibility, from inside `<FlowRunner>`'s
+  `onSubmit`: call `getPendingPayment(flow, answers)`, confirm on your backend, and throw
+  if it fails — the FlowRunner keeps the user on the review step and shows the error under
+  the submit button. See `docs/steps/payment-stripe.md`.
+- The Stripe Payment Element's `appearance` is now derived from the active flow theme's
+  tokens (accent, text, surfaces, radius, font).
+- `review` step: renders a highlighted **total** callout when the flow has a collected
+  payment; its submit button becomes "Completa pagamento e invia".
+
+### Added
+
+- `Spinner` — an indeterminate circular loader whose arc uses the theme accent
+  (`--fk-accent`), honouring `prefers-reduced-motion`. Replaces the plain-text loading
+  line in the `payment-stripe` step.
+- `.fk-footer-error` — a rejected `onSubmit` message shown above the footer buttons.
+
 ## 1.0.0 — 2026-09-01
 
 ### Added

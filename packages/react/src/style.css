@@ -689,6 +689,13 @@
   min-width: 0;
 }
 
+.fk-footer-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fk-danger);
+  text-align: center;
+}
+
 /* Scoped to max-width (not a bare, unconditional rule): this file declares the
    >=1024px override for .fk-footer-row earlier (near the top), so an unconditional
    flex-direction here would win the cascade by source order and silently break the
@@ -1263,6 +1270,66 @@
   font-size: 13px;
   color: var(--fk-danger);
   margin: -4px 0 var(--fk-space-sm);
+}
+
+/* Indeterminate circular loader — accent arc on a track ring, theme-driven. */
+.fk-spinner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fk-space-sm);
+  padding: var(--fk-space-xl) 0;
+  color: var(--fk-text2);
+}
+
+.fk-spinner-wrap-compact {
+  flex-direction: row;
+  justify-content: center;
+  padding: var(--fk-space-md) 0;
+}
+
+.fk-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--fk-border);
+  border-top-color: var(--fk-accent);
+  animation: fk-spinner-rotate 0.8s linear infinite;
+}
+
+.fk-spinner-sm {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+}
+
+.fk-spinner-label {
+  font-size: 13px;
+}
+
+@keyframes fk-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fk-spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+/* payment-stripe step: selected-method summary + change link */
+.fk-payment-picker {
+  margin-top: var(--fk-space-sm);
+}
+
+.fk-payment-summary {
+  margin-top: var(--fk-space-sm);
+}
+
+.fk-payment-change {
+  margin-top: var(--fk-space-xs);
 }
 
 .fk-verification-widget {
@@ -2121,6 +2188,29 @@
   padding: 12px 16px;
   border-radius: var(--fk-radius-sm);
   margin-bottom: var(--fk-space-sm);
+}
+
+.fk-review-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fk-space-md);
+  padding: var(--fk-space-md) var(--fk-space-lg);
+  margin-bottom: var(--fk-space-md);
+  background: var(--fk-accent-soft);
+  border: 1px solid var(--fk-border);
+  border-radius: var(--fk-radius-md);
+}
+
+.fk-review-total-label {
+  font-size: 14px;
+  color: var(--fk-text2);
+}
+
+.fk-review-total-amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fk-text);
 }
 
 .fk-review-box {

@@ -273,13 +273,11 @@ export const stepPreviewConfigs: Partial<Record<string, Step>> = {
     type: "payment-stripe",
     title: "Complete the payment",
     // Stripe's own well-known public test key (used across their docs/examples) — safe
-    // to embed, test-mode only, no linked account. The step never actually charges
-    // anything here: createPaymentIntent below deliberately rejects.
+    // to embed, test-mode only, no linked account. The step only collects a method;
+    // the charge is deferred to the flow's final submit and never happens in a preview.
     publishableKey: "pk_test_TYooMQauvdEDq54NiTphI7jx",
     amount: 1500,
     currency: "eur",
-    createPaymentIntent: () =>
-      Promise.reject(new Error("Anteprima — nessun backend di pagamento collegato.")),
   } as unknown as Step,
 
   verification: {

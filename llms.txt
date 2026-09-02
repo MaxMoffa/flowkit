@@ -69,7 +69,7 @@ Lista autorevole a runtime: `listRegisteredStepTypes()`.
 | `oauth` | Flow OAuth+PKCE | `providers[]`, `allowAnonymous` |
 | `group` | Più step in un'unica schermata | `steps[]`, `layout`, `requiredChildren` |
 | `signature` | Firma su canvas | `penColor`, `allowFullscreen` |
-| `payment-stripe` | Pagamento con Stripe Elements | `createPaymentIntent`, `publishableKey` |
+| `payment-stripe` | Raccoglie un metodo di pagamento Stripe; l'addebito è differito al submit finale (vedi `getPendingPayment` in `onSubmit`) | `publishableKey`, `amount`, `currency` |
 
 `location`, `location-leaflet` e `payment-stripe` non sono registrati dalla entry
 principale di `@flowkit-io/react`: vanno importati dai rispettivi entry point

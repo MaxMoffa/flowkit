@@ -17,6 +17,7 @@ import {
   computeInitialFlowState,
   createFlowState,
   filterValidAnswers,
+  flowHasPayment,
   getCurrentStep,
   getCurrentStepInfo,
   getProgressInfo,
@@ -172,6 +173,10 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
    *  on every step change. Forces every field's error to show (steps/shared/
    *  use-field-validation.ts) and moves focus to the first invalid field. */
   const [attempt, setAttempt] = useState(0)
+  /** Message from a rejected `onSubmit` (e.g. a failed deferred payment charge):
+   *  shown in the footer, keeps the user on the review step. Cleared on any step
+   *  change and on the next submit attempt. */
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
   const step = getCurrentStep(flow, state)
   const StepView = getStepComponent(step.type)
@@ -226,6 +231,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
 
   useEffect(() => {
     setAttempt(0)
+    setSubmitError(null)
   }, [step.id])
 
   /** After a failed advance attempt, move focus to the first field the attempt itself
@@ -338,7 +344,16 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     }
     haptic(isFinalReviewSubmit ? "submit" : "advance", haptics)
     if (isFinalReviewSubmit) {
-      await onSubmit?.(state.answers)
+      setSubmitError(null)
+      try {
+        await onSubmit?.(state.answers)
+      } catch (err) {
+        // A rejected onSubmit (typically a failed deferred payment charge) must
+        // not advance the flow: keep the user on the review step and show why.
+        haptic("blocked", haptics)
+        setSubmitError(err instanceof Error && err.message ? err.message : resolveText(flow, "paymentFailed"))
+        return
+      }
     }
     setDirection("next")
     if (activeReturnTo) {
@@ -411,7 +426,8 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     activeReturnTo
       ? resolveText(flow, "returnToReview")
       : isFinalReviewSubmit
-        ? ((step as StepWithReviewFields).submitLabel ?? resolveText(flow, "submit"))
+        ? ((step as StepWithReviewFields).submitLabel ??
+          resolveText(flow, flowHasPayment(flow) ? "submitWithPayment" : "submit"))
         : isIntro
           ? ((step as StepWithIntroFields).cta ?? resolveText(flow, "continue"))
           : resolveText(flow, "continue")
@@ -485,6 +501,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
             primaryDisabled={!valid}
             isSubmit={isFinalReviewSubmit}
             onPrimary={handleNext}
+            error={submitError}
             progress={{
               Component: layout.ProgressComponent,
               show: layout.progressPosition === "footer",

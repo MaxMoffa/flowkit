@@ -74,8 +74,14 @@ export { groupStepSchema } from "./group-step"
 export type { GroupStep } from "./group-step"
 export { signatureStepSchema } from "./signature-step"
 export type { SignatureStep } from "./signature-step"
-export { paymentStripeStepSchema } from "./payment-stripe-step"
-export type { PaymentStripeStep, PaymentStripeValue } from "./payment-stripe-step"
+export { paymentStripeStepSchema, getPendingPayment, flowHasPayment } from "./payment-stripe-step"
+export type {
+  PaymentStripeStep,
+  PaymentStripeValue,
+  PaymentMethodSummary,
+  PendingPayment,
+} from "./payment-stripe-step"
+export { formatMoney } from "./money"
 export { verificationStepSchema, verificationProviderSchema } from "./verification-step"
 export type { VerificationStep, VerificationProvider, VerificationValue } from "./verification-step"
 export {

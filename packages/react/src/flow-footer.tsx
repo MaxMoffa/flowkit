@@ -27,6 +27,8 @@ interface StepFooterProps {
   /** The review step's primary button doubles as the submit action. */
   isSubmit: boolean
   onPrimary: () => void
+  /** Message from a rejected submit (e.g. a failed deferred payment), shown above the row. */
+  error?: string | null
   progress: { Component: ComponentType<ProgressComponentProps> | null; show: boolean } & ProgressComponentProps
 }
 
@@ -41,6 +43,7 @@ export function StepFooter({
   primaryDisabled,
   isSubmit,
   onPrimary,
+  error,
   progress,
 }: StepFooterProps) {
   const { Component: ProgressComponent, show, ...progressProps } = progress
@@ -50,6 +53,11 @@ export function StepFooter({
         <div className="fk-footer-progress">
           <ProgressComponent {...progressProps} />
         </div>
+      )}
+      {error && (
+        <p className="fk-footer-error" role="alert">
+          {error}
+        </p>
       )}
       <div className="fk-footer-row">
         {showBack && (

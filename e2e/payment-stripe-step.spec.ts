@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test"
 import { openPreset } from "./helpers/open-preset"
 
-test("payment-stripe step: renders config, surfaces createPaymentIntent failure without crashing", async ({
+test("payment-stripe step: renders in the flow, stays navigable (deferred, required:false)", async ({
   page,
 }) => {
   await openPreset(page, { preset: "features-demo" })
@@ -33,9 +33,10 @@ test("payment-stripe step: renders config, surfaces createPaymentIntent failure 
 
   await expect(page.getByRole("heading", { name: "Completa il pagamento" })).toBeVisible()
   await expect(page.getByText("Ordine demo")).toBeVisible()
-  // No real backend in this public demo: createPaymentIntent deliberately rejects,
-  // the step must surface that as an error message instead of crashing/hanging forever.
-  await expect(page.getByText("Nessun backend di pagamento configurato in questa demo.")).toBeVisible()
-  // required: false — the flow must remain navigable even though payment never succeeds.
+  // Deferred model: the step only collects a method (Stripe Payment Element), it never
+  // charges here. Either the theme-coloured circular spinner or the loaded Element is
+  // present inside the step.
+  await expect(page.locator(".fk-step-payment-stripe")).toBeVisible()
+  // required: false — the flow stays navigable whether or not a method is picked.
   await expect(page.getByRole("button", { name: "Continua", exact: true })).toBeEnabled()
 })

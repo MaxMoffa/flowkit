@@ -1,5 +1,30 @@
 # @flowkit-io/core
 
+## Unreleased
+
+### Changed
+
+- **`payment-stripe` step: deferred model (breaking).** The step now only *collects* a
+  payment method — it mints a single-use Stripe ConfirmationToken client-side and the
+  charge is deferred to the flow's final submit. Removed `createPaymentIntent` and
+  `buttonLabel` from the step config; added `changeLabel` (default `"Cambia"`). Answer
+  value is now `{ status: "collected", confirmationTokenId, summary }`.
+- `review` step: new `paymentSummary` field (`"auto"` | `"hidden"`, default `"auto"`).
+  When the flow has a `payment-stripe` step, a `"final"` review shows the amount as a
+  total callout and its submit button label becomes `submitWithPayment`.
+
+### Added
+
+- `getPendingPayment(flow, answers)` — returns the collected ConfirmationToken plus the
+  payment step's `amount`/`currency`, for confirming the charge in `onSubmit`. Returns
+  `null` when there's no payment step or no method was picked.
+- `flowHasPayment(flow)` — whether the flow contains a `payment-stripe` step.
+- `formatMoney(minorUnitAmount, currency, locale?)` — localized currency formatting that
+  respects each currency's fraction digits.
+- New i18n keys: `submitWithPayment`, `paymentTotal`, `paymentFailed` (it/en).
+- `report.ts`: `payment-stripe` answers render as a method row (`💳 Visa •••• 4242`,
+  `💳 PayPal`, …).
+
 ## 1.0.0 — 2026-09-01
 
 ### Added
