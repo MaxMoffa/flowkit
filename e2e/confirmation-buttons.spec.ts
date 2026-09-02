@@ -25,11 +25,29 @@ test.describe("confirmation footer buttons", () => {
   })
 
   test("showHomeButton: false hides the primary button, secondary fills the row", async ({ page }) => {
-    await openPreset(page, { preset: "file-step-demo", skip: ["step"] })
+    await openPreset(page, { preset: "file-step-demo", skip: ["file step"] })
+    await page.getByRole("button", { name: "Invia", exact: true }).click() // review -> confirmation
 
     await expect(page.getByRole("heading", { name: "Grazie!" })).toBeVisible()
     await expect(page.locator(".fk-footer .fk-btn-secondary")).toBeVisible()
     await expect(page.locator(".fk-footer .fk-btn-primary")).toHaveCount(0)
+  })
+
+  test("showRestartButton + showHomeButton both false: confirmation renders no footer", async ({
+    page,
+  }) => {
+    await openPreset(page, { preset: "disable-back-demo" })
+
+    await page.locator(".fk-input").fill("Risposta 1")
+    await page.getByRole("button", { name: "Continua", exact: true }).click()
+    await page.locator(".fk-input").fill("Risposta 2")
+    await page.getByRole("button", { name: "Continua", exact: true }).click()
+
+    await expect(page.getByRole("heading", { name: "Rivedi le risposte" })).toBeVisible()
+    await page.locator(".fk-footer .fk-btn-primary").click() // review submit
+
+    await expect(page.getByRole("heading", { name: "Grazie!" })).toBeVisible()
+    await expect(page.locator(".fk-footer")).toHaveCount(0)
   })
 
   test("homeUrl: primary button navigates instead of resetting in-app state", async ({ page }) => {

@@ -82,6 +82,19 @@ export const optionSchema = z.object({
 
 export type Option = z.infer<typeof optionSchema>
 
+/**
+ * Opt-in "Other" choice for a `radio` / `multi-select` step. Present = enabled. When the
+ * user picks it, a free-text input appears and the answer is stored as that raw string
+ * (a value not matching any option). `label`/`placeholder` fall back to the
+ * `otherOption` / `otherOptionPlaceholder` i18n texts.
+ */
+export const otherOptionSchema = z.object({
+  label: z.string().optional(),
+  placeholder: z.string().optional(),
+})
+
+export type OtherOption = z.infer<typeof otherOptionSchema>
+
 export const baseStepFields = {
   id: z.string().min(1),
   title: z.string().optional(),

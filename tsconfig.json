@@ -12,6 +12,7 @@
       "@flowkit-io/react/map-leaflet": ["packages/react/src/map-leaflet.ts"],
       "@flowkit-io/react/payment-stripe": ["packages/react/src/payment-stripe.ts"],
       "@flowkit-io/react/verification": ["packages/react/src/verification.ts"],
+      "@flowkit-io/react/overlay": ["packages/react/src/overlay.tsx"],
       "@flowkit-io/adapters": ["packages/adapters/src/index.ts"],
       "@flowkit-io/presets": ["packages/presets/src/index.ts"]
     }

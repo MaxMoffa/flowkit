@@ -1,5 +1,6 @@
+import { useState } from "react"
 import { describe, expect, it } from "vitest"
-import { render } from "@testing-library/react"
+import { render, fireEvent } from "@testing-library/react"
 import type { AnswerValue, Flow, MultiSelectStep } from "@flowkit-io/core"
 import "@flowkit-io/core"
 import { MultiSelectStepView } from "./multi-select"
@@ -57,5 +58,47 @@ describe("MultiSelectStepView: option description/color", () => {
     expect(container.querySelector(".fk-list-text")).toBeNull()
     const label = container.querySelector(".fk-list-label")
     expect(label?.textContent).toBe("Option A")
+  })
+})
+
+function StatefulMultiSelect({ step }: { step: MultiSelectStep }) {
+  const [value, setValue] = useState<AnswerValue>(null)
+  return (
+    <MultiSelectStepView
+      step={step}
+      value={value}
+      onChange={setValue}
+      flow={flow}
+      answers={{}}
+      meta={{}}
+      onMetaChange={() => {}}
+    />
+  )
+}
+
+describe("MultiSelectStepView: otherOption", () => {
+  const withOther = (): MultiSelectStep =>
+    ({ ...baseStep([{ value: "a", label: "A" }]), otherOption: { label: "Altro" } }) as MultiSelectStep
+
+  it("is absent by default", () => {
+    const { container } = renderStep(baseStep([{ value: "a", label: "A" }]))
+    expect(container.querySelector(".fk-list-other")).toBeNull()
+  })
+
+  it("reveals a text input on check and stores what the user types in the value array", () => {
+    const { container } = render(<StatefulMultiSelect step={withOther()} />)
+    const other = container.querySelector(".fk-list-other")!
+    expect(other).not.toBeNull()
+    expect(other.querySelector(".fk-list-other-input")).toBeNull()
+
+    fireEvent.click(other.querySelector("input[type=checkbox]")!)
+    const input = container.querySelector(".fk-list-other-input") as HTMLInputElement
+    fireEvent.change(input, { target: { value: "Kiwi" } })
+    expect((container.querySelector(".fk-list-other-input") as HTMLInputElement).value).toBe("Kiwi")
+
+    // also select a real option — the free text survives alongside it
+    fireEvent.click(container.querySelector(".fk-list-item input[type=checkbox]")!)
+    fireEvent.click(other.querySelector("input[type=checkbox]")!) // uncheck "other"
+    expect(container.querySelector(".fk-list-other-input")).toBeNull()
   })
 })

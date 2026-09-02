@@ -212,6 +212,35 @@ body {
   overflow-y: auto;
 }
 
+.pg-overlay-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pg-overlay-demo label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.pg-overlay-demo .pg-overlay-demo-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-overlay-demo code {
+  font-size: 12px;
+}
+
 .pg-theme-strip {
   display: flex;
   flex-wrap: wrap;

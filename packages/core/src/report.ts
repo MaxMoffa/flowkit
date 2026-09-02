@@ -28,6 +28,11 @@ export function formatAnswer(step: Step, value: unknown): string {
   if (step.type === "media" || step.type === "file") {
     const items = Array.isArray(value) ? value : []
     if (items.length === 0) return "—"
+    // A `file` step lists the file names (a PDF/doc has a meaningful name); a `media`
+    // step stays a count (photos rarely have useful names).
+    if (step.type === "file" && isUploadedItemArray(items)) {
+      return `📎 ${items.map((i) => i.name).join(", ")}`
+    }
     return `${step.type === "media" ? "📷" : "📎"}×${items.length}`
   }
   if (step.type === "checkbox") return value === true ? "✓ Accettato" : "—"

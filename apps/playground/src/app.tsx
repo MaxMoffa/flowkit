@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { FlowRunner, type FlowRunnerHandle } from "@flowkit-io/react"
+import { FlowOverlay, type FlowOverlayPresentation } from "@flowkit-io/react/overlay"
 import { themes, type ThemeMode } from "@flowkit-io/themes"
 import { createLocalAdapter } from "@flowkit-io/adapters"
 import type { Answers, CurrentStepInfo, Flow } from "@flowkit-io/core"
@@ -29,7 +30,12 @@ export function App() {
   const [mode, setMode] = useState<ThemeMode>("light")
   const [runKey, setRunKey] = useState(0)
   const [lastSubmission, setLastSubmission] = useState<Answers | null>(null)
+  const [overlayOpen, setOverlayOpen] = useState(false)
+  const [overlayPresentation, setOverlayPresentation] = useState<FlowOverlayPresentation>("auto")
+  const [overlayFixedHeight, setOverlayFixedHeight] = useState(true)
   const flowRunnerRef = useRef<FlowRunnerHandle>(null)
+
+  const isOverlayDemo = presetKey === "flow-overlay-demo"
 
   const theme = themes[themeKey]!
 
@@ -58,6 +64,7 @@ export function App() {
 
   function restart() {
     setRunKey((k) => k + 1)
+    setOverlayOpen(false)
   }
 
   return (
@@ -138,7 +145,55 @@ export function App() {
           <span>{flow?.title ?? "Caricamento…"}</span>
         </div>
         <div className="pg-frame">
-          {flow && (
+          {flow && isOverlayDemo && (
+            <div className="pg-overlay-demo">
+              <p>
+                Lo stesso flow, mostrato come drawer dal basso o come dialog centrato
+                tramite <code>&lt;FlowOverlay&gt;</code> (<code>@flowkit-io/react/overlay</code>).
+              </p>
+              <label>
+                Presentazione
+                <select
+                  aria-label="Presentazione overlay"
+                  value={overlayPresentation}
+                  onChange={(e) =>
+                    setOverlayPresentation(e.target.value as FlowOverlayPresentation)
+                  }
+                >
+                  <option value="auto">auto (drawer &lt; 640px, dialog ≥ 640px)</option>
+                  <option value="drawer">drawer</option>
+                  <option value="dialog">dialog</option>
+                  <option value="fullscreen">fullscreen</option>
+                </select>
+              </label>
+              <label className="pg-overlay-demo-check">
+                <input
+                  type="checkbox"
+                  checked={overlayFixedHeight}
+                  onChange={(e) => setOverlayFixedHeight(e.target.checked)}
+                />
+                Altezza fissa (aspect ratio verticale)
+              </label>
+              <button type="button" className="pg-btn" onClick={() => setOverlayOpen(true)}>
+                Apri flow
+              </button>
+              <FlowOverlay
+                open={overlayOpen}
+                onOpenChange={setOverlayOpen}
+                presentation={overlayPresentation}
+                showTitle
+                fixedHeight={overlayFixedHeight}
+                flow={flow}
+                theme={theme}
+                mode={mode}
+                onSubmit={async (answers) => {
+                  await adapter.submit(flow.id, answers)
+                  setLastSubmission(answers)
+                }}
+              />
+            </div>
+          )}
+          {flow && !isOverlayDemo && (
             <FlowRunner
               key={`${presetKey}-${runKey}`}
               ref={(handle) => {

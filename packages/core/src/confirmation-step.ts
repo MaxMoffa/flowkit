@@ -11,10 +11,16 @@ export const confirmationStepSchema = z.object({
   stats: z
     .array(z.object({ value: z.string(), label: z.string() }))
     .optional(),
+  /** Text of the primary "torna alla home" button. Falls back to the `confirmationHome` i18n text. */
   primaryCta: z.string().optional(),
+  /** Text of the secondary "nuova segnalazione"/restart button. Falls back to the `confirmationRestart` i18n text. */
   secondaryCta: z.string().optional(),
   /** Show/hide the primary "torna alla home" button. Default: true (current behavior). */
   showHomeButton: z.boolean().default(true),
+  /** Show/hide the secondary "nuova segnalazione"/restart button. Default: true (current
+   *  behavior). With both this and `showHomeButton` false, the confirmation step renders
+   *  no footer at all. */
+  showRestartButton: z.boolean().default(true),
   /**
    * When set, the primary button navigates to this URL (window.location.href)
    * instead of resetting the in-memory flow state. Unset = current behavior

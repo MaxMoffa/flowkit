@@ -27,6 +27,8 @@ const presetLoaders: Record<string, () => Promise<Flow>> = {
   "info-long-content-demo": () => import("./info-long-content-demo").then((m) => m.infoLongContentDemoFlow),
   "i18n-texts-demo": () => import("./i18n-texts-demo").then((m) => m.i18nTextsDemoFlow),
   "step-image-demo": () => import("./step-image-demo").then((m) => m.stepImageDemoFlow),
+  "flow-overlay-demo": () => import("./flow-overlay-demo").then((m) => m.flowOverlayDemoFlow),
+  "other-option-demo": () => import("./other-option-demo").then((m) => m.otherOptionDemoFlow),
 }
 
 export const presetKeys: string[] = Object.keys(presetLoaders)
@@ -69,4 +71,6 @@ export const presetLabels: Record<string, string> = {
   "info-long-content-demo": "Step informativi (demo)",
   "i18n-texts-demo": "Testi personalizzati (demo)",
   "step-image-demo": "Campo immagine (demo)",
+  "flow-overlay-demo": "Flow in overlay: drawer/dialog (demo)",
+  "other-option-demo": "Opzione «Altro» in radio/multi-select (demo)",
 }

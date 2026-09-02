@@ -73,6 +73,7 @@ export function StepFooter({
 interface ConfirmationFooterProps {
   order: number
   secondaryLabel: string
+  showSecondary: boolean
   onSecondary: () => void
   primaryLabel: string
   showPrimary: boolean
@@ -83,6 +84,7 @@ interface ConfirmationFooterProps {
 export function ConfirmationFooter({
   order,
   secondaryLabel,
+  showSecondary,
   onSecondary,
   primaryLabel,
   showPrimary,
@@ -91,9 +93,11 @@ export function ConfirmationFooter({
   return (
     <FooterShell order={order}>
       <div className="fk-footer-row">
-        <button type="button" className="fk-btn-secondary" onClick={onSecondary}>
-          <FlowMarkdown text={secondaryLabel} variant="inline" />
-        </button>
+        {showSecondary && (
+          <button type="button" className="fk-btn-secondary" onClick={onSecondary}>
+            <FlowMarkdown text={secondaryLabel} variant="inline" />
+          </button>
+        )}
         {showPrimary && (
           <button type="button" className="fk-btn-primary" onClick={onPrimary}>
             <FlowMarkdown text={primaryLabel} variant="inline" />

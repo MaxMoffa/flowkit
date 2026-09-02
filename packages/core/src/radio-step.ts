@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { registerStepType } from "./registry"
-import { baseStepFields, optionSchema, requireOptionsOrDataSource, optionsOrDataSourceIssue } from "./schema"
+import { baseStepFields, optionSchema, otherOptionSchema, requireOptionsOrDataSource, optionsOrDataSourceIssue } from "./schema"
 import { remoteDataSourceSchema } from "./remote-data-source"
 
 export const radioStepSchema = z
@@ -8,6 +8,7 @@ export const radioStepSchema = z
     ...baseStepFields,
     type: z.literal("radio"),
     options: z.array(optionSchema).default([]),
+    otherOption: otherOptionSchema.optional(),
     dataSource: remoteDataSourceSchema.optional(),
   })
   .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)

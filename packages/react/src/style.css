@@ -570,6 +570,34 @@
   background: var(--fk-accent-soft);
 }
 
+/* "Altro" row: identical to a normal option until selected — then it becomes a
+   column so the free-text input sits inside the same card. */
+.fk-list-other {
+  cursor: default;
+}
+
+.fk-list-other-head {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-md);
+  width: 100%;
+  cursor: pointer;
+}
+
+.fk-list-item-other {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.fk-list-item-other:active {
+  background: var(--fk-accent-soft);
+}
+
+.fk-list-other-input {
+  width: 100%;
+}
+
 .fk-list-input {
   width: var(--fk-selection-box-size);
   height: var(--fk-selection-box-size);
@@ -2459,4 +2487,177 @@
 .fk-group-item .fk-title-icon img {
   width: 16px;
   height: 16px;
+}
+
+/* ---------------------------------------------------------------------------
+   FlowOverlay (@flowkit-io/react/overlay) — flow presented as a bottom drawer
+   or a centered dialog in a portal. Layered above .fk-media-viewer (z 1000).
+   --------------------------------------------------------------------------- */
+
+.fk-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--fk-overlay-z, 1100);
+  display: flex;
+}
+
+.fk-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  animation: fk-fade-enter var(--fk-anim-duration, 250ms) ease;
+}
+
+.fk-overlay-sheet {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  background: var(--fk-canvas);
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.24);
+  transition: transform 0.2s ease;
+}
+
+.fk-overlay-sheet--dragging {
+  transition: none;
+}
+
+.fk-overlay-sheet--drawer {
+  margin-top: auto;
+  width: 100%;
+  max-height: min(90dvh, 100dvh - env(safe-area-inset-top));
+  padding-bottom: env(safe-area-inset-bottom);
+  border-radius: var(--fk-radius-xl) var(--fk-radius-xl) 0 0;
+  animation: fk-overlay-slide-up var(--fk-anim-duration, 250ms) ease;
+}
+
+.fk-overlay-sheet--dialog {
+  margin: auto;
+  width: var(--fk-overlay-dialog-width, 440px);
+  max-height: min(85dvh, 640px);
+  border-radius: var(--fk-radius-lg);
+  animation: fk-overlay-pop var(--fk-anim-duration, 250ms) ease;
+}
+
+.fk-overlay-sheet--fullscreen {
+  width: 100%;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  border-radius: 0;
+  animation: fk-fade-enter var(--fk-anim-duration, 250ms) ease;
+}
+
+/* Fixed height (opt-out via `fixedHeight={false}`): a phone-portrait-ish default,
+   overridable through `--fk-overlay-height`. Ordered after --drawer/--dialog so its
+   `height` / `max-height` win. */
+.fk-overlay-sheet--fixed {
+  height: var(--fk-overlay-height, min(88dvh, 780px));
+  max-height: 100dvh;
+}
+
+.fk-overlay-runner {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fk-overlay-header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-md);
+  padding: var(--fk-space-sm) var(--fk-space-md);
+  border-bottom: 1px solid var(--fk-border);
+}
+
+.fk-overlay-title {
+  min-width: 0;
+  margin-left: auto;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fk-text2);
+}
+
+.fk-overlay-close {
+  position: absolute;
+  top: var(--fk-space-sm);
+  right: var(--fk-space-sm);
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--fk-surface);
+  color: var(--fk-text2);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fk-overlay-header .fk-overlay-close {
+  position: static;
+}
+
+.fk-overlay-grabber {
+  flex: none;
+  width: 36px;
+  height: 4px;
+  margin: var(--fk-space-sm) auto 0;
+  border-radius: 2px;
+  background: var(--fk-border);
+  touch-action: none;
+  cursor: grab;
+}
+
+@media (max-width: 639.98px) {
+  .fk-overlay-sheet--dialog {
+    width: auto;
+    margin: var(--fk-space-lg);
+    max-height: min(85dvh, 100dvh - (2 * var(--fk-space-lg)));
+  }
+}
+
+@keyframes fk-overlay-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fk-overlay-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fk-overlay-backdrop,
+  .fk-overlay-sheet,
+  .fk-overlay-sheet--drawer,
+  .fk-overlay-sheet--dialog,
+  .fk-overlay-sheet--fullscreen {
+    animation: none;
+    transition: none;
+  }
 }

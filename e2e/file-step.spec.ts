@@ -39,3 +39,17 @@ test("file step: accepts multiple files, shows chips, removes and previews them"
   // the step is optional: continue stays enabled even with no attachments
   await expect(page.getByRole("button", { name: "Continua", exact: true })).toBeEnabled()
 })
+
+test("file step: the review recap shows the uploaded file names", async ({ page }) => {
+  await openPreset(page, { preset: "file-step-demo" })
+
+  await page.locator(".fk-step-file input[type=file]").setInputFiles([
+    textFile("contratto.txt"),
+    textFile("allegato-b.txt"),
+  ])
+  await page.getByRole("button", { name: "Continua", exact: true }).click()
+
+  const row = page.locator(".fk-review-row", { hasText: "Carica un documento" })
+  await expect(row).toContainText("contratto.txt")
+  await expect(row).toContainText("allegato-b.txt")
+})

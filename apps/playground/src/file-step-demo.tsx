@@ -16,6 +16,7 @@ export const fileStepDemoFlow: Flow = parseFlow({
       customAccept: ".pdf",
       multiple: true,
     },
+    { id: "review", type: "review", title: "Rivedi", submitLabel: "Invia" },
     { id: "end", type: "confirmation", title: "Grazie!", showHomeButton: false },
   ],
 })

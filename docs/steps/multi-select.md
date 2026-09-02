@@ -12,6 +12,7 @@ Generic multi-selection (checklist), with min/max constraints. Answer value:
 | `options` | `{ value, label, description?, color? }[]` | — (min 1, or use `dataSource`) | Options |
 | `min` | `number` | `0` | Minimum number of selections required |
 | `max` | `number` | — | Maximum number of selections allowed |
+| `otherOption` | `{ label?, placeholder? }` | — | Opt-in "Altro" checkbox with a free-text input; the typed string is added to the array. `label`/`placeholder` fall back to the `otherOption` / `otherOptionPlaceholder` i18n texts |
 | `dataSource` | remote data source, see [Core concepts](../core-concepts.md#remote-datasource) | — | Fetch options from a remote API |
 
 `description` renders as helper text below the option label; `color` renders as a small

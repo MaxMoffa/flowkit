@@ -1,4 +1,5 @@
-import type { MultiSelectStep } from "@flowkit-io/core"
+import { useState } from "react"
+import { resolveText, type MultiSelectStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { OptionList } from "./shared/option-list"
 import { useToggleSelection } from "./shared/selection"
@@ -19,6 +20,15 @@ export function MultiSelectStepView({ step, value, onChange, flow, answers, meta
   const options = remote.isRemote ? remote.options : step.options
   const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
 
+  const optionValues = new Set(options.map((o) => o.value))
+  const realSelected = selected.filter((v) => optionValues.has(v))
+  const freeValue = selected.find((v) => !optionValues.has(v)) ?? ""
+  // Free text lives in local state so the input stays stable even if it happens to
+  // collide with an option value (which would otherwise disappear from `selected`).
+  const [otherText, setOtherText] = useState(freeValue)
+  const [otherToggled, setOtherToggled] = useState(freeValue !== "")
+  const otherOn = step.otherOption != null && (otherToggled || freeValue !== "")
+
   return (
     <div className="fk-step fk-step-multi-select">
       <StepTitle image={step.image} title={step.title} />
@@ -32,6 +42,30 @@ export function MultiSelectStepView({ step, value, onChange, flow, answers, meta
           isSelected={(v) => selected.includes(v)}
           onPick={toggle}
           isDisabled={(v) => maxReached && !selected.includes(v)}
+          other={
+            step.otherOption
+              ? {
+                  active: otherOn,
+                  label: step.otherOption.label ?? resolveText(flow, "otherOption"),
+                  placeholder: step.otherOption.placeholder ?? resolveText(flow, "otherOptionPlaceholder"),
+                  text: otherText,
+                  onToggle: () => {
+                    if (otherOn) {
+                      setOtherToggled(false)
+                      setOtherText("")
+                      onChange(realSelected)
+                    } else {
+                      setOtherToggled(true)
+                    }
+                  },
+                  onText: (text) => {
+                    setOtherText(text)
+                    setOtherToggled(true)
+                    onChange(text ? [...realSelected, text] : realSelected)
+                  },
+                }
+              : undefined
+          }
         />
       </div>
       <FieldError id={errorId} message={message} />

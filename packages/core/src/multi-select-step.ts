@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { registerStepType, type ValidationIssue } from "./registry"
-import { baseStepFields, optionSchema, requireOptionsOrDataSource, optionsOrDataSourceIssue } from "./schema"
+import { baseStepFields, optionSchema, otherOptionSchema, requireOptionsOrDataSource, optionsOrDataSourceIssue } from "./schema"
 import { remoteDataSourceSchema } from "./remote-data-source"
 
 export const multiSelectStepSchema = z
@@ -10,6 +10,7 @@ export const multiSelectStepSchema = z
     options: z.array(optionSchema).default([]),
     min: z.number().default(0),
     max: z.number().optional(),
+    otherOption: otherOptionSchema.optional(),
     dataSource: remoteDataSourceSchema.optional(),
   })
   .refine(requireOptionsOrDataSource, optionsOrDataSourceIssue)

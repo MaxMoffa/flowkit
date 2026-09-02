@@ -32,6 +32,7 @@ function App() {
 | `@flowkit-io/react/map-maplibre` | `location` | Always needed for the maplibre map step |
 | `@flowkit-io/react/map-leaflet` | `location-leaflet` | Always needed for the leaflet map step |
 | `@flowkit-io/react/payment-stripe` | `payment-stripe` | Always needed for the Stripe step |
+| `@flowkit-io/react/overlay` | Nothing | `<FlowOverlay>` — present a flow as a bottom drawer, a centered dialog or a fullscreen takeover; use alongside the main or `/lean` entry |
 
 `/lean` exports exactly the same API as the main entry; the only difference is that it
 performs no registration. The three heavy steps at the bottom are never registered by
@@ -60,6 +61,7 @@ if it meets a step nobody registered, so a forgotten import fails loudly.
 | `onStepChange` | `(step: CurrentStepInfo) => void` | no | Called every time the visibly rendered step changes — see below |
 | `initialStep` | `string` | no | Id of the step to start on instead of the first step — see [Resuming a flow](#resuming-a-flow) |
 | `initialAnswers` | `Answers` | no | Answers to preload before the flow ever renders — see [Resuming a flow](#resuming-a-flow) |
+| `haptics` | `boolean` | no (default `true`) | Short device vibration on the navigation buttons (continue/back/submit, review-row jumps, restart), plus a distinct longer buzz on a blocked-while-invalid attempt. Needs the Vibration API (Android); a silent no-op on iOS/desktop. `false` opts out |
 
 ## Reading the current step
 
@@ -150,6 +152,74 @@ progress bar can optionally move into the footer instead of the header — see
 with `key={step.id}`: two consecutive steps of the same `type` (e.g. two `location`
 steps) stay independent React instances, sharing no internal state or DOM side effects
 (e.g. map instances).
+
+## Presenting a flow in a drawer or dialog
+
+`<FlowOverlay>` from `@flowkit-io/react/overlay` renders a flow in a portal as a bottom
+**drawer** (mobile-web sheet, swipe-down to dismiss), a centered **dialog**, or a
+**fullscreen** takeover — for embedding a flow in an existing app without a dedicated
+page. It **composes
+`<FlowRunner>`**: every `FlowRunner` prop and the `ref` handle (`FlowRunnerHandle`) work
+exactly the same. It registers no steps itself — use it alongside the main entry
+(`import "@flowkit-io/react"`) or `/lean` + `@flowkit-io/react/steps/*`, the same way
+`/steps/*` composes with `/lean`.
+
+```tsx
+import { useState } from "react"
+import { FlowOverlay } from "@flowkit-io/react/overlay"
+import { feedbackFlow } from "@flowkit-io/presets"
+import "@flowkit-io/react/style.css"
+
+function FeedbackButton() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>Lascia un feedback</button>
+      <FlowOverlay
+        open={open}
+        onOpenChange={setOpen}
+        presentation="auto"
+        flow={feedbackFlow}
+        onSubmit={(answers) => adapter.submit(feedbackFlow.id, answers)}
+      />
+    </>
+  )
+}
+```
+
+| Prop | Type | Required | Description |
+|---|---|---|---|
+| `open` | `boolean` | yes | Controlled visibility. `false` fully unmounts the overlay and the inner `FlowRunner` |
+| `onOpenChange` | `(open: boolean) => void` | yes | Called with `false` for every dismissal channel (Escape, backdrop, ✕, drawer swipe-down) and, with `closeOnSubmit`, after `onSubmit` resolves. Never called with `true` — your trigger opens it |
+| `presentation` | `"drawer" \| "dialog" \| "fullscreen" \| "auto"` | no (default `"auto"`) | `"fullscreen"` = edge-to-edge takeover; `"auto"` = drawer below 640px viewport width, dialog at/above |
+| `dismissible` | `boolean` | no (default `true`) | When `false`, Escape / backdrop / swipe-down no longer close it (the close button still does, unless also hidden) |
+| `showCloseButton` | `boolean` | no (default `true`) | The ✕ close button. Set `false` for a flow the user must not close from inside (still closable via `onOpenChange` / the `ref`) |
+| `showTitle` | `boolean` | no (default `false`) | Show the flow name in the sheet's top-right corner (like the playground status bar); uses `ariaLabel` if given |
+| `fixedHeight` | `boolean \| string` | no (default `true`) | `true` gives the drawer/dialog a fixed, phone-portrait-ish height (`--fk-overlay-height`, default `min(88dvh, 780px)`); a string sets it directly (`"600px"`, `"70dvh"`); `false` sizes to content. Ignored for `"fullscreen"` |
+| `closeOnSubmit` | `boolean` | no (default `false`) | Call `onOpenChange(false)` after your `onSubmit` promise resolves, instead of keeping the `confirmation` step visible |
+| `container` | `HTMLElement` | no (default `document.body`) | Portal target |
+| `ariaLabel` | `string` | no (default `flow.title`) | Accessible name for the dialog, and the text shown by `showTitle` |
+| `className` / `style` | — | no | Applied to the sheet element |
+
+All `<FlowRunner>` props (`flow`, `theme`, `mode`, `onSubmit`, `onChange`, `onStepChange`,
+`initialStep`, `initialAnswers`, `haptics`) are forwarded, and `ref` exposes the
+`FlowRunnerHandle` (it reads `null` while the overlay is closed).
+
+Closing fully unmounts the flow, so each open starts fresh — to resume where the user
+left off, capture from `onChange`/`onStepChange` and pass `initialStep`/`initialAnswers`
+back on the next open (see [Resuming a flow](#resuming-a-flow)).
+
+The ✕ close button shows by default (`showCloseButton`); with `showTitle`, it moves into
+a header bar that also carries the flow name on the right. Focus is trapped in the sheet
+while open and restored on close, `body` scroll is locked, and `prefers-reduced-motion`
+disables the slide/pop animations. The drawer's
+swipe-to-dismiss starts from the grabber handle. The drawer and dialog take a fixed
+phone-portrait height by default (`fixedHeight`); style it with `--fk-overlay-height`, the
+dialog width with `--fk-overlay-dialog-width` (default `440px`), and the stacking layer
+with `--fk-overlay-z` (default `1100`) — set them on your theme root or via the `style`
+prop. Because
+`<FlowOverlay>` composes `<FlowRunner>`, step layouts still respond to the **sheet** width
+(container query), not the viewport.
 
 `<FlowRunner>` wraps everything in an internal `<ThemeProvider>`: if you need to apply
 the theme to a wider layout (e.g. to also style your own elements around the flow),

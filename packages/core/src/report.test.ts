@@ -133,12 +133,33 @@ describe("buildReportRows", () => {
     expect(row.media).toEqual([photo])
   })
 
-  it("summarizes a media/file answer as a count, not the raw items", () => {
+  it("summarizes a media answer as a count, not the raw items", () => {
     const photo = { id: "p1", name: "a.png", mimeType: "image/png", size: 10, dataUrl: "data:image/png;base64,AA==", kind: "image" as const }
     const rows = buildReportRows(flow, {
       extra: { extra_notes: "", extra_photo: [photo, photo] },
     })
     expect(rows.find((r) => r.title === "Extra")!.value).toBe("📷×2")
+  })
+
+  it("lists the file names for a file step answer", () => {
+    const fileFlow = parseFlow({
+      id: "f",
+      title: "F",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "doc", type: "file", title: "Documento", required: false },
+        { id: "check", type: "review" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const rows = buildReportRows(fileFlow, {
+      // UploadedItem[] is the runtime shape of a file answer; AnswerValue doesn't model it.
+      documento: [
+        { id: "a", name: "contratto.pdf", mimeType: "application/pdf", size: 1, dataUrl: "data:application/pdf;base64,AA==", kind: "file" },
+        { id: "b", name: "allegato.pdf", mimeType: "application/pdf", size: 1, dataUrl: "data:application/pdf;base64,AA==", kind: "file" },
+      ] as unknown as string[],
+    })
+    expect(rows.find((r) => r.title === "Documento")!.value).toBe("📎 contratto.pdf, allegato.pdf")
   })
 
   it("renders a signature answer as a label plus an embeddable svg image, not raw text", () => {

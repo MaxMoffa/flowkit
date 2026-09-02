@@ -11,6 +11,7 @@ Single-selection list, one option per row. Answer value: `string`. Component:
 | Field | Type | Default | Notes |
 |---|---|---|---|
 | `options` | `{ value, label, description?, color? }[]` | — (min 1, or use `dataSource`) | Options |
+| `otherOption` | `{ label?, placeholder? }` | — | Opt-in "Altro" radio with a free-text input; what the user types becomes the answer value. `label`/`placeholder` fall back to the `otherOption` / `otherOptionPlaceholder` i18n texts |
 | `dataSource` | remote data source, see [Core concepts](../core-concepts.md#remote-datasource) | — | Fetch options from a remote API |
 
 `description` renders as helper text below the option label; `color` renders as a small

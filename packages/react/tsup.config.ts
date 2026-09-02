@@ -36,6 +36,7 @@ export default defineConfig({
     "map-leaflet": "src/map-leaflet.ts",
     "payment-stripe": "src/payment-stripe.ts",
     verification: "src/verification.ts",
+    overlay: "src/overlay.tsx",
     ...Object.fromEntries(stepEntries.map((type) => [`steps/${type}`, `src/steps/entries/${type}.ts`])),
   },
   format: ["esm"],

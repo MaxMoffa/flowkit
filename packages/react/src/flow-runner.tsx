@@ -39,6 +39,7 @@ import { ConfirmationFooter, StepFooter } from "./flow-footer"
 import { getStepComponent } from "./registry"
 import { ThemeProvider } from "./theme-provider"
 import { useFlowRunnerLayout } from "./use-flow-runner-layout"
+import { haptic } from "./haptics"
 import type { FlowSubmitHandler } from "./types"
 
 /** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
@@ -48,6 +49,7 @@ type StepWithConfirmationFields = {
   secondaryCta?: string
   primaryCta?: string
   showHomeButton?: boolean
+  showRestartButton?: boolean
   homeUrl?: string
 }
 
@@ -73,6 +75,12 @@ export interface FlowRunnerProps {
    *  entry is validated against its step's own validation rule and dropped if invalid;
    *  keys that don't match any step's `key`/`id` are dropped too. Never throws. */
   initialAnswers?: Answers
+  /** Fire a short device vibration on the navigation buttons (continue/back/submit,
+   *  review-row jumps, confirmation restart) — and a distinct longer buzz when the
+   *  primary button is pressed while the step is still invalid. Default `true`. Only has
+   *  an effect where the browser supports the Vibration API (Android); a silent no-op
+   *  elsewhere (iOS Safari, desktop). Set `false` to opt out entirely. */
+  haptics?: boolean
 }
 
 /** Imperative handle exposed via `ref`: a `currentStep` that's always in sync with the
@@ -101,7 +109,7 @@ export interface FlowRunnerHandle {
 }
 
 export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function FlowRunner(
-  { flow, theme, mode, onSubmit, onChange, onStepChange, initialStep, initialAnswers },
+  { flow, theme, mode, onSubmit, onChange, onStepChange, initialStep, initialAnswers, haptics = true },
   ref,
 ) {
   const [state, setState] = useState<FlowState>(() =>
@@ -190,6 +198,11 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   const showHeader = !isIntro && !isConfirmation && !isLogic
   const isReviewType = stepRole === "review"
   const isFinalReviewSubmit = isReviewType && (step as StepWithReviewFields).mode !== "checkpoint"
+
+  /** Confirmation footer: `showRestartButton`/`showHomeButton` each default to true;
+   *  when both are off the footer bar is dropped entirely (no empty border/padding). */
+  const confShowRestart = (step as StepWithConfirmationFields).showRestartButton !== false
+  const confShowHome = (step as StepWithConfirmationFields).showHomeButton !== false
 
   const layout = useFlowRunnerLayout(step, theme, mode, direction)
   /** Title/subtitle of the resolved path's steps, for progress variants (e.g. the
@@ -319,9 +332,11 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
 
   const handleNext = useCallback(async () => {
     if (!canGoNext(flow, state)) {
+      haptic("blocked", haptics)
       setAttempt((a) => a + 1)
       return
     }
+    haptic(isFinalReviewSubmit ? "submit" : "advance", haptics)
     if (isFinalReviewSubmit) {
       await onSubmit?.(state.answers)
     }
@@ -334,23 +349,25 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     }
     pendingDirectionRef.current = "next"
     setState((s) => nextState(flow, s))
-  }, [flow, state, isFinalReviewSubmit, onSubmit, activeReturnTo])
+  }, [flow, state, isFinalReviewSubmit, onSubmit, activeReturnTo, haptics])
 
   const handlePrev = useCallback(() => {
     if (flow.disableBack) return
+    haptic("back", haptics)
     setDirection("prev")
     pendingDirectionRef.current = "prev"
     setState((s) => prevState(flow, s))
-  }, [flow])
+  }, [flow, haptics])
 
   const handleNavigateToStep = useCallback(
     (stepId: string) => {
+      haptic("jump", haptics)
       setReturnTo({ reviewStepId: step.id, editStepId: stepId })
       setDirection("next")
       pendingDirectionRef.current = "jump"
       setState((s) => goToStep(flow, s, stepId))
     },
-    [flow, step.id],
+    [flow, step.id, haptics],
   )
 
   /** Enter in a single-line text-like input (text/email/number/date/…) attempts to
@@ -373,14 +390,22 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     [handleNext],
   )
 
+  /** Confirmation "start over" button — a plain `handleRestart()` (which also backs
+   *  `ref.reset()`) plus the haptic tick that a user-pressed button gets. */
+  const handleConfirmationRestart = useCallback(() => {
+    haptic("restart", haptics)
+    handleRestart()
+  }, [handleRestart, haptics])
+
   const handleGoHome = useCallback(() => {
+    haptic("restart", haptics)
     const homeUrl = (step as StepWithConfirmationFields).homeUrl
     if (homeUrl) {
       window.location.href = homeUrl
       return
     }
     handleRestart()
-  }, [step, handleRestart])
+  }, [step, handleRestart, haptics])
 
   const primaryLabel =
     activeReturnTo
@@ -467,13 +492,14 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
             }}
           />
         )}
-        {last && isConfirmation && (
+        {last && isConfirmation && (confShowRestart || confShowHome) && (
           <ConfirmationFooter
             order={layout.footerOrder}
             secondaryLabel={(step as StepWithConfirmationFields).secondaryCta ?? resolveText(flow, "confirmationRestart")}
-            onSecondary={handleRestart}
+            showSecondary={confShowRestart}
+            onSecondary={handleConfirmationRestart}
             primaryLabel={(step as StepWithConfirmationFields).primaryCta ?? resolveText(flow, "confirmationHome")}
-            showPrimary={(step as StepWithConfirmationFields).showHomeButton !== false}
+            showPrimary={confShowHome}
             onPrimary={handleGoHome}
           />
         )}

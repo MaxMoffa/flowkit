@@ -61,11 +61,11 @@ Lista autorevole a runtime: `listRegisteredStepTypes()`.
 | `file` | Upload di file generici | `formatPreset`, `customAccept`, `maxItems` |
 | `date-time` | Data e/o ora | `variant` (`date`\|`time`\|`datetime`), `min`, `max` |
 | `nps` | Net Promoter Score | `question` |
-| `multi-select` | Selezione multipla con min/max | `options[]`, `min`, `max` |
-| `radio` | Selezione singola a lista (radio button) | `options[]` |
+| `multi-select` | Selezione multipla con min/max | `options[]`, `min`, `max`, `otherOption` |
+| `radio` | Selezione singola a lista (radio button) | `options[]`, `otherOption` |
 | `text` | Testo/numero/email | `variant` (`text`\|`number`\|`email`), `multiline` |
 | `review` | Riepilogo prima dell'invio | `meta`, `submitLabel` |
-| `confirmation` | Schermata finale | `stats[]`, `emailShare`, `resultActions`, `primaryCta`, `secondaryCta` |
+| `confirmation` | Schermata finale | `stats[]`, `emailShare`, `resultActions`, `primaryCta`, `secondaryCta`, `showHomeButton`, `showRestartButton` |
 | `oauth` | Flow OAuth+PKCE | `providers[]`, `allowAnonymous` |
 | `group` | Più step in un'unica schermata | `steps[]`, `layout`, `requiredChildren` |
 | `signature` | Firma su canvas | `penColor`, `allowFullscreen` |

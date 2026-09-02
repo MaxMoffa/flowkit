@@ -1,4 +1,5 @@
-import type { RadioStep } from "@flowkit-io/core"
+import { useState } from "react"
+import { resolveText, type RadioStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { OptionList } from "./shared/option-list"
 import { FlowMarkdown } from "../markdown"
@@ -9,10 +10,16 @@ import { useFieldValidation } from "./shared/use-field-validation"
 import { FieldError } from "./shared/field-error"
 
 export function RadioStepView({ step, value, onChange, flow, answers, meta, validationAttempt }: StepComponentProps<RadioStep>) {
-  const selected = typeof value === "string" ? value : undefined
   const remote = useRemoteOptions(step.dataSource, answers)
   const options = remote.isRemote ? remote.options : step.options
   const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
+
+  const optionValues = new Set(options.map((o) => o.value))
+  const currentValue = typeof value === "string" ? value : ""
+  const valueIsOther = currentValue.length > 0 && !optionValues.has(currentValue)
+  const [otherToggled, setOtherToggled] = useState(valueIsOther)
+  const otherOn = step.otherOption != null && (otherToggled || valueIsOther)
+  const selected = otherOn ? undefined : currentValue || undefined
 
   return (
     <div className="fk-step fk-step-radio">
@@ -26,7 +33,28 @@ export function RadioStepView({ step, value, onChange, flow, answers, meta, vali
           inputType="radio"
           name={step.id}
           isSelected={(v) => selected === v}
-          onPick={onChange}
+          onPick={(v) => {
+            setOtherToggled(false)
+            onChange(v)
+          }}
+          other={
+            step.otherOption
+              ? {
+                  active: otherOn,
+                  label: step.otherOption.label ?? resolveText(flow, "otherOption"),
+                  placeholder: step.otherOption.placeholder ?? resolveText(flow, "otherOptionPlaceholder"),
+                  text: otherOn ? currentValue : "",
+                  onToggle: () => {
+                    setOtherToggled(true)
+                    if (!valueIsOther) onChange("")
+                  },
+                  onText: (text) => {
+                    setOtherToggled(true)
+                    onChange(text)
+                  },
+                }
+              : undefined
+          }
         />
       </div>
       <FieldError id={errorId} message={message} />

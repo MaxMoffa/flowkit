@@ -1,6 +1,18 @@
 import { FlowMarkdown } from "../../markdown"
 import { optionColorClass, optionColorStyle } from "./option-color"
 
+/** Opt-in "Other" row appended after the options: a radio/checkbox that reveals a
+ *  free-text input. The typed string becomes the answer value (or, for multi-select,
+ *  an extra array entry). */
+interface OtherOptionState {
+  active: boolean
+  label: string
+  placeholder: string
+  text: string
+  onToggle: () => void
+  onText: (text: string) => void
+}
+
 interface OptionListProps {
   options: { value: string; label: string; description?: string; color?: string }[]
   isSelected: (optionValue: string) => boolean
@@ -9,6 +21,7 @@ interface OptionListProps {
   inputType: "radio" | "checkbox"
   name?: string
   isDisabled?: (optionValue: string) => boolean
+  other?: OtherOptionState
 }
 
 /** The `.fk-list` rows shared by the radio and multi-select steps: same markup, same
@@ -24,6 +37,7 @@ export function OptionList({
   inputType,
   name,
   isDisabled,
+  other,
 }: OptionListProps) {
   return (
     <div className="fk-list">
@@ -54,6 +68,37 @@ export function OptionList({
           </label>
         )
       })}
+
+      {other && (
+        <div
+          className={
+            `fk-list-item fk-list-other` +
+            (other.active ? " fk-list-item-other fk-list-item-selected" : "")
+          }
+        >
+          <label className="fk-list-other-head">
+            <input
+              type={inputType}
+              className="fk-list-input"
+              name={name}
+              checked={other.active}
+              onChange={other.onToggle}
+            />
+            <span className="fk-list-label">{other.label}</span>
+          </label>
+          {other.active && (
+            <input
+              type="text"
+              className="fk-input fk-list-other-input"
+              placeholder={other.placeholder}
+              value={other.text}
+              aria-label={other.label}
+              onChange={(e) => other.onText(e.target.value)}
+              autoFocus
+            />
+          )}
+        </div>
+      )}
     </div>
   )
 }

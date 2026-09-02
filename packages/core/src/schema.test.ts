@@ -106,6 +106,29 @@ describe("parseFlow step order", () => {
   })
 })
 
+describe("confirmation step footer buttons", () => {
+  it("defaults showRestartButton and showHomeButton to true", () => {
+    const flow = parseFlow(baseFlow)
+    const end = flow.steps[flow.steps.length - 1] as { showRestartButton?: boolean; showHomeButton?: boolean }
+    expect(end.showRestartButton).toBe(true)
+    expect(end.showHomeButton).toBe(true)
+  })
+
+  it("accepts showRestartButton: false and a custom secondaryCta", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        baseFlow.steps[0],
+        baseFlow.steps[1],
+        { id: "end", type: "confirmation", showRestartButton: false, secondaryCta: "Compila un altro modulo" },
+      ],
+    })
+    const end = flow.steps[2] as { showRestartButton?: boolean; secondaryCta?: string }
+    expect(end.showRestartButton).toBe(false)
+    expect(end.secondaryCta).toBe("Compila un altro modulo")
+  })
+})
+
 describe("Flow.disableBack", () => {
   it("defaults to false", () => {
     const flow = parseFlow(baseFlow)
