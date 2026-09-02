@@ -11,11 +11,12 @@
 
 # Flowkit
 
-Open source library for composing **guided, mobile-first, themeable flows** from a
+Source-available library for composing **guided, mobile-first, themeable flows** from a
 declarative config validated with [zod](https://zod.dev). Built for "one question per
 screen" wizards such as reports, surveys, onboarding and multi-step forms: you write a
 `Flow` object, Flowkit renders it, handles navigation and validation, and applies the
-theme.
+theme. Licensed under the [PolyForm Shield License 1.0.0](#license) from v1.0.0
+(v0.x remains MIT).
 
 **Multi-framework status**: the core (`@flowkit-io/core`), themes (`@flowkit-io/themes`) and
 adapters (`@flowkit-io/adapters`) are framework-agnostic by design. The **React** renderer
@@ -115,4 +116,20 @@ Full docs live in [`docs/`](./docs/README.md):
 
 ## License
 
-See [LICENSE](./LICENSE).
+FlowKit **1.0.0 and later** is source-available under the
+**PolyForm Shield License 1.0.0**. You may read, modify, redistribute and use it in
+production for **any purpose except competing** with FlowKit or
+[Flowlab](https://github.com/MaxMoffa/flowlab). The license is **permanent** — it does
+not expire and does not convert to an open-source license.
+
+- Full terms: [`LICENSE.md`](./LICENSE.md)
+- Plain-language summary and examples: [`LICENSING.md`](./LICENSING.md)
+- Commercial / OEM / white-label / competing use: [`COMMERCIAL-LICENSE.md`](./COMMERCIAL-LICENSE.md)
+- Trademarks: [`TRADEMARKS.md`](./TRADEMARKS.md)
+
+FlowKit **0.x** releases remain under the **MIT License** and are unaffected by
+this change. They are **legacy and no longer maintained** — the new license is
+**not retroactive**. See [`CHANGELOG.md`](./CHANGELOG.md).
+
+> PolyForm Shield 1.0.0 is a source-available license, not an OSI-approved
+> open-source license.

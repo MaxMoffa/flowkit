@@ -145,8 +145,9 @@ export default defineConfig({
     search: { provider: "local" },
 
     footer: {
-      message: "Released under the MIT License.",
-      copyright: "Flowkit",
+      message:
+        "Source available under the PolyForm Shield License 1.0.0 (permanent, no conversion). Releases before 1.0.0 remain MIT.",
+      copyright: "© 2026 Massimo Moffa",
     },
   },
 })

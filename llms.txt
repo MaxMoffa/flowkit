@@ -6,7 +6,8 @@
 
 ## Cos'è
 
-Libreria open source React, headless-first, per comporre "flow" (wizard/onboarding a
+Libreria React source-available (PolyForm Shield License 1.0.0 dalla v1.0.0 — permanente,
+niente conversione; le versioni 0.x restano MIT), headless-first, per comporre "flow" (wizard/onboarding a
 step) guidati e themeable da un config TypeScript validato con zod. Monorepo npm
 (workspaces). Target: React 18 + TypeScript. Build: tsup (pacchetti) / Vite (playground).
 Tema di riferimento: "notion-clean" (minimalismo caldo, mobile-first, CTA sticky in
