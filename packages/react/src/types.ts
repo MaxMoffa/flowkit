@@ -1,4 +1,4 @@
-import type { AnswerValue, Answers, Flow, Step } from "@flowkit-io/core"
+import type { AddressValue, AnswerValue, Answers, Flow, Step } from "@flowkit-io/core"
 
 export interface StepComponentProps<T extends Step = Step> {
   step: T
@@ -6,6 +6,13 @@ export interface StepComponentProps<T extends Step = Step> {
   onChange: (value: AnswerValue) => void
   flow: Flow
   answers: Answers
+  /** Host page's best-guess visitor address — typically just `{ country }` from a
+   *  server-side IP lookup — passed through `FlowRunnerProps.estimatedAddress`. Lets a
+   *  step show a tax estimate (`calculateTax`) before the flow's own `address` step (if
+   *  any) has been answered, the way most storefronts price-with-tax pre-checkout. Not
+   *  validated or trusted for the actual charge — the platform re-derives that
+   *  server-side from the real address, same as `calculateTax` itself. */
+  estimatedAddress?: Partial<AddressValue>
   /** Present only on review-role steps: jump the flow to another step by id (used by
    *  clickable review rows to edit an answer, then return to the review step). */
   onNavigateToStep?: (stepId: string) => void

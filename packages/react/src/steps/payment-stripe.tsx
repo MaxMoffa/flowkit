@@ -2,7 +2,13 @@ import { useLayoutEffect, useRef, useState } from "react"
 import { loadStripe } from "@stripe/stripe-js"
 import type { Appearance, StripePaymentElementChangeEvent } from "@stripe/stripe-js"
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js"
-import type { PaymentMethodSummary, PaymentStripeStep, PaymentStripeValue } from "@flowkit-io/core"
+import {
+  resolvePaymentAmount,
+  resolveText,
+  type PaymentMethodSummary,
+  type PaymentStripeStep,
+  type PaymentStripeValue,
+} from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { Spinner } from "./shared/spinner"
@@ -78,6 +84,13 @@ function buildAppearance(el: HTMLElement | null): Appearance {
       ".Tab:hover": { borderColor: accent },
       ".Tab--selected": { borderColor: accent, boxShadow: `0 0 0 1px ${accent}` },
       ".Input:focus": { borderColor: accent, boxShadow: `0 0 0 3px ${accent}22` },
+      // The "flat" theme draws the accordion (method list) with no separators — in a
+      // light theme the rows become invisible. Give each row a real border.
+      ".AccordionItem": { border: `1px solid ${border}`, boxShadow: "none" },
+      ".AccordionItem:hover": { borderColor: accent },
+      ".AccordionItem--selected": { borderColor: accent, boxShadow: `0 0 0 1px ${accent}` },
+      ".PickerItem": { border: `1px solid ${border}`, boxShadow: "none" },
+      ".PickerItem--selected": { borderColor: accent, boxShadow: `0 0 0 1px ${accent}` },
     },
   }
 }
@@ -168,7 +181,13 @@ function PaymentMethodPicker({ step, collected, onChange }: PickerProps) {
   )
 }
 
-export function PaymentStripeStepView({ step, value, onChange }: StepComponentProps<PaymentStripeStep>) {
+export function PaymentStripeStepView({
+  step,
+  value,
+  onChange,
+  flow,
+  answers,
+}: StepComponentProps<PaymentStripeStep>) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [stripePromise] = useState(() =>
     loadStripe(step.publishableKey, step.stripeAccount ? { stripeAccount: step.stripeAccount } : undefined),
@@ -180,6 +199,8 @@ export function PaymentStripeStepView({ step, value, onChange }: StepComponentPr
   }, [])
 
   const collected = asPaymentStripeValue(value)
+  // "fixed" → the static amount; "cart" → the order total built earlier in the flow.
+  const amount = resolvePaymentAmount(step, flow, answers)
 
   return (
     <div className="fk-step fk-step-payment-stripe" ref={rootRef}>
@@ -194,12 +215,16 @@ export function PaymentStripeStepView({ step, value, onChange }: StepComponentPr
           <FlowMarkdown text={step.description} variant="block" />
         </p>
       )}
-      {appearance ? (
+      {/* No in-step total for "cart" mode: the FlowRunner footer shows the running
+          order total on every step, so repeating it here would just duplicate it. */}
+      {amount <= 0 ? (
+        <p className="fk-subtitle">{resolveText(flow, "catalogEmpty")}</p>
+      ) : appearance ? (
         <Elements
           stripe={stripePromise}
           options={{
             mode: "payment",
-            amount: step.amount,
+            amount,
             currency: step.currency.toLowerCase(),
             paymentMethodCreation: "manual",
             appearance,

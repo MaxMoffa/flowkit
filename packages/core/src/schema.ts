@@ -22,6 +22,8 @@ import type { VerificationStep } from "./verification-step"
 import type { BookingSlotStep } from "./booking-slot-step"
 import type { IntroStep } from "./intro-step"
 import type { SelectCardsStep } from "./select-cards-step"
+import type { CatalogStep } from "./catalog-step"
+import type { AddressStep } from "./address-step"
 import type { ScaleStep } from "./scale-step"
 import type { ChipsStep } from "./chips-step"
 import type { FacesStep } from "./faces-step"
@@ -78,6 +80,14 @@ export const optionSchema = z.object({
   label: z.string(),
   description: z.string().optional(),
   color: z.string().optional(),
+  /**
+   * Optional unit price in the payment currency's minor unit (cents). Absent = the
+   * option is free / not a purchasable line. When the flow has a `payment-stripe`
+   * step with `amountSource: "cart"`, selecting a priced option here adds it (quantity
+   * 1) to the charged total — see `computeOrderTotal` (catalog-step.ts). No effect on
+   * flows without a cart-sourced payment step.
+   */
+  price: z.number().int().nonnegative().optional(),
 })
 
 export type Option = z.infer<typeof optionSchema>
@@ -158,6 +168,8 @@ export interface StepTypeMap {
   /** Variant with Leaflet as the rendering engine (v2.15), same config as "location". */
   "location-leaflet": LocationLeafletStepConfig
   "select-cards": SelectCardsStep
+  catalog: CatalogStep
+  address: AddressStep
   scale: ScaleStep
   chips: ChipsStep
   faces: FacesStep
@@ -195,6 +207,8 @@ export type BuiltinStepType =
   | "location"
   | "location-leaflet"
   | "select-cards"
+  | "catalog"
+  | "address"
   | "scale"
   | "chips"
   | "faces"

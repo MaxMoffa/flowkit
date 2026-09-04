@@ -8,6 +8,8 @@
 // the time index.ts's exports are evaluated.
 import "./intro-step"
 import "./select-cards-step"
+import "./catalog-step"
+import "./address-step"
 import "./scale-step"
 import "./chips-step"
 import "./faces-step"
@@ -39,6 +41,32 @@ import "./long-content-step"
 export * from "./schema"
 export * from "./intro-step"
 export * from "./select-cards-step"
+export {
+  catalogStepSchema,
+  catalogItemSchema,
+  catalogTotal,
+  computeOrderTotal,
+  buildOrderSummary,
+  asCatalogValue,
+} from "./catalog-step"
+export type {
+  CatalogStep,
+  CatalogItem,
+  CatalogLine,
+  CatalogValue,
+  OrderSummary,
+  OrderSummaryLine,
+} from "./catalog-step"
+export { addressStepSchema, asAddressValue } from "./address-step"
+export type { AddressStep, AddressValue } from "./address-step"
+export { buildTaxInput } from "./tax"
+export type {
+  CalculateTax,
+  TaxCalculation,
+  TaxCalculationInput,
+  TaxLineInput,
+  TaxBreakdownEntry,
+} from "./tax"
 export * from "./scale-step"
 export * from "./chips-step"
 export * from "./faces-step"
@@ -74,7 +102,12 @@ export { groupStepSchema } from "./group-step"
 export type { GroupStep } from "./group-step"
 export { signatureStepSchema } from "./signature-step"
 export type { SignatureStep } from "./signature-step"
-export { paymentStripeStepSchema, getPendingPayment, flowHasPayment } from "./payment-stripe-step"
+export {
+  paymentStripeStepSchema,
+  getPendingPayment,
+  flowHasPayment,
+  resolvePaymentAmount,
+} from "./payment-stripe-step"
 export type {
   PaymentStripeStep,
   PaymentStripeValue,

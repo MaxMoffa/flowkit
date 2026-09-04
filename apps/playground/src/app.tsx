@@ -23,6 +23,11 @@ const debugInitialAnswers = (() => {
     return undefined
   }
 })()
+/** Stands in for the platform's server-side IP geolocation (see
+ *  `FlowRunnerProps.estimatedAddress`) — the playground has no server of its own, so
+ *  this is read from the URL instead. Read by e2e/catalog-tax-estimate.spec.ts; also
+ *  handy to poke at manually, e.g. `?preset=catalog-demo&estimatedCountry=FR`. */
+const debugEstimatedCountry = debugParams.get("estimatedCountry") ?? undefined
 
 export function App() {
   const [presetKey, setPresetKey] = useState<string>("odori")
@@ -207,6 +212,7 @@ export function App() {
               mode={mode}
               initialStep={debugInitialStep}
               initialAnswers={debugInitialAnswers}
+              estimatedAddress={debugEstimatedCountry ? { country: debugEstimatedCountry } : undefined}
               onSubmit={async (answers) => {
                 await adapter.submit(flow.id, answers)
                 setLastSubmission(answers)

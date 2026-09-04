@@ -61,6 +61,7 @@ if it meets a step nobody registered, so a forgotten import fails loudly.
 | `onStepChange` | `(step: CurrentStepInfo) => void` | no | Called every time the visibly rendered step changes — see below |
 | `initialStep` | `string` | no | Id of the step to start on instead of the first step — see [Resuming a flow](#resuming-a-flow) |
 | `initialAnswers` | `Answers` | no | Answers to preload before the flow ever renders — see [Resuming a flow](#resuming-a-flow) |
+| `estimatedAddress` | `Partial<AddressValue>` | no | Host page's best-guess visitor address, typically just `{ country: "IT" }` from a server-side IP lookup — see [Estimating tax before an address is collected](./steps/payment-stripe.md#estimating-tax-before-an-address-is-collected) |
 | `haptics` | `boolean` | no (default `true`) | Short device vibration on the navigation buttons (continue/back/submit, review-row jumps, restart), plus a distinct longer buzz on a blocked-while-invalid attempt. Needs the Vibration API (Android); a silent no-op on iOS/desktop. `false` opts out |
 
 ## Reading the current step

@@ -122,6 +122,7 @@ function FlowOverlayContent({
   onStepChange,
   initialStep,
   initialAnswers,
+  estimatedAddress,
   haptics,
 }: FlowOverlayContentProps) {
   const resolved = usePresentation(presentation)
@@ -236,6 +237,7 @@ function FlowOverlayContent({
               onStepChange={onStepChange}
               initialStep={initialStep}
               initialAnswers={initialAnswers}
+              estimatedAddress={estimatedAddress}
               haptics={haptics}
             />
           </div>

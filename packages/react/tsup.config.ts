@@ -4,6 +4,8 @@ import { defineConfig } from "tsup"
 const stepEntries = [
   "intro",
   "select-cards",
+  "catalog",
+  "address",
   "scale",
   "chips",
   "faces",

@@ -3,6 +3,9 @@ import type { Answers } from "./machine"
 import { answerKey } from "./machine"
 import { getStepTypeDefinition } from "./registry"
 import { isUploadedItemArray, type UploadedItem } from "./upload-item"
+import { asCatalogValue, catalogTotal, type CatalogStep } from "./catalog-step"
+import { asAddressValue } from "./address-step"
+import { formatMoney } from "./money"
 
 export function optionLabel(step: Step, rawValue: string): string {
   if (
@@ -60,6 +63,15 @@ function formatPaymentMethod(value: unknown): string {
   return `💳 ${label}`
 }
 
+function formatCatalogAnswer(step: CatalogStep, value: unknown): string {
+  const parsed = asCatalogValue(value)
+  const lines = (parsed?.items ?? []).filter((line) => line.quantity > 0)
+  if (lines.length === 0) return "—"
+  const labels = new Map(step.items.map((item) => [item.value, item.label]))
+  const parts = lines.map((line) => `${line.quantity}× ${labels.get(line.value) ?? line.value}`)
+  return `🛒 ${parts.join(", ")} · ${formatMoney(catalogTotal(step, value), step.currency)}`
+}
+
 export function formatAnswer(step: Step, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—"
   if (step.type === "media" || step.type === "file") {
@@ -71,6 +83,14 @@ export function formatAnswer(step: Step, value: unknown): string {
       return `📎 ${items.map((i) => i.name).join(", ")}`
     }
     return `${step.type === "media" ? "📷" : "📎"}×${items.length}`
+  }
+  if (step.type === "catalog") return formatCatalogAnswer(step as CatalogStep, value)
+  if (step.type === "address") {
+    const address = asAddressValue(value)
+    if (!address) return "—"
+    return [address.line1, address.line2, [address.postalCode, address.city].filter(Boolean).join(" "), address.state, address.country]
+      .filter((part) => part && String(part).trim())
+      .join(", ")
   }
   if (step.type === "checkbox") return value === true ? "✓ Accettato" : "—"
   if (step.type === "signature") return "✍️ Firma"
@@ -95,6 +115,8 @@ const DEFAULT_TYPE_EMOJI: Record<string, string> = {
   location: "📍",
   "location-leaflet": "📍",
   "select-cards": "🏷️",
+  catalog: "🛒",
+  address: "📮",
   scale: "📊",
   chips: "⏱️",
   radio: "🔘",

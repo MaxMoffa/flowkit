@@ -1,5 +1,49 @@
 # @flowkit-io/react
 
+## 1.2.0 — 2026-09-04
+
+### Added
+
+- **`catalog` step component** — product cards with an image, price and a per-item
+  quantity stepper, plus a running order total. Registered as a built-in and available
+  as the opt-in entry `@flowkit-io/react/steps/catalog`. An item with a `details` blurb
+  is tap-to-expand: a bottom drawer on mobile, a centered dialog from 768px up
+  (close via ✕, backdrop, Escape).
+- **`address` step component** — a small form (country / address / postal code / city /
+  state). Built-in; opt-in entry `@flowkit-io/react/steps/address`.
+- **`FlowRunnerProps.estimatedAddress`** (also on `FlowOverlayProps`) — the host page's
+  best-guess visitor address (typically `{ country }` from a server-side IP lookup),
+  threaded down to every step as `StepComponentProps.estimatedAddress`. The `catalog`
+  step uses it: once the cart isn't empty, it calls the payment step's `calculateTax`
+  itself (new shared `steps/shared/use-tax-calculation.ts` hook, also now used by
+  `review`) with this as a fallback address while the flow's own `address` step hasn't
+  been answered yet, and shows the result as a small note labeled "· stima" /
+  "· estimate" (`.fk-catalog-tax-note`). `review`'s own tax line gains the same caveat
+  (`.fk-order-summary-tax-note`) for the same reason — mid-flow checkpoint reviews can
+  sit before `address` too. Purely additive; a flow with no `calculateTax` wired, or no
+  `estimatedAddress` passed, renders exactly as before.
+- **Running order total in the footer.** When the flow has a non-empty priced order,
+  `StepFooter` shows a plain "order total" line just above the button row on every step
+  (except the final review, which has its own recap) — so the amount stays visible from
+  item selection through payment. The `catalog` step no longer renders its own total
+  block and the `payment-stripe` step drops its in-step "Totale" callout for
+  `amountSource: "cart"`.
+
+### Changed
+
+- `payment-stripe` step: the Payment Element amount now comes from
+  `resolvePaymentAmount` (so an `amountSource: "cart"` step charges the order total built
+  earlier in the flow, and shows a "Totale" callout). No Elements mount while the total
+  is 0.
+- `review` step: a final review renders an itemized order recap (`buildOrderSummary` —
+  each catalog item with quantity/unit price, each priced option, the total) when the
+  flow is priced, replacing the single-line total callout. The catalog step's own
+  report row is hidden to avoid repeating the table. When the payment step carries a
+  `calculateTax` function, the review calls it once on mount and adds a subtotal, the
+  tax breakdown lines and a tax-inclusive total (with loading / error states).
+- `payment-stripe` appearance: explicit borders for `.AccordionItem` / `.PickerItem` so
+  the method list stays visible on light themes (the `flat` base theme drew none).
+
 ## 1.1.0 — 2026-09-03
 
 ### Changed

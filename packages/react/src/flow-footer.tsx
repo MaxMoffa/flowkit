@@ -29,6 +29,10 @@ interface StepFooterProps {
   onPrimary: () => void
   /** Message from a rejected submit (e.g. a failed deferred payment), shown above the row. */
   error?: string | null
+  /** Running order total (catalog items + priced options), shown as a plain line just
+   *  above the button row on every step once the order is non-empty. Both strings are
+   *  already localized. */
+  orderTotal?: { label: string; amount: string } | null
   progress: { Component: ComponentType<ProgressComponentProps> | null; show: boolean } & ProgressComponentProps
 }
 
@@ -44,6 +48,7 @@ export function StepFooter({
   isSubmit,
   onPrimary,
   error,
+  orderTotal,
   progress,
 }: StepFooterProps) {
   const { Component: ProgressComponent, show, ...progressProps } = progress
@@ -58,6 +63,12 @@ export function StepFooter({
         <p className="fk-footer-error" role="alert">
           {error}
         </p>
+      )}
+      {orderTotal && (
+        <div className="fk-footer-order-total">
+          <span>{orderTotal.label}</span>
+          <span className="fk-footer-order-total-amount">{orderTotal.amount}</span>
+        </div>
       )}
       <div className="fk-footer-row">
         {showBack && (

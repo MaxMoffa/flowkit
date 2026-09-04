@@ -4,6 +4,8 @@
 // ones share a single registration site instead of two that can drift apart.
 import "./entries/intro"
 import "./entries/select-cards"
+import "./entries/catalog"
+import "./entries/address"
 import "./entries/scale"
 import "./entries/chips"
 import "./entries/faces"

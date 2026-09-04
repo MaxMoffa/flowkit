@@ -8,16 +8,25 @@ import {
   useRef,
   useState,
 } from "react"
-import type { Answers, CurrentStepInfo, Flow, FlowState, StepChangeDirection } from "@flowkit-io/core"
+import type {
+  AddressValue,
+  Answers,
+  CurrentStepInfo,
+  Flow,
+  FlowState,
+  StepChangeDirection,
+} from "@flowkit-io/core"
 import {
   answerKey,
   applyBranch,
+  buildOrderSummary,
   canGoBack,
   canGoNext,
   computeInitialFlowState,
   createFlowState,
   filterValidAnswers,
   flowHasPayment,
+  formatMoney,
   getCurrentStep,
   getCurrentStepInfo,
   getProgressInfo,
@@ -76,6 +85,15 @@ export interface FlowRunnerProps {
    *  entry is validated against its step's own validation rule and dropped if invalid;
    *  keys that don't match any step's `key`/`id` are dropped too. Never throws. */
   initialAnswers?: Answers
+  /** Host page's best-guess visitor address, typically just `{ country }` from a
+   *  server-side IP lookup (a `cf-ipcountry`-style edge header, a MaxMind/ipapi
+   *  lookup…) — the same technique storefronts like Amazon use to show tax-inclusive
+   *  prices before checkout, without an account or a typed address. FlowKit never
+   *  does this lookup itself (no server of its own); pass the result down here. Steps
+   *  that call `calculateTax` (currently `catalog`) use it as a fallback address
+   *  while the flow's own `address` step (if any) hasn't been answered yet, and label
+   *  the result as an estimate. Not validated, not trusted for the actual charge. */
+  estimatedAddress?: Partial<AddressValue>
   /** Fire a short device vibration on the navigation buttons (continue/back/submit,
    *  review-row jumps, confirmation restart) — and a distinct longer buzz when the
    *  primary button is pressed while the step is still invalid. Default `true`. Only has
@@ -110,7 +128,18 @@ export interface FlowRunnerHandle {
 }
 
 export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function FlowRunner(
-  { flow, theme, mode, onSubmit, onChange, onStepChange, initialStep, initialAnswers, haptics = true },
+  {
+    flow,
+    theme,
+    mode,
+    onSubmit,
+    onChange,
+    onStepChange,
+    initialStep,
+    initialAnswers,
+    estimatedAddress,
+    haptics = true,
+  },
   ref,
 ) {
   const [state, setState] = useState<FlowState>(() =>
@@ -228,6 +257,20 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     steps: progressSteps,
   }
   const visitedStepIds = useMemo(() => new Set([...state.history, step.id]), [state.history, step.id])
+
+  /** Running order total in the footer: shown on every step once the cart is non-empty,
+   *  so the amount stays in view from item selection through payment. The final review
+   *  step is the exception — it renders its own itemized recap with the (tax-inclusive)
+   *  total, so a second figure in the footer would just be confusing. */
+  const orderTotal = useMemo(() => {
+    if (isReviewType) return null
+    const summary = buildOrderSummary(flow, state.answers)
+    if (!summary || summary.total <= 0) return null
+    return {
+      label: resolveText(flow, "catalogTotal"),
+      amount: formatMoney(summary.total, summary.currency, flow.locale),
+    }
+  }, [flow, state.answers, isReviewType])
 
   useEffect(() => {
     setAttempt(0)
@@ -480,6 +523,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
                   onChange={handleChange}
                   flow={flow}
                   answers={state.answers}
+                  estimatedAddress={estimatedAddress}
                   onNavigateToStep={isReviewType && !flow.disableBack ? handleNavigateToStep : undefined}
                   meta={getStepMeta(state, step.id)}
                   onMetaChange={handleMetaChange}
@@ -502,6 +546,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
             isSubmit={isFinalReviewSubmit}
             onPrimary={handleNext}
             error={submitError}
+            orderTotal={orderTotal}
             progress={{
               Component: layout.ProgressComponent,
               show: layout.progressPosition === "footer",

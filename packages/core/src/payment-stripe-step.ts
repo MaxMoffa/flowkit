@@ -4,6 +4,8 @@ import type { Answers } from "./machine"
 import { answerKey } from "./machine"
 import { registerStepType } from "./registry"
 import { baseStepFields } from "./schema"
+import { computeOrderTotal } from "./catalog-step"
+import type { CalculateTax } from "./tax"
 
 /**
  * "payment-stripe" step — deferred model (since v2.40).
@@ -22,21 +24,50 @@ import { baseStepFields } from "./schema"
  * from `onSubmit` if it fails so the FlowRunner keeps the user on the review
  * step and surfaces the error.
  */
-export const paymentStripeStepSchema = z.object({
-  ...baseStepFields,
-  type: z.literal("payment-stripe"),
-  /** Stripe PUBLISHABLE key only — never a secret key. Enforced by naming/docs, not by code. */
-  publishableKey: z.string().min(1),
-  /** Amount in the currency's minor unit (e.g. cents for EUR/USD). Shown to Stripe so it
-   *  can offer the right payment methods, and rendered as the total on the review step. */
-  amount: z.number().int().positive(),
-  currency: z.string().length(3).default("eur"),
-  description: z.string().optional(),
-  /** Stripe Connect destination account, optional. */
-  stripeAccount: z.string().optional(),
-  /** Label of the "change the selected method" button shown once a method is picked. */
-  changeLabel: z.string().default("Cambia"),
-})
+export const paymentStripeStepSchema = z
+  .object({
+    ...baseStepFields,
+    type: z.literal("payment-stripe"),
+    /** Stripe PUBLISHABLE key only — never a secret key. Enforced by naming/docs, not by code. */
+    publishableKey: z.string().min(1),
+    /**
+     * Where the charged amount comes from:
+     * - `"fixed"` (default): the static `amount` below — a single-price checkout.
+     * - `"cart"`: the sum of every priced selection earlier in the flow
+     *   (`computeOrderTotal` — `catalog` steps and priced options on
+     *   select-cards/multi-select/radio/chips), plus `amount` as a flat surcharge
+     *   (shipping, booking fee…) when set. Lets the visitor build their own order.
+     */
+    amountSource: z.enum(["fixed", "cart"]).default("fixed"),
+    /**
+     * Amount in the currency's minor unit (e.g. cents for EUR/USD). Required and
+     * positive when `amountSource` is `"fixed"`; an optional flat surcharge added on
+     * top of the cart total when `amountSource` is `"cart"`. Shown to Stripe so it
+     * can offer the right payment methods, and rendered as the total on the review step.
+     */
+    amount: z.number().int().nonnegative().optional(),
+    currency: z.string().length(3).default("eur"),
+    description: z.string().optional(),
+    /** Stripe Connect destination account, optional. */
+    stripeAccount: z.string().optional(),
+    /** Label of the "change the selected method" button shown once a method is picked. */
+    changeLabel: z.string().default("Cambia"),
+    /** Whether item prices already include tax (`"inclusive"`) or tax is added on
+     *  top (`"exclusive"`, default). Mirrors Stripe's `tax_behavior`; only meaningful
+     *  when `calculateTax` is wired. */
+    taxBehavior: z.enum(["inclusive", "exclusive"]).default("exclusive"),
+    /**
+     * Platform-injected (never serialized — see `verifyToken`). When present, the
+     * review step calls it with the order lines + the `address` step's answer and
+     * shows the returned tax breakdown / tax-inclusive total. The charged amount is
+     * still re-derived server-side. Absent = no tax line is shown.
+     */
+    calculateTax: z.custom<CalculateTax>((v) => typeof v === "function").optional(),
+  })
+  .refine(
+    (step) => step.amountSource === "cart" || (typeof step.amount === "number" && step.amount > 0),
+    { message: "A fixed-amount payment step needs a positive `amount`.", path: ["amount"] },
+  )
 
 export type PaymentStripeStep = z.infer<typeof paymentStripeStepSchema>
 
@@ -74,6 +105,20 @@ registerStepType({
   validate: (_step, value) => asPaymentStripeValue(value) !== null,
 })
 
+/**
+ * The amount this step will charge, in the step's currency minor unit. For
+ * `amountSource: "fixed"` it is the static `amount`; for `"cart"` it is the
+ * flow's order total (`computeOrderTotal`) plus the optional flat `amount`
+ * surcharge. Use it wherever the total is shown or charged — the react step's
+ * Payment Element, the review callout, the server-side confirm — so all three
+ * agree.
+ */
+export function resolvePaymentAmount(step: PaymentStripeStep, flow: Flow, answers: Answers): number {
+  const surcharge = typeof step.amount === "number" ? step.amount : 0
+  if (step.amountSource === "cart") return computeOrderTotal(flow, answers) + surcharge
+  return surcharge
+}
+
 /** Data a consumer needs to finalize a deferred payment from inside `onSubmit`. */
 export interface PendingPayment {
   /** Id of the `payment-stripe` step the method was collected on. */
@@ -107,7 +152,7 @@ export function getPendingPayment(flow: Flow, answers: Answers): PendingPayment 
     return {
       stepId: paymentStep.id,
       confirmationTokenId: value.confirmationTokenId,
-      amount: paymentStep.amount,
+      amount: resolvePaymentAmount(paymentStep, flow, answers),
       currency: paymentStep.currency,
       summary: value.summary,
     }

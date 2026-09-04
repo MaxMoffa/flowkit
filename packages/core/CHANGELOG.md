@@ -1,5 +1,51 @@
 # @flowkit-io/core
 
+## 1.2.0 — 2026-09-04
+
+### Added
+
+- **`catalog` step.** The visitor builds an order: pick items from a priced list and
+  choose a quantity for each. Config carries `items` (`{ value, label, description?,
+  details?, price, image?, maxQuantity? }`), `currency`, `minItems`/`maxItems`,
+  `maxPerItem`. `details` is a longer markdown blurb the renderer shows in a
+  drawer/dialog on tap. Answer value is `{ items: [{ value, quantity }], total }`.
+- `buildOrderSummary(flow, answers)` — itemized order recap for the review step: one
+  `"item"` line per picked catalog item (with quantity + unit price), one `"fee"` line
+  per priced option and for the payment step's flat `amount` surcharge, plus the total.
+  Returns `null` when nothing is priced.
+- `computeOrderTotal(flow, answers)` — total (minor units) of every priced selection in
+  the flow (catalog items + priced options); now a thin wrapper over `buildOrderSummary`
+  that excludes the payment step's own surcharge (added separately by
+  `resolvePaymentAmount`).
+- `catalogTotal(step, value)`, `asCatalogValue(value)`.
+- **`address` step** — country + postal code + line1/line2/city/state. `countries?`
+  renders a `<select>`; otherwise a free 2-letter country input. Answer value
+  `{ country, postalCode?, state?, city?, line1?, line2? }`.
+- **Tax seam.** `payment-stripe` gains `taxBehavior` (`"inclusive"`/`"exclusive"`,
+  default exclusive) and an optional platform-injected `calculateTax` function (never
+  serialized). `catalogItemSchema` gains `taxCode` (Stripe `txcd_…`). `buildTaxInput`
+  (`tax.ts`) collects the order lines + the `address` step's answer into the shape
+  `calculateTax` expects, or `null` when the order/address isn't ready. Types
+  `CalculateTax`, `TaxCalculation`, `TaxCalculationInput`, `TaxLineInput`,
+  `TaxBreakdownEntry`.
+- **Estimated tax before an address is collected.** `buildTaxInput` gains a 4th
+  optional `estimatedAddress` param: when the flow's own `address` step hasn't been
+  answered yet, it falls back to this (typically the host page's server-side IP-based
+  country lookup) instead of returning `null`. `TaxCalculationInput` gains
+  `addressSource: "collected" | "estimated"` so a consumer/UI knows whether the address
+  is the visitor's own or a guess. New i18n keys `taxEstimated`, `catalogEstimatedTotal`.
+- `resolvePaymentAmount(step, flow, answers)` — the amount a `payment-stripe` step will
+  charge, for `"fixed"` and `"cart"` sources alike. Used by `getPendingPayment`.
+
+### Changed
+
+- `optionSchema` gains an optional `price` (minor units) — lets a plain option-list step
+  act as a priced picker.
+- **`payment-stripe` step: `amount` is now optional.** New `amountSource` field
+  (`"fixed"` | `"cart"`, default `"fixed"`). `"cart"` charges `computeOrderTotal` plus
+  `amount` as a flat surcharge; `"fixed"` still requires a positive `amount`.
+  `getPendingPayment().amount` is now the resolved (possibly cart-derived) total.
+
 ## 1.1.0 — 2026-09-03
 
 ### Changed

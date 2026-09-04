@@ -696,6 +696,23 @@
   text-align: center;
 }
 
+/* Running order total: plain line above the button row, no card / no fill */
+.fk-footer-order-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fk-space-md);
+  font-size: 14px;
+  color: var(--fk-text2);
+}
+
+.fk-footer-order-total-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fk-text);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Scoped to max-width (not a bare, unconditional rule): this file declares the
    >=1024px override for .fk-footer-row earlier (near the top), so an unconditional
    flex-direction here would win the cascade by source order and silently break the
@@ -1641,6 +1658,267 @@
   background: var(--fk-accent-soft);
 }
 
+/* Catalog: pick items + quantity, running order total */
+.fk-catalog-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fk-catalog-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: var(--fk-border-width) solid var(--fk-border);
+  border-radius: var(--fk-radius-md);
+  background: var(--fk-canvas);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.fk-catalog-item-active {
+  border-color: var(--fk-accent);
+  background: var(--fk-accent-soft);
+}
+
+.fk-catalog-thumb {
+  flex: 0 0 auto;
+  font-size: 24px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.fk-catalog-thumb img {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--fk-radius-sm);
+  object-fit: cover;
+}
+
+.fk-catalog-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fk-catalog-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fk-catalog-description {
+  font-size: 12px;
+  color: var(--fk-text2);
+  line-height: 1.35;
+}
+
+.fk-catalog-price {
+  font-size: 13px;
+  color: var(--fk-text2);
+  margin-top: 2px;
+}
+
+.fk-catalog-add {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fk-accent);
+  background: transparent;
+  border: var(--fk-border-width) solid var(--fk-accent);
+  border-radius: var(--fk-radius-sm);
+  padding: 7px 14px;
+  cursor: pointer;
+}
+
+.fk-catalog-stepper {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: var(--fk-border-width) solid var(--fk-border);
+  border-radius: var(--fk-radius-sm);
+  padding: 2px;
+  background: var(--fk-canvas);
+}
+
+.fk-catalog-step {
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fk-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--fk-radius-sm);
+  cursor: pointer;
+}
+
+.fk-catalog-step:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fk-catalog-qty {
+  min-width: 22px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.fk-catalog-body-button {
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.fk-catalog-more {
+  margin-left: 6px;
+  color: var(--fk-accent);
+  font-size: 12px;
+}
+
+.fk-catalog-tax-note {
+  margin: var(--fk-space-sm) 0 0;
+  font-size: 12px;
+  color: var(--fk-text2);
+  font-style: italic;
+}
+
+/* Catalog: item detail sheet — bottom drawer on mobile, centered dialog ≥768px */
+.fk-catalog-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.fk-catalog-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.fk-catalog-sheet {
+  position: relative;
+  background: var(--fk-canvas);
+  color: var(--fk-text);
+  border-radius: var(--fk-radius-lg) var(--fk-radius-lg) 0 0;
+  padding: var(--fk-space-lg) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: fk-catalog-sheet-up 0.22s ease-out;
+}
+
+@keyframes fk-catalog-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+.fk-catalog-sheet-grabber {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--fk-border);
+  margin: 0 auto var(--fk-space-md);
+  cursor: pointer;
+}
+
+.fk-catalog-sheet-close {
+  position: absolute;
+  top: var(--fk-space-md);
+  right: var(--fk-space-md);
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fk-surface);
+  color: var(--fk-text);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.fk-catalog-sheet-thumb {
+  font-size: 40px;
+  line-height: 1;
+  display: block;
+}
+
+.fk-catalog-sheet-thumb img {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--fk-radius-md);
+  object-fit: cover;
+}
+
+.fk-catalog-sheet-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: var(--fk-space-sm) 0 2px;
+}
+
+.fk-catalog-sheet-price {
+  color: var(--fk-text2);
+  font-size: 14px;
+  margin: 0 0 var(--fk-space-md);
+}
+
+.fk-catalog-sheet-details {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fk-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fk-catalog-sheet {
+    animation: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .fk-catalog-sheet-root {
+    justify-content: center;
+    align-items: center;
+    padding: var(--fk-space-xl);
+  }
+
+  .fk-catalog-sheet {
+    max-width: 420px;
+    width: 100%;
+    border-radius: var(--fk-radius-lg);
+    padding: var(--fk-space-xl);
+    animation: fk-catalog-sheet-in 0.18s ease-out;
+  }
+
+  .fk-catalog-sheet-grabber {
+    display: none;
+  }
+}
+
+@keyframes fk-catalog-sheet-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
 /* Scale: slider variant */
 .fk-scale-slider-value {
   text-align: center;
@@ -2213,11 +2491,124 @@
   color: var(--fk-text);
 }
 
+/* Review: itemized order recap (catalog + fees) */
+.fk-order-summary {
+  margin-bottom: var(--fk-space-md);
+  border: 1px solid var(--fk-border);
+  border-radius: var(--fk-radius-md);
+  overflow: hidden;
+}
+
+.fk-order-summary-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fk-order-summary-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fk-space-md);
+  padding: var(--fk-space-sm) var(--fk-space-lg);
+  border-bottom: 1px solid var(--fk-border);
+  font-size: 14px;
+}
+
+.fk-order-summary-line-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fk-order-summary-qty {
+  font-weight: 600;
+  color: var(--fk-text2);
+}
+
+.fk-order-summary-unit {
+  font-size: 12px;
+  color: var(--fk-text2);
+}
+
+.fk-order-summary-line-amount {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.fk-order-summary-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fk-space-md);
+  padding: var(--fk-space-md) var(--fk-space-lg);
+  background: var(--fk-accent-soft);
+  font-size: 14px;
+  color: var(--fk-text2);
+}
+
+.fk-order-summary-total-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fk-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.fk-order-summary-subtotal,
+.fk-order-summary-tax {
+  color: var(--fk-text2);
+}
+
+.fk-order-summary-subtotal {
+  border-top: 1px solid var(--fk-border);
+}
+
+.fk-order-summary-tax-error {
+  color: var(--fk-danger);
+}
+
+.fk-order-summary-tax-note {
+  border-bottom: none;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 12px;
+  color: var(--fk-text2);
+  font-style: italic;
+}
+
+/* address step */
+.fk-address-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--fk-space-md);
+}
+
+.fk-address-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fk-address-field-wide {
+  grid-column: 1 / -1;
+}
+
+.fk-address-label {
+  font-size: 13px;
+  color: var(--fk-text2);
+}
+
 .fk-review-box {
   background: var(--fk-soft);
   border-radius: var(--fk-radius-lg);
-  padding: 4px 18px;
+  padding: 0 18px;
   margin-bottom: var(--fk-space-xl);
+  /* Clip the rows to the rounded box: only the first row's top corners and the
+     last row's bottom corners read as rounded, the rest are plain dividers. */
+  overflow: hidden;
 }
 
 .fk-review-list {
@@ -2243,7 +2634,6 @@
   margin: 0 -18px;
   padding-left: 18px;
   padding-right: 18px;
-  border-radius: var(--fk-radius-sm);
 }
 
 .fk-review-row-clickable:hover,
