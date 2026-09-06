@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react"
-import { createPortal } from "react-dom"
+import { useState } from "react"
 import {
   asCatalogValue,
   catalogTotal,
   formatMoney,
   resolveText,
+  resolveContentText,
   type CalculateTax,
   type CatalogItem,
   type CatalogStep,
@@ -17,6 +17,9 @@ import { StepImage } from "./shared/step-image"
 import { useFieldValidation } from "./shared/use-field-validation"
 import { FieldError } from "./shared/field-error"
 import { useTaxCalculation } from "./shared/use-tax-calculation"
+import { taxBehaviorNote } from "./shared/tax-note"
+import { SheetDialog } from "./shared/sheet-dialog"
+import { useThemeRootRef } from "./shared/use-theme-root-ref"
 
 function quantityOf(value: CatalogValue | null, itemValue: string): number {
   const line = value?.items.find((entry) => entry.value === itemValue)
@@ -27,75 +30,43 @@ function itemCap(step: CatalogStep, item: CatalogItem): number {
   return item.maxQuantity ?? step.maxPerItem
 }
 
-/** Bottom drawer on mobile, centered dialog from ~768px up (the switch is pure CSS —
- *  see `.fk-catalog-sheet`). Rendered in a portal so it escapes the step's clipping. */
-function CatalogItemSheet({
+/** Bottom drawer on mobile, centered dialog from ~768px up — body markup for the
+ *  catalog item detail sheet, shell provided by the shared `SheetDialog` (own
+ *  `.fk-catalog-sheet-*` namespace). */
+function CatalogItemSheetBody({
   item,
+  label,
+  details,
   currency,
   locale,
-  closeLabel,
-  container,
-  onClose,
 }: {
   item: CatalogItem
+  /** Resolved via `resolveContentText` at the call site — this component stays a
+   *  plain string renderer, no `flow` dependency of its own. */
+  label: string
+  details?: string
   currency: string
   locale: string
-  closeLabel: string
-  container: HTMLElement
-  onClose: () => void
 }) {
-  const sheetRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    sheetRef.current?.focus()
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose()
-    }
-    document.addEventListener("keydown", onKey)
-    return () => document.removeEventListener("keydown", onKey)
-  }, [onClose])
-
-  return createPortal(
-    <div className="fk-catalog-sheet-root">
-      <div className="fk-catalog-sheet-backdrop" onClick={onClose} />
-      <div
-        ref={sheetRef}
-        className="fk-catalog-sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-label={item.label}
-        tabIndex={-1}
-      >
-        <div className="fk-catalog-sheet-grabber" aria-hidden="true" onClick={onClose} />
-        <button
-          type="button"
-          className="fk-catalog-sheet-close"
-          aria-label={closeLabel}
-          onClick={onClose}
-        >
-          ✕
-        </button>
-        <div className="fk-catalog-sheet-body">
-          {item.image && (
-            <span className="fk-catalog-sheet-thumb">
-              <StepImage image={item.image} size="badge" />
-            </span>
-          )}
-          <h3 className="fk-catalog-sheet-title">
-            <FlowMarkdown text={item.label} variant="inline" />
-          </h3>
-          <p className="fk-catalog-sheet-price">
-            {item.price > 0 ? formatMoney(item.price, currency, locale) : "—"}
-          </p>
-          {item.details && (
-            <div className="fk-catalog-sheet-details">
-              <FlowMarkdown text={item.details} variant="block" />
-            </div>
-          )}
+  return (
+    <>
+      {item.image && (
+        <span className="fk-catalog-sheet-thumb">
+          <StepImage image={item.image} size="badge" />
+        </span>
+      )}
+      <h3 className="fk-catalog-sheet-title">
+        <FlowMarkdown text={label} variant="inline" />
+      </h3>
+      <p className="fk-catalog-sheet-price">
+        {item.price > 0 ? formatMoney(item.price, currency, locale) : "—"}
+      </p>
+      {details && (
+        <div className="fk-catalog-sheet-details">
+          <FlowMarkdown text={details} variant="block" />
         </div>
-      </div>
-    </div>,
-    container,
+      )}
+    </>
   )
 }
 
@@ -110,8 +81,11 @@ export function CatalogStepView({
   estimatedAddress,
 }: StepComponentProps<CatalogStep>) {
   const current = asCatalogValue(value)
-  const rootRef = useRef<HTMLDivElement>(null)
+  const [rootRef, sheetContainer] = useThemeRootRef<HTMLDivElement>()
   const [openItem, setOpenItem] = useState<string | null>(null)
+  // Filter selection is local display state (v2.43) — never part of the stored
+  // `CatalogValue` answer, so it can't affect validation/total/report logic.
+  const [activeTags, setActiveTags] = useState<string[]>([])
   const { message, errorId, handleBlur, ariaProps } = useFieldValidation(
     step,
     value,
@@ -138,6 +112,7 @@ export function CatalogStepView({
     hasItems,
     estimatedAddress,
   )
+  const priceNote = taxBehaviorNote(flow, paymentStep)
 
   function setQuantity(itemValue: string, quantity: number) {
     const others = (current?.items ?? []).filter((line) => line.value !== itemValue)
@@ -153,39 +128,74 @@ export function CatalogStepView({
 
   const activeItem = openItem ? step.items.find((item) => item.value === openItem) : undefined
 
-  // Portal the sheet into the theme root (`.fk-theme`, set by ThemeProvider) so its
-  // CSS custom properties resolve — `document.body` would strip the theme.
-  const sheetContainer =
-    rootRef.current?.closest<HTMLElement>(".fk-theme") ??
-    (typeof document !== "undefined" ? document.body : null)
+  function toggleTag(tag: string) {
+    setActiveTags((tags) => (tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag]))
+  }
+
+  // No filter active → every item shows (today's behavior, unchanged). At least one
+  // active → OR match: an item with no `tags` (or none matching) drops out.
+  const visibleItems =
+    activeTags.length === 0
+      ? step.items
+      : step.items.filter((item) => item.tags?.some((tag) => activeTags.includes(tag)))
+
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   return (
     <div className="fk-step fk-step-catalog" ref={rootRef}>
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && (
+      <StepTitle image={step.image} title={title} />
+      {subtitle && (
         <p className="fk-subtitle">
-          <FlowMarkdown text={step.subtitle} variant="block" />
+          <FlowMarkdown text={subtitle} variant="block" />
         </p>
       )}
 
+      {step.filters && step.filters.length > 0 && (
+        <div className="fk-catalog-filter-row" role="group" aria-label={resolveText(flow, "catalogFilters")}>
+          {step.filters.map((filter) => {
+            const active = activeTags.includes(filter.tag)
+            const filterLabel = resolveContentText(flow, filter.label)
+            return (
+              <button
+                key={filter.tag}
+                type="button"
+                className={`fk-catalog-filter-chip ${active ? "fk-catalog-filter-chip-selected" : ""}`}
+                aria-pressed={active}
+                onClick={() => toggleTag(filter.tag)}
+              >
+                {filter.icon && <StepImage image={filter.icon} size="catalog-filter" />}
+                <FlowMarkdown text={filterLabel} variant="inline" />
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       <ul className="fk-catalog-list" onBlur={handleBlur} {...ariaProps}>
-        {step.items.map((item) => {
+        {visibleItems.length === 0 && (
+          <li className="fk-catalog-filter-empty">{resolveText(flow, "catalogFilterEmpty")}</li>
+        )}
+        {visibleItems.map((item) => {
           const quantity = quantityOf(current, item.value)
           const cap = itemCap(step, item)
           const expandable = Boolean(item.details)
+          const label = resolveContentText(flow, item.label)
+          const description = item.description !== undefined ? resolveContentText(flow, item.description) : undefined
           const body = (
             <>
               <span className="fk-catalog-label">
-                <FlowMarkdown text={item.label} variant="inline" />
+                <FlowMarkdown text={label} variant="inline" />
                 {expandable && <span className="fk-catalog-more" aria-hidden="true">ⓘ</span>}
               </span>
-              {item.description && (
+              {description && (
                 <span className="fk-catalog-description">
-                  <FlowMarkdown text={item.description} variant="block" />
+                  <FlowMarkdown text={description} variant="block" />
                 </span>
               )}
               <span className="fk-catalog-price">
                 {item.price > 0 ? formatMoney(item.price, step.currency, flow.locale) : "—"}
+                {item.price > 0 && priceNote && <span className="fk-catalog-price-note">{priceNote}</span>}
               </span>
             </>
           )
@@ -194,17 +204,13 @@ export function CatalogStepView({
               key={item.value}
               className={`fk-catalog-item ${quantity > 0 ? "fk-catalog-item-active" : ""}`}
             >
-              {item.image && (
-                <span className="fk-catalog-thumb">
-                  <StepImage image={item.image} size="review" />
-                </span>
-              )}
+              {item.image && <StepImage image={item.image} size="product-thumb" />}
               {expandable ? (
                 <button
                   type="button"
                   className="fk-catalog-body fk-catalog-body-button"
                   onClick={() => setOpenItem(item.value)}
-                  aria-label={`${item.label} — ${resolveText(flow, "catalogDetails")}`}
+                  aria-label={`${label} — ${resolveText(flow, "catalogDetails")}`}
                 >
                   {body}
                 </button>
@@ -267,14 +273,21 @@ export function CatalogStepView({
       <FieldError id={errorId} message={message} />
 
       {activeItem && sheetContainer && (
-        <CatalogItemSheet
-          item={activeItem}
-          currency={step.currency}
-          locale={flow.locale}
+        <SheetDialog
+          namespace="fk-catalog-sheet"
+          ariaLabel={resolveContentText(flow, activeItem.label)}
           closeLabel={resolveText(flow, "catalogClose")}
           container={sheetContainer}
           onClose={() => setOpenItem(null)}
-        />
+        >
+          <CatalogItemSheetBody
+            item={activeItem}
+            label={resolveContentText(flow, activeItem.label)}
+            details={activeItem.details !== undefined ? resolveContentText(flow, activeItem.details) : undefined}
+            currency={step.currency}
+            locale={flow.locale}
+          />
+        </SheetDialog>
       )}
     </div>
   )

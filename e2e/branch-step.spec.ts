@@ -30,7 +30,10 @@ test.describe("branch step", () => {
   })
 
   test("Back from the review follows the actually-taken path, skipping the invisible branch", async ({ page }) => {
-    await openPreset(page, { preset: "branch-demo" })
+    // Desktop-only assertion (.fk-footer-back only exists via the fk-shell >=1024px
+    // container query) — the phone frame index.html normally mounts in never reaches
+    // that width, so this needs the fullscreen route at a real desktop container size.
+    await openPreset(page, { preset: "branch-demo", frame: "desktop" })
 
     await page.getByRole("radio", { name: "No" }).check()
     await page.getByRole("button", { name: "Continua", exact: true }).click()

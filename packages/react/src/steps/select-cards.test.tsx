@@ -4,7 +4,7 @@ import type { AnswerValue, Flow, SelectCardsStep } from "@flowkit-io/core"
 import "@flowkit-io/core"
 import { SelectCardsStepView } from "./select-cards"
 
-const flow: Flow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC" }
+const flow: Flow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC", schemaVersion: 1 }
 
 function baseStep(options: SelectCardsStep["options"]): SelectCardsStep {
   return {

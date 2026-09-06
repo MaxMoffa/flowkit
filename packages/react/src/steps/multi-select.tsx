@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { resolveText, type MultiSelectStep } from "@flowkit-io/core"
+import { resolveText, resolveContentText, type MultiSelectStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { OptionList } from "./shared/option-list"
 import { useToggleSelection } from "./shared/selection"
@@ -17,8 +17,15 @@ export function MultiSelectStepView({ step, value, onChange, flow, answers, meta
     onChange,
   )
   const remote = useRemoteOptions(step.dataSource, answers)
-  const options = remote.isRemote ? remote.options : step.options
+  const rawOptions = remote.isRemote ? remote.options : step.options
+  const options = rawOptions.map((opt) => ({
+    ...opt,
+    label: resolveContentText(flow, opt.label),
+    description: "description" in opt && opt.description !== undefined ? resolveContentText(flow, opt.description) : undefined,
+  }))
   const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   const optionValues = new Set(options.map((o) => o.value))
   const realSelected = selected.filter((v) => optionValues.has(v))
@@ -31,8 +38,8 @@ export function MultiSelectStepView({ step, value, onChange, flow, answers, meta
 
   return (
     <div className="fk-step fk-step-multi-select">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       <RemoteSearchInput remote={remote} />
       <RemoteOptionsStatus remote={remote} />
       <div onBlur={handleBlur} {...ariaProps}>

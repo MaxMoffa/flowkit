@@ -73,6 +73,52 @@ describe("catalog schema", () => {
     })
     expect(step.items[0]?.details).toContain("markdown")
   })
+
+  it("leaves `tags` undefined when an item doesn't set it (no regression)", () => {
+    const step = catalogStepSchema.parse(catalogConfig)
+    expect(step.items[0]?.tags).toBeUndefined()
+  })
+
+  it("accepts an optional `tags` array per item", () => {
+    const step = catalogStepSchema.parse({
+      ...catalogConfig,
+      items: [{ value: "x", label: "X", price: 100, tags: ["bestseller", "eco"] }],
+    })
+    expect(step.items[0]?.tags).toEqual(["bestseller", "eco"])
+  })
+
+  it("leaves `filters` undefined when the step doesn't set it (no regression)", () => {
+    const step = catalogStepSchema.parse(catalogConfig)
+    expect(step.filters).toBeUndefined()
+  })
+
+  it("accepts an optional `filters` array, each with label/icon/tag", () => {
+    const step = catalogStepSchema.parse({
+      ...catalogConfig,
+      filters: [
+        { label: "Bestseller", icon: { kind: "emoji", value: "🔥" }, tag: "bestseller" },
+        { label: "Eco", tag: "eco" },
+      ],
+    })
+    expect(step.filters).toHaveLength(2)
+    expect(step.filters?.[0]).toMatchObject({ label: "Bestseller", tag: "bestseller" })
+    expect(step.filters?.[0]?.icon).toEqual({ kind: "emoji", value: "🔥" })
+    expect(step.filters?.[1]?.icon).toBeUndefined()
+  })
+
+  it("rejects a filter with an empty tag", () => {
+    expect(() =>
+      catalogStepSchema.parse({ ...catalogConfig, filters: [{ label: "X", tag: "" }] }),
+    ).toThrow()
+  })
+
+  it("accepts a ContentText filter label ({ key, fallback })", () => {
+    const step = catalogStepSchema.parse({
+      ...catalogConfig,
+      filters: [{ label: { key: "filter.bestseller", fallback: "Bestseller" }, tag: "bestseller" }],
+    })
+    expect(step.filters?.[0]?.label).toEqual({ key: "filter.bestseller", fallback: "Bestseller" })
+  })
 })
 
 describe("catalogTotal", () => {
@@ -211,6 +257,53 @@ describe("buildOrderSummary", () => {
     const flow = shopFlow({ amount: 500 })
     // catalog only: 6200; the 500 surcharge is added by resolvePaymentAmount, not here
     expect(computeOrderTotal(flow, order)).toBe(6200)
+  })
+
+  it("resolves ContentText item/option labels ({key, fallback}) against flow.content", () => {
+    const flow = parseFlow({
+      id: "f",
+      title: "F",
+      content: { "cart.tshirt": "Maglietta (IT)", "ship.exp": "Espressa (IT)" },
+      steps: [
+        { id: "intro", type: "intro", title: "S" },
+        {
+          ...catalogConfig,
+          items: [
+            { value: "tshirt", label: { key: "cart.tshirt", fallback: "T-shirt" }, price: 2500 },
+            { value: "mug", label: "Tazza", price: 1200, maxQuantity: 2 },
+          ],
+        },
+        {
+          id: "ship",
+          key: "ship",
+          type: "radio",
+          title: "Spedizione",
+          options: [{ value: "exp", label: { key: "ship.exp", fallback: "Express" }, price: 700 }],
+        },
+        { id: "review", type: "review" },
+        { id: "done", type: "confirmation" },
+      ],
+    })
+    const summary = buildOrderSummary(flow, { ...order, ship: "exp" })!
+    expect(summary.lines.map((l) => l.label)).toEqual(["Maglietta (IT)", "Tazza", "Espressa (IT)"])
+  })
+
+  it("falls back to the ContentText's own fallback when flow.content has no entry for the key", () => {
+    const flow = parseFlow({
+      id: "f",
+      title: "F",
+      steps: [
+        { id: "intro", type: "intro", title: "S" },
+        {
+          ...catalogConfig,
+          items: [{ value: "tshirt", label: { key: "cart.tshirt", fallback: "T-shirt" }, price: 2500 }],
+        },
+        { id: "review", type: "review" },
+        { id: "done", type: "confirmation" },
+      ],
+    })
+    const summary = buildOrderSummary(flow, { cart: { items: [{ value: "tshirt", quantity: 1 }], total: 0 } })!
+    expect(summary.lines[0]?.label).toBe("T-shirt")
   })
 })
 

@@ -1,7 +1,8 @@
-import type { Flow, Step } from "./schema"
+import type { Flow, Step, ContentText } from "./schema"
 import { getStepTypeDefinition } from "./registry"
 import { evaluateCondition, type BranchStep, type Condition } from "./branch-step"
 import { answerKey, getCurrentStep, type Answers, type FlowState } from "./flow-state"
+import { resolveContentText } from "./i18n"
 
 function isLogicStep(step: Step): boolean {
   return getStepTypeDefinition(step.type)?.role === "logic"
@@ -267,10 +268,11 @@ export function getCurrentStepInfo(
 ): CurrentStepInfo {
   const step = getCurrentStep(flow, state)
   const progress = getProgressInfo(flow, state)
+  const rawTitle = (step as { title?: ContentText }).title
   return {
     id: step.id,
     type: step.type,
-    title: (step as { title?: string }).title ?? null,
+    title: rawTitle !== undefined ? resolveContentText(flow, rawTitle) : null,
     index: progress.currentIndex,
     total: progress.total,
     previousStep: previousInfo ? toPreviousStepSummary(previousInfo) : null,

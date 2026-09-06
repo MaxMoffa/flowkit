@@ -4,7 +4,7 @@ import type { AnswerValue, ChipsStep, Flow } from "@flowkit-io/core"
 import "@flowkit-io/core"
 import { ChipsStepView } from "./chips"
 
-const flow: Flow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC" }
+const flow: Flow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC", schemaVersion: 1 }
 
 function baseStep(options: ChipsStep["options"]): ChipsStep {
   return {

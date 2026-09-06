@@ -52,6 +52,17 @@ export const paymentStripeStepSchema = z
     stripeAccount: z.string().optional(),
     /** Label of the "change the selected method" button shown once a method is picked. */
     changeLabel: z.string().default("Cambia"),
+    /**
+     * When true, never loads Stripe Elements: the step immediately shows the same
+     * "method selected" summary a real collected payment method would (a fake
+     * "Visa •••• 4242" card) and synthesizes that value via `onChange`, without
+     * calling `loadStripe`/mounting the Payment Element or spending a real Stripe
+     * API call. For previewing/demoing the step's full UI (and letting the rest of
+     * the flow — review, submit — be exercised end-to-end) without a working
+     * publishable key. Ignored (real widget shown as normal) once the visitor picks
+     * "Cambia" to edit. Default false: the widget shows as today.
+     */
+    previewSelected: z.boolean().default(false),
     /** Whether item prices already include tax (`"inclusive"`) or tax is added on
      *  top (`"exclusive"`, default). Mirrors Stripe's `tax_behavior`; only meaningful
      *  when `calculateTax` is wired. */
@@ -102,7 +113,7 @@ function asPaymentStripeValue(value: unknown): PaymentStripeValue | null {
 registerStepType({
   type: "payment-stripe",
   schema: paymentStripeStepSchema,
-  validate: (_step, value) => asPaymentStripeValue(value) !== null,
+  validate: (step, value) => step.previewSelected === true || asPaymentStripeValue(value) !== null,
 })
 
 /**

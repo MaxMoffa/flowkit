@@ -32,9 +32,23 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  /* Query container for the component's own internal layout breakpoints (header/
+     footer/scroll padding, desktop grids, sheet centering, …) — see the `@container
+     fk-shell (...)` blocks throughout this file. Deliberately `.fk-root`, not
+     `.fk-theme` (see DECISIONS.md "container query anchor: .fk-root not .fk-theme"):
+     `.fk-theme` is duplicated (FlowRunner's own root *and*, separately, FlowOverlay's
+     outer chrome wrapper share the class), and `container-type` always implies layout
+     containment, which makes the container a new containing block for `position:
+     fixed` descendants too. `.fk-root` renders exactly once per FlowRunner (standalone
+     or nested inside FlowOverlay) and is the true flow shell, so anchoring here keeps
+     every full-screen `position: fixed` panel (media viewer, catalog/product/cart
+     sheets, GPS guide, signature fullscreen) confined to the flow's own box instead of
+     the whole document — consistent with "respond to the container, not the page". */
+  container-type: inline-size;
+  container-name: fk-shell;
 }
 
-@media (min-width: 768px) {
+@container fk-shell (min-width: 768px) {
   .fk-header,
   .fk-scroll,
   .fk-scroll-noheader,
@@ -50,7 +64,7 @@
   display: contents;
 }
 
-@media (min-width: 1024px) {
+@container fk-shell (min-width: 1024px) {
   .fk-footer-inner,
   .fk-scroll-inner {
     width: 100%;
@@ -116,7 +130,8 @@
   .fk-scroll-inner:has(.fk-step-radio),
   .fk-scroll-inner:has(.fk-step-chips),
   .fk-scroll-inner:has(.fk-step-faces),
-  .fk-scroll-inner:has(.fk-step-scale) {
+  .fk-scroll-inner:has(.fk-step-scale),
+  .fk-scroll-inner:has(.fk-step-product) {
     max-width: 780px;
   }
 
@@ -696,28 +711,148 @@
   text-align: center;
 }
 
-/* Running order total: plain line above the button row, no card / no fill */
+/* Running order total: plain line above the button row, no card / no fill. Label on
+   the left, amount (+ tax note, when present) grouped together on the right — NOT
+   `justify-content: space-between` on all three children, which would spread the
+   amount into the middle between the label and the tax note instead of keeping it
+   next to it. `margin-left: auto` on the amount absorbs the space before it; `gap`
+   still applies its normal small spacing between the amount and the tax note. */
 .fk-footer-order-total {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
   gap: var(--fk-space-md);
   font-size: 14px;
   color: var(--fk-text2);
 }
 
 .fk-footer-order-total-amount {
+  margin-left: auto;
   font-size: 16px;
   font-weight: 700;
   color: var(--fk-text);
   font-variant-numeric: tabular-nums;
 }
 
+/* Discreet "+ IVA" / "IVA inclusa" hint next to the footer's running total — see
+   packages/react/src/steps/shared/tax-note.ts. */
+.fk-footer-order-total-tax-note {
+  font-size: 11px;
+  color: var(--fk-text2);
+}
+
+/* Wraps the primary button (and, on mobile, the cart trigger beside it) so the two
+   can sit in their own row regardless of whether `.fk-footer-row` itself is a column
+   (mobile) or a row (desktop, >=1024px below) — see .fk-footer-cart. */
+.fk-footer-primary-row {
+  display: flex;
+  gap: var(--fk-space-sm);
+  flex: 1;
+  min-width: 0;
+}
+
+/* Cart trigger: small square icon button, rendered next to the primary button on
+   mobile (`.fk-footer-cart-row`) and next to the running total on desktop
+   (`.fk-footer-cart-total`) — only one of the two is visible at a given width. */
+.fk-footer-cart {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--fk-control-height);
+  min-height: var(--fk-control-height);
+  padding: 0;
+  border: var(--fk-border-width) solid var(--fk-border);
+  border-radius: var(--fk-radius-md);
+  background: var(--fk-canvas);
+  color: var(--fk-text);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.fk-footer-cart:hover {
+  border-color: var(--fk-accent);
+}
+
+.fk-footer-cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--fk-accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  box-sizing: border-box;
+}
+
+.fk-footer-cart-total {
+  display: none;
+}
+
+@container fk-shell (min-width: 1024px) {
+  .fk-footer-cart-row {
+    display: none;
+  }
+
+  .fk-footer-cart-total {
+    display: inline-flex;
+  }
+
+  /* Cart non-empty (order total shown): total block moves beside the button row
+     instead of stacking above it — label/amount (+ cart trigger) on the left,
+     Indietro/Continua on the right, same line. Scoped with :has() so steps without
+     a cart keep the default column footer untouched.
+     `max-width: none` (higher specificity than the plain `.fk-footer-inner` rule
+     near the top of this file, which caps it at `--fk-content-max-width`/640px)
+     lets this row use the footer's real full-bleed width instead of being squeezed
+     into the 640px reading column — the footer bar itself is already full-bleed
+     (same reasoning as the header, see above), the reading-column cap only ever
+     made sense for the no-cart case. */
+  .fk-footer-inner:has(.fk-footer-order-total) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--fk-space-xl);
+    max-width: none;
+  }
+
+  .fk-footer-inner:has(.fk-footer-order-total) .fk-footer-order-total {
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--fk-space-sm);
+  }
+
+  /* Bounded (not flex:1 1 auto growing to fill the now much wider row): with the
+     `max-width: none` above, letting the buttons grow to fill the leftover space
+     would turn "Indietro"/"Continua" into two oversized buttons spanning most of
+     the bar. Capped so `justify-content: space-between` on the parent instead
+     leaves the freed-up width as real empty space between the total and the
+     buttons, while the buttons keep sitting flush against the real right edge. */
+  .fk-footer-inner:has(.fk-footer-order-total) .fk-footer-row {
+    flex: 0 1 420px;
+    min-width: 0;
+  }
+}
+
 /* Scoped to max-width (not a bare, unconditional rule): this file declares the
    >=1024px override for .fk-footer-row earlier (near the top), so an unconditional
    flex-direction here would win the cascade by source order and silently break the
-   desktop row layout despite the media query matching. */
-@media (max-width: 1023px) {
+   desktop row layout despite the container query matching. Kept as the same
+   `fk-shell` container as its >=1024px counterpart above — mixing a container query
+   here with a viewport `@media` would desync the two at the exact threshold where
+   it matters (embedder's real viewport != component container width). */
+@container fk-shell (max-width: 1023px) {
   .fk-footer-row {
     flex-direction: column;
   }
@@ -755,7 +890,7 @@
   cursor: not-allowed;
 }
 
-@media (min-width: 1024px) {
+@container fk-shell (min-width: 1024px) {
   .fk-footer-back {
     display: inline-flex;
     flex: 1;
@@ -805,13 +940,24 @@
 /* Scoped to max-width (not unconditional): the >=1024px block near the top of this
    file already sets `padding: 0 32px` for these classes — an unconditional padding
    declared here (after that block, later in source order) would win the cascade at
-   all widths regardless of the media query, per the source-order pitfall noted above
-   for .fk-footer-row/.fk-footer-back. */
-@media (max-width: 1023px) {
+   all widths regardless of the container query, per the source-order pitfall noted
+   above for .fk-footer-row/.fk-footer-back. Same `fk-shell` container as its
+   counterpart, for the same reason. */
+@container fk-shell (max-width: 1023px) {
   .fk-btn-primary,
   .fk-btn-secondary {
     padding: 8px var(--fk-space-lg);
   }
+}
+
+/* Inside `.fk-footer-primary-row` (see above), the primary button shares that row
+   with the cart trigger instead of filling it alone — placed after the base
+   `.fk-btn-primary` width/min-width rules above so ascending-specificity source
+   order still holds despite this selector's higher specificity. */
+.fk-footer-primary-row .fk-btn-primary {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
 }
 
 .fk-btn-primary {
@@ -1229,7 +1375,7 @@
   padding: var(--fk-space-lg) var(--fk-space-xl) var(--fk-space-xl);
 }
 
-@media (max-width: 400px) {
+@container fk-shell (max-width: 400px) {
   .fk-map-overlay-top,
   .fk-map-overlay-bottom {
     padding: var(--fk-space-md);
@@ -1237,7 +1383,14 @@
 }
 
 /* Short viewports (landscape phones): the 45%/40% caps above still leave barely any
-   map visible, so shrink the overlays further and drop the subtitle to free space. */
+   map visible, so shrink the overlays further and drop the subtitle to free space.
+   Left as a real `@media (max-height)`, not a container query, on purpose: it reacts
+   to the device's actual vertical viewport (landscape orientation, on-screen keyboard
+   eating space) — a real property of the screen, not of the component's own inline
+   size. `container-type: inline-size` on `.fk-root` also contains only the inline
+   axis, so block-size (height) container queries aren't available here without opting
+   into full size containment, which would break the flex/`min-height:0` column
+   layout — not worth it for a signal that should track the device anyway. */
 @media (max-height: 500px) {
   .fk-map-overlay-top {
     max-height: 35%;
@@ -1265,7 +1418,7 @@
   }
 }
 
-@media (min-width: 1024px) {
+@container fk-shell (min-width: 1024px) {
   .fk-map-overlay-bottom {
     max-width: 420px;
     left: var(--fk-space-xxl);
@@ -1658,6 +1811,71 @@
   background: var(--fk-accent-soft);
 }
 
+/* Catalog: optional filter-chip row above the item list (v2.43). Own namespace
+ * (not `.fk-chip`) — different context (facet toggle over a product list, always
+ * multi-select) even though the pill sizing/shape mirrors it. */
+.fk-catalog-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--fk-space-md);
+}
+
+.fk-catalog-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: var(--fk-border-width) solid var(--fk-border);
+  background: var(--fk-canvas);
+  border-radius: 99px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--fk-text);
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 36px;
+}
+
+.fk-catalog-filter-chip-selected {
+  border-color: var(--fk-accent);
+  background: var(--fk-accent-soft);
+  color: var(--fk-accent);
+  font-weight: 600;
+}
+
+.fk-catalog-filter-chip:focus-visible {
+  outline: 2px solid var(--fk-accent);
+  outline-offset: 1px;
+}
+
+.fk-catalog-filter-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.fk-catalog-filter-icon svg,
+.fk-catalog-filter-icon img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.fk-catalog-filter-empty {
+  list-style: none;
+  padding: var(--fk-space-lg) var(--fk-space-md);
+  text-align: center;
+  color: var(--fk-text2);
+  font-size: 14px;
+}
+
 /* Catalog: pick items + quantity, running order total */
 .fk-catalog-list {
   list-style: none;
@@ -1684,18 +1902,27 @@
   background: var(--fk-accent-soft);
 }
 
-.fk-catalog-thumb {
+/* Real product thumbnail (a photo, not a small icon) on the compact list row —
+   bigger than a badge, `object-fit: cover`, rounded corners. Also the box for an
+   emoji/icon `image` at this size (centered on a soft fill), since the config alone
+   doesn't say which kind an item carries. */
+.fk-catalog-item-thumb {
   flex: 0 0 auto;
-  font-size: 24px;
-  line-height: 1;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  line-height: 1;
+  background: var(--fk-soft);
+  border-radius: var(--fk-radius-sm);
+  overflow: hidden;
 }
 
-.fk-catalog-thumb img {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--fk-radius-sm);
+.fk-catalog-item-thumb img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -1722,6 +1949,15 @@
   font-size: 13px;
   color: var(--fk-text2);
   margin-top: 2px;
+}
+
+/* Discreet "+ IVA" / "IVA inclusa" hint next to the price — see
+   packages/react/src/steps/shared/tax-note.ts. Smaller and lighter than the price
+   itself, never a badge. */
+.fk-catalog-price-note {
+  margin-left: 4px;
+  font-size: 11px;
+  color: var(--fk-text2);
 }
 
 .fk-catalog-add {
@@ -1892,7 +2128,7 @@
   }
 }
 
-@media (min-width: 768px) {
+@container fk-shell (min-width: 768px) {
   .fk-catalog-sheet-root {
     justify-content: center;
     align-items: center;
@@ -1917,6 +2153,621 @@
     opacity: 0;
     transform: scale(0.96);
   }
+}
+
+/* Product: hero showcase for 1-4 items (sibling of "catalog", own class namespace
+   on purpose — same warm-paper tokens, different card-centric layout). */
+.fk-product-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fk-space-md);
+}
+
+/* Desktop, 2+ items: two-column grid instead of a single stacked column, so the
+   extra width isn't wasted — `:has(.fk-product-card:nth-child(2))` matches only when
+   a second card exists, leaving the 1-item "solo" hero (centered, bigger) alone. */
+@container fk-shell (min-width: 1024px) {
+  .fk-product-list:has(.fk-product-card:nth-child(2)) {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--fk-space-lg) var(--fk-space-xl);
+  }
+}
+
+.fk-product-card {
+  display: flex;
+  flex-direction: column;
+  border: var(--fk-border-width) solid var(--fk-border);
+  border-radius: var(--fk-radius-lg);
+  background: var(--fk-canvas);
+  /* Clips the hero image below to the card's own rounded corners, so only its top
+     corners appear rounded (bottom edge butts against `.fk-product-card-body`). */
+  overflow: hidden;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.fk-product-card-active {
+  border-color: var(--fk-accent);
+  background: var(--fk-accent-soft);
+}
+
+/* Hero product photo (a real photo, not a small icon/badge) — full card width,
+   `object-fit: cover`. Also the box for an emoji/icon `image` at this larger size
+   (centered on a soft fill), since the config alone doesn't say which kind an item
+   carries. Height scales up on wider containers via `@container fk-shell`, same
+   convention as the rest of this component (not `@media`). */
+.fk-product-card-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 140px;
+  font-size: 56px;
+  line-height: 1;
+  background: var(--fk-soft);
+  overflow: hidden;
+}
+
+.fk-product-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@container fk-shell (min-width: 640px) {
+  .fk-product-card-image {
+    height: 180px;
+  }
+}
+
+/* Solo product (items.length === 1): the "one big product page" hero gets an even
+   taller image. */
+.fk-product-card-solo .fk-product-card-image {
+  height: 200px;
+}
+
+@container fk-shell (min-width: 640px) {
+  .fk-product-card-solo .fk-product-card-image {
+    height: 260px;
+  }
+}
+
+.fk-product-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: var(--fk-space-xl) var(--fk-space-lg);
+}
+
+.fk-product-card-hit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 4px;
+  font: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+}
+
+.fk-product-title {
+  font-size: 18px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Solo product (items.length === 1): the "real" hero — bigger image, bigger title. */
+.fk-product-card-solo .fk-product-card-body {
+  padding: var(--fk-space-xxl) var(--fk-space-lg);
+}
+
+.fk-product-card-solo .fk-product-title {
+  font-size: 22px;
+}
+
+.fk-product-description {
+  font-size: 13px;
+  color: var(--fk-text2);
+  line-height: 1.4;
+  max-width: 320px;
+}
+
+.fk-product-price {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fk-text);
+  margin-top: 2px;
+}
+
+.fk-product-card-solo .fk-product-price {
+  font-size: 20px;
+}
+
+/* Discreet "+ IVA" / "IVA inclusa" hint next to the price — see
+   packages/react/src/steps/shared/tax-note.ts. Smaller and lighter than the price
+   itself, never a badge. */
+.fk-product-price-note {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--fk-text2);
+}
+
+.fk-product-more {
+  color: var(--fk-accent);
+  font-size: 12px;
+}
+
+.fk-product-add {
+  margin-top: var(--fk-space-md);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--fk-accent);
+  border: 0;
+  border-radius: var(--fk-radius-md);
+  padding: 12px 28px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.fk-product-stepper {
+  margin-top: var(--fk-space-md);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: var(--fk-border-width) solid var(--fk-border);
+  border-radius: var(--fk-radius-md);
+  padding: 2px;
+  background: var(--fk-canvas);
+}
+
+.fk-product-step {
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fk-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--fk-radius-sm);
+  cursor: pointer;
+}
+
+.fk-product-step:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fk-product-qty {
+  min-width: 28px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.fk-product-tax-note {
+  margin: var(--fk-space-sm) 0 0;
+  font-size: 12px;
+  color: var(--fk-text2);
+  font-style: italic;
+  text-align: center;
+}
+
+/* Product: item detail sheet — same drawer/dialog pattern as the catalog step's
+   own sheet (bottom drawer on mobile, centered dialog ≥768px), own namespace. */
+.fk-product-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.fk-product-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.fk-product-sheet {
+  position: relative;
+  background: var(--fk-canvas);
+  color: var(--fk-text);
+  border-radius: var(--fk-radius-lg) var(--fk-radius-lg) 0 0;
+  padding: var(--fk-space-lg) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: fk-product-sheet-up 0.22s ease-out;
+}
+
+@keyframes fk-product-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+.fk-product-sheet-grabber {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--fk-border);
+  margin: 0 auto var(--fk-space-md);
+  cursor: pointer;
+}
+
+.fk-product-sheet-close {
+  position: absolute;
+  top: var(--fk-space-md);
+  right: var(--fk-space-md);
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fk-surface);
+  color: var(--fk-text);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.fk-product-sheet-thumb {
+  font-size: 40px;
+  line-height: 1;
+  display: block;
+}
+
+.fk-product-sheet-thumb img {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--fk-radius-md);
+  object-fit: cover;
+}
+
+.fk-product-sheet-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: var(--fk-space-sm) 0 2px;
+}
+
+.fk-product-sheet-price {
+  color: var(--fk-text2);
+  font-size: 14px;
+  margin: 0 0 var(--fk-space-md);
+}
+
+.fk-product-sheet-details {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fk-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fk-product-sheet {
+    animation: none;
+  }
+}
+
+@container fk-shell (min-width: 768px) {
+  .fk-product-sheet-root {
+    justify-content: center;
+    align-items: center;
+    padding: var(--fk-space-xl);
+  }
+
+  .fk-product-sheet {
+    max-width: 420px;
+    width: 100%;
+    border-radius: var(--fk-radius-lg);
+    padding: var(--fk-space-xl);
+    animation: fk-product-sheet-in 0.18s ease-out;
+  }
+
+  .fk-product-sheet-grabber {
+    display: none;
+  }
+}
+
+@keyframes fk-product-sheet-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* Footer cart panel: same bottom-drawer/dialog shell as the catalog/product item
+   sheets above (own `.fk-cart-sheet-*` namespace, own copy of the same rules — kept
+   separate rather than a shared class so this panel's layout can diverge later
+   without touching the item-detail sheets). Opened from the 🛒 trigger next to the
+   footer's continue button (mobile) / running total (desktop). */
+.fk-cart-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.fk-cart-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.fk-cart-sheet {
+  position: relative;
+  background: var(--fk-canvas);
+  color: var(--fk-text);
+  border-radius: var(--fk-radius-lg) var(--fk-radius-lg) 0 0;
+  padding: var(--fk-space-lg) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: fk-cart-sheet-up 0.22s ease-out;
+}
+
+@keyframes fk-cart-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+.fk-cart-sheet-grabber {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--fk-border);
+  margin: 0 auto var(--fk-space-md);
+  cursor: pointer;
+}
+
+.fk-cart-sheet-close {
+  position: absolute;
+  top: var(--fk-space-md);
+  right: var(--fk-space-md);
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fk-surface);
+  color: var(--fk-text);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.fk-cart-sheet-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 var(--fk-space-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fk-cart-sheet {
+    animation: none;
+  }
+}
+
+/* Real viewport media query, not @container fk-shell: SheetDialog portals this into
+   the nearest `.fk-theme` ancestor (useThemeRootRef), which sits *above* `.fk-root`
+   (the `fk-shell` container, see its comment) in the DOM — so the portaled sheet has
+   no `fk-shell` ancestor at all and an `@container fk-shell` query on it would simply
+   never match, at any width. That's also correct for what this panel actually is:
+   `position: fixed; inset: 0` here resolves against the real page viewport (nothing
+   between `.fk-cart-sheet-root` and the document establishes a containing block for
+   fixed descendants), i.e. it's a true page-level modal like `FlowOverlay`'s own
+   drawer/dialog switch — which uses the same real-viewport `matchMedia` for the same
+   reason (see DECISIONS.md, `.fk-overlay-sheet--dialog`). */
+@media (min-width: 768px) {
+  .fk-cart-sheet-root {
+    justify-content: center;
+    align-items: center;
+    padding: var(--fk-space-xl);
+  }
+
+  .fk-cart-sheet {
+    max-width: 440px;
+    width: 100%;
+    border-radius: var(--fk-radius-lg);
+    padding: var(--fk-space-xl);
+    animation: fk-cart-sheet-in 0.18s ease-out;
+  }
+
+  .fk-cart-sheet-grabber {
+    display: none;
+  }
+}
+
+@keyframes fk-cart-sheet-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* Footer cart panel: itemized recap (label/qty/unit/amount + total), no tax section —
+   see cart-summary-list.tsx for why this is a separate, simpler component than the
+   review step's own `.fk-order-summary`. */
+.fk-cart-summary-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fk-cart-summary-line {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fk-space-xs);
+  padding: var(--fk-space-sm) 0;
+  border-bottom: 1px solid var(--fk-border);
+  font-size: 14px;
+}
+
+.fk-cart-summary-line:last-child {
+  border-bottom: none;
+}
+
+.fk-cart-summary-line-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fk-space-md);
+}
+
+.fk-cart-summary-line-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fk-cart-summary-qty {
+  font-weight: 600;
+  color: var(--fk-text2);
+}
+
+.fk-cart-summary-unit {
+  font-size: 12px;
+  color: var(--fk-text2);
+}
+
+.fk-cart-summary-line-amount {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Item-line editing controls: +/-/remove, added below the label/amount row so a
+   quantity change never nudges the amount column horizontally. Sized ~36px per
+   control (touch target adequate on mobile), warm-paper accent, no heavy shadows —
+   own namespace, doesn't reuse `.fk-catalog-step` (different context/host). */
+.fk-cart-summary-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--fk-space-sm);
+}
+
+.fk-cart-summary-stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: var(--fk-border-width) solid var(--fk-border);
+  border-radius: var(--fk-radius-sm);
+  padding: 2px;
+  background: var(--fk-canvas);
+}
+
+.fk-cart-summary-step {
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fk-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--fk-radius-sm);
+  cursor: pointer;
+}
+
+.fk-cart-summary-step:focus-visible {
+  outline: 2px solid var(--fk-accent);
+  outline-offset: 1px;
+}
+
+.fk-cart-summary-step:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fk-cart-summary-step:hover:not(:disabled) {
+  background: var(--fk-surface);
+}
+
+.fk-cart-summary-qty-value {
+  min-width: 22px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Minimal, non-alarming trash icon (deliberately not red/invasive — see project
+   convention for image-viewer delete controls) rather than a bold danger button. */
+.fk-cart-summary-remove {
+  font: inherit;
+  /* Matches .fk-cart-summary-step's 18px: the 🗑 glyph carries a lot of built-in
+     whitespace in most emoji fonts, so at the same font-size as the +/- steppers it
+     rendered visibly smaller/paler than them despite the identical 34px box — this
+     compensates so the three controls read as one set, not two sizes. */
+  font-size: 20px;
+  line-height: 1;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fk-text2);
+  background: transparent;
+  border: var(--fk-border-width) solid var(--fk-border);
+  border-radius: var(--fk-radius-sm);
+  cursor: pointer;
+}
+
+.fk-cart-summary-remove:hover {
+  color: var(--fk-danger);
+  border-color: var(--fk-danger);
+}
+
+.fk-cart-summary-remove:focus-visible {
+  outline: 2px solid var(--fk-accent);
+  outline-offset: 1px;
+}
+
+.fk-cart-summary-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fk-space-md);
+  margin-top: var(--fk-space-sm);
+  padding-top: var(--fk-space-md);
+  border-top: var(--fk-border-width) solid var(--fk-border);
+  font-size: 14px;
+  color: var(--fk-text2);
+}
+
+.fk-cart-summary-total-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fk-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Discreet "+ IVA" / "IVA inclusa" hint next to the cart total — see
+   packages/react/src/steps/shared/tax-note.ts. */
+.fk-cart-summary-total-tax-note {
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--fk-text2);
 }
 
 /* Scale: slider variant */
@@ -2249,6 +3100,120 @@
   color: var(--fk-text2);
 }
 
+/* Barcode/QR scan (step: barcode-scan) */
+.fk-barcode-viewfinder {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 320px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--fk-radius-md);
+  background: var(--fk-soft);
+  border: var(--fk-border-width) solid var(--fk-border);
+}
+
+.fk-barcode-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+.fk-barcode-reticle {
+  position: absolute;
+  inset: 14% 18%;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  border-radius: var(--fk-radius-sm);
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.fk-barcode-status {
+  margin-top: var(--fk-space-md);
+  font-size: 14px;
+  color: var(--fk-text2);
+  text-align: center;
+}
+
+.fk-barcode-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: var(--fk-space-xl);
+  border-radius: var(--fk-radius-md);
+  background: var(--fk-soft);
+  border: var(--fk-border-width) solid var(--fk-border);
+  text-align: center;
+}
+
+.fk-barcode-result-icon {
+  font-size: 28px;
+}
+
+.fk-barcode-result-code {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--fk-text);
+  word-break: break-all;
+  font-variant-numeric: tabular-nums;
+}
+
+.fk-barcode-result-format {
+  font-size: 12px;
+  color: var(--fk-text2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.fk-barcode-rescan {
+  margin-top: var(--fk-space-sm);
+  padding: 10px 16px;
+  border: var(--fk-border-width) solid var(--fk-border);
+  border-radius: var(--fk-radius-md);
+  background: var(--fk-canvas);
+  color: var(--fk-text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.fk-barcode-manual {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: var(--fk-space-lg);
+}
+
+.fk-barcode-manual-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fk-text2);
+}
+
+/* Live photo capture (step: photo) — shutter button under the live viewfinder
+   (`.fk-barcode-viewfinder`/`.fk-barcode-video`, reused verbatim from barcode-scan:
+   same full-bleed live-camera box, no decode loop attached). */
+.fk-photo-shutter {
+  display: block;
+  width: 100%;
+  margin-top: var(--fk-space-md);
+  padding: 14px 16px;
+  border: none;
+  border-radius: var(--fk-radius-md);
+  background: var(--fk-accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fk-photo-shutter:active {
+  opacity: 0.85;
+}
+
 .fk-media-viewer {
   position: fixed;
   inset: 0;
@@ -2353,7 +3318,7 @@
   overflow-x: auto;
 }
 
-@media (min-width: 1024px) {
+@container fk-shell (min-width: 1024px) {
   .fk-media-viewer-thumbstrip {
     display: flex;
   }
@@ -3101,6 +4066,16 @@
   cursor: grab;
 }
 
+/* Left as a real `@media`, not `@container fk-shell`, on purpose: `.fk-overlay` is a
+   portal to `document.body` (see overlay.tsx `createPortal`) — it renders *outside*
+   any FlowKit-mounted container, as a true page-level modal, so there is no
+   meaningful "embedding container" for it to respond to; it should track the actual
+   device viewport, which is what a portal a modal already covers. Its own
+   presentation ("drawer" vs "dialog") is already resolved in JS via
+   `window.matchMedia("(min-width: 640px)")` (`usePresentation` in overlay.tsx) — this
+   query mirrors that same real-viewport threshold, so a container query here would
+   desync the two (JS picks "dialog" from the real viewport while this rule would
+   narrow it from the — unrelated — mounted-component width). */
 @media (max-width: 639.98px) {
   .fk-overlay-sheet--dialog {
     width: auto;
@@ -3141,3 +4116,4 @@
     transition: none;
   }
 }
+

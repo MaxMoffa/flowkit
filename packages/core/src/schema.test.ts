@@ -294,6 +294,31 @@ describe("resolveStepKeys (via parseFlow)", () => {
     expect((flow.steps[1] as { key?: string }).key).toBe("nome_completo")
   })
 
+  it("slugifies a ContentText title resolved from flow.content", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      content: { fullNameTitle: "Nome e cognome" },
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "name", type: "text", title: { key: "fullNameTitle" } },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    expect((flow.steps[1] as { key?: string }).key).toBe("nome_e_cognome")
+  })
+
+  it("slugifies a ContentText title's own fallback when flow.content has no entry", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "name", type: "text", title: { key: "missing.key", fallback: "Testo di riserva" } },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    expect((flow.steps[1] as { key?: string }).key).toBe("testo_di_riserva")
+  })
+
   it("falls back to a slug of the id when neither key nor title is set", () => {
     const flow = parseFlow({
       ...baseFlow,

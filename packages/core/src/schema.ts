@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { getStepTypeDefinition } from "./registry"
 import { stepAddonSchema } from "./addons"
+import { CURRENT_FLOW_SCHEMA_VERSION, migrateFlowInput } from "./flow-versioning"
 
 /** Shared by every "elenco/select" step schema: at least one static option, or a
  *  dataSource to fetch them from (checked as one zod `.refine`, not per-field, so the
@@ -23,6 +24,7 @@ import type { BookingSlotStep } from "./booking-slot-step"
 import type { IntroStep } from "./intro-step"
 import type { SelectCardsStep } from "./select-cards-step"
 import type { CatalogStep } from "./catalog-step"
+import type { ProductStep } from "./product-step"
 import type { AddressStep } from "./address-step"
 import type { ScaleStep } from "./scale-step"
 import type { ChipsStep } from "./chips-step"
@@ -30,6 +32,8 @@ import type { FacesStep } from "./faces-step"
 import type { NotesStep } from "./notes-step"
 import type { MediaStep } from "./media-step"
 import type { FileStep } from "./file-step"
+import type { PhotoStep } from "./photo-step"
+import type { BarcodeScanStep } from "./barcode-scan-step"
 import type { MediaDisplayStep } from "./media-display-step"
 import type { DateTimeStep } from "./date-time-step"
 import type { NpsStep } from "./nps-step"
@@ -68,17 +72,36 @@ export const stepImageSchema = z.discriminatedUnion("kind", [
 export type StepImage = z.infer<typeof stepImageSchema>
 
 /**
+ * A piece of flow *content* (as opposed to system/chrome text — see `flow.texts` /
+ * `defaultMessages` in i18n.ts): either a literal string (default, zero-regression
+ * behavior for every existing config) or `{ key, fallback? }`, resolved against the
+ * flow's own `content` dictionary (`Flow.content`, a namespace separate from `texts`)
+ * via `resolveContentText(flow, value)` in i18n.ts. Opt-in — a flow author keeps
+ * writing literal strings unless they want the same flow served in multiple languages
+ * without duplicating its structure. Kept here (not in i18n.ts) because i18n.ts
+ * already imports from this file — declaring it there would create a cycle.
+ */
+export const contentTextSchema = z.union([
+  z.string(),
+  z.object({ key: z.string().min(1), fallback: z.string().optional() }),
+])
+
+export type ContentText = z.infer<typeof contentTextSchema>
+
+/**
  * Shared by every option-list step (select-cards, multi-select, radio, chips): one
  * entry a visitor can pick. `description` renders under the label (especially useful
  * on multi-select); `color` is a CSS color (hex/rgb/named) that tints the whole
  * card/chip/list-item container the option renders as (in @flowkit-io/react) — both
  * optional, absent = current unstyled rendering (no regression for existing configs).
- * select-cards extends this with its own `emoji` field.
+ * select-cards extends this with its own `emoji` field. `label`/`description` are
+ * `ContentText` (v2.4x): a literal string still works everywhere, or `{ key, fallback? }`
+ * to resolve from `flow.content` — see `resolveContentText`.
  */
 export const optionSchema = z.object({
   value: z.string(),
-  label: z.string(),
-  description: z.string().optional(),
+  label: contentTextSchema,
+  description: contentTextSchema.optional(),
   color: z.string().optional(),
   /**
    * Optional unit price in the payment currency's minor unit (cents). Absent = the
@@ -107,8 +130,10 @@ export type OtherOption = z.infer<typeof otherOptionSchema>
 
 export const baseStepFields = {
   id: z.string().min(1),
-  title: z.string().optional(),
-  subtitle: z.string().optional(),
+  /** `ContentText` (v2.4x): literal string (unchanged default) or `{ key, fallback? }`
+   *  resolved from `flow.content` — see `resolveContentText`. */
+  title: contentTextSchema.optional(),
+  subtitle: contentTextSchema.optional(),
   required: z.boolean().default(true),
   image: stepImageSchema.optional(),
   /**
@@ -169,6 +194,7 @@ export interface StepTypeMap {
   "location-leaflet": LocationLeafletStepConfig
   "select-cards": SelectCardsStep
   catalog: CatalogStep
+  product: ProductStep
   address: AddressStep
   scale: ScaleStep
   chips: ChipsStep
@@ -176,6 +202,8 @@ export interface StepTypeMap {
   notes: NotesStep
   media: MediaStep
   file: FileStep
+  photo: PhotoStep
+  "barcode-scan": BarcodeScanStep
   "media-display": MediaDisplayStep
   "date-time": DateTimeStep
   nps: NpsStep
@@ -208,6 +236,7 @@ export type BuiltinStepType =
   | "location-leaflet"
   | "select-cards"
   | "catalog"
+  | "product"
   | "address"
   | "scale"
   | "chips"
@@ -215,6 +244,8 @@ export type BuiltinStepType =
   | "notes"
   | "media"
   | "file"
+  | "photo"
+  | "barcode-scan"
   | "media-display"
   | "date-time"
   | "nps"
@@ -283,6 +314,24 @@ export interface Flow {
    * Resolve a value with `resolveText(flow, key, fallback?)`.
    */
   texts?: Record<string, string>
+  /**
+   * Free-form dictionary for the flow's own *content* (step title/subtitle, option
+   * labels/descriptions, catalog/product item text, …), keyed however the flow author
+   * likes — a separate namespace from `texts`, which is reserved for the library's
+   * fixed system/chrome keys (`defaultMessages`). Populated by a `ContentText` value
+   * of shape `{ key, fallback? }` anywhere one is accepted; resolve with
+   * `resolveContentText(flow, value)`. Unset = every `ContentText` field in the flow
+   * must be a literal string (or fall back to its own `fallback`/`key`).
+   */
+  content?: Record<string, string>
+  /**
+   * Version of this flow config's own shape (see flow-versioning.ts) — always exactly
+   * `CURRENT_FLOW_SCHEMA_VERSION` on a `Flow` returned by `parseFlow`, regardless of
+   * what a stored/saved flow originally carried: `parseFlow` migrates it up before
+   * validating. Not the `@flowkit-io/core` npm package's version, a separate, much
+   * slower-moving number — most releases of this library never bump it.
+   */
+  schemaVersion: number
 }
 
 const flowShapeSchema = z.object({
@@ -293,6 +342,12 @@ const flowShapeSchema = z.object({
   disableBack: z.boolean().default(false),
   timezone: z.string().default("UTC"),
   texts: z.record(z.string(), z.string()).optional(),
+  content: z.record(z.string(), z.string()).optional(),
+  /** See flow-versioning.ts. `parseFlow` always migrates up to
+   *  `CURRENT_FLOW_SCHEMA_VERSION` before this schema ever validates the input, so
+   *  this default only matters for a direct `flowShapeSchema.parse()` call bypassing
+   *  that step (parseFlow is the only real caller). */
+  schemaVersion: z.number().int().positive().default(CURRENT_FLOW_SCHEMA_VERSION),
 })
 
 /**
@@ -365,7 +420,16 @@ export function slugify(input: string): string {
   return slug || "step"
 }
 
-type StepWithKeyFields = { id: string; title?: string; key?: string; steps?: Step[] }
+type StepWithKeyFields = { id: string; title?: ContentText; key?: string; steps?: Step[] }
+
+/** Minimal, import-cycle-free version of i18n.ts's `resolveContentText`: schema.ts
+ *  can't import from i18n.ts (i18n.ts already imports `Flow`/`Step` from here), so
+ *  `resolveStepKeys` needs its own copy of the same three-step fallback (dictionary
+ *  entry -> value's own fallback -> its key) to slugify a `ContentText` title. */
+function resolveContentTextForSlug(content: Record<string, string> | undefined, value: ContentText): string {
+  if (typeof value === "string") return value
+  return content?.[value.key] ?? value.fallback ?? value.key
+}
 
 /**
  * Resolves and materializes `step.key` on every step (recursing into `group`
@@ -376,20 +440,26 @@ type StepWithKeyFields = { id: string; title?: string; key?: string; steps?: Ste
  * directly, bypassing parseFlow, never go through this resolution). Throws on a
  * duplicate resolved key anywhere in the flow, including across a top-level step and a
  * nested group child: the key names a field in the same flat `answers` object for both.
+ * `content` is the flow's `content` dictionary (see `Flow.content`), used to resolve a
+ * `ContentText` title before slugifying it — a title of shape `{ key, fallback? }`
+ * slugifies its resolved text, same as a literal string title would.
  */
-export function resolveStepKeys(steps: Step[]): void {
+export function resolveStepKeys(steps: Step[], content?: Record<string, string>): void {
   const seen = new Map<string, StepWithKeyFields>()
 
   function visit(list: Step[]): void {
     for (const raw of list) {
       const step = raw as unknown as StepWithKeyFields
-      const resolvedKey = step.key ?? slugify(step.title ?? step.id)
+      const resolvedTitle = step.title !== undefined ? resolveContentTextForSlug(content, step.title) : undefined
+      const resolvedKey = step.key ?? slugify(resolvedTitle ?? step.id)
       const existing = seen.get(resolvedKey)
       if (existing) {
+        const existingTitle =
+          existing.title !== undefined ? resolveContentTextForSlug(content, existing.title) : undefined
         throw new Error(
           `Invalid flow: duplicate step key "${resolvedKey}" — step id="${existing.id}"` +
-            `${existing.title ? ` (title="${existing.title}")` : ""} and step id="${step.id}"` +
-            `${step.title ? ` (title="${step.title}")` : ""} both resolve to it. Set an explicit, unique "key" on one of them.`,
+            `${existingTitle ? ` (title="${existingTitle}")` : ""} and step id="${step.id}"` +
+            `${resolvedTitle ? ` (title="${resolvedTitle}")` : ""} both resolve to it. Set an explicit, unique "key" on one of them.`,
         )
       }
       step.key = resolvedKey
@@ -402,9 +472,9 @@ export function resolveStepKeys(steps: Step[]): void {
 }
 
 export function parseFlow(input: unknown): Flow {
-  const shape = flowShapeSchema.parse(input)
+  const shape = flowShapeSchema.parse(migrateFlowInput(input))
   const steps = shape.steps.map(parseStep)
   assertFlowStepOrder(steps)
-  resolveStepKeys(steps)
+  resolveStepKeys(steps, shape.content)
   return { ...shape, steps }
 }

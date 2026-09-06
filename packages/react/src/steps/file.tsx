@@ -1,6 +1,6 @@
 import { useState } from "react"
 import type { FileStep } from "@flowkit-io/core"
-import { resolveFileAccept, resolveText } from "@flowkit-io/core"
+import { resolveFileAccept, resolveText, resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { useFileUpload } from "./shared/use-file-upload"
 import { FlowMarkdown } from "../markdown"
@@ -41,11 +41,13 @@ export function FileStepView({ step, value, onChange, flow, answers, meta, valid
   }
 
   const previewItem = items.find((i) => i.id === previewId) ?? null
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   return (
     <div className="fk-step fk-step-file" onBlur={handleBlur} {...ariaProps}>
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
 
       {canAddMore && (
         <label className="fk-media-action-btn">

@@ -4,7 +4,9 @@ import {
   flowHasPayment,
   formatMoney,
   getPendingPayment,
+  getStepTypeDefinition,
   parseFlow,
+  paymentStripeStepSchema,
   type Answers,
   type Flow,
 } from "./index"
@@ -88,6 +90,36 @@ describe("getPendingPayment", () => {
 
   it("returns null for a malformed value", () => {
     expect(getPendingPayment(flow, { pay: { status: "collected" } as never })).toBeNull()
+  })
+})
+
+describe("previewSelected", () => {
+  function makeStep(overrides: Partial<Parameters<typeof paymentStripeStepSchema.parse>[0]> = {}) {
+    return paymentStripeStepSchema.parse({
+      id: "pay",
+      type: "payment-stripe",
+      publishableKey: "pk_test_x",
+      amount: 1500,
+      currency: "eur",
+      ...overrides,
+    })
+  }
+
+  it("defaults to false", () => {
+    expect(makeStep().previewSelected).toBe(false)
+  })
+
+  it("bypasses validation entirely when true, regardless of value", () => {
+    const def = getStepTypeDefinition("payment-stripe")!
+    const step = makeStep({ previewSelected: true })
+    expect(def.validate(step, null, {})).toBe(true)
+    expect(def.validate(step, undefined, {})).toBe(true)
+  })
+
+  it("still requires a real collected value when false", () => {
+    const def = getStepTypeDefinition("payment-stripe")!
+    const step = makeStep()
+    expect(def.validate(step, null, {})).toBe(false)
   })
 })
 

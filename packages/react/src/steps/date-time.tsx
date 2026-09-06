@@ -1,4 +1,5 @@
 import type { DateTimeStep } from "@flowkit-io/core"
+import { resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -22,11 +23,13 @@ export function DateTimeStepView({ step, value, onChange, flow, answers, meta, v
   const current = typeof value === "string" ? value : (step.defaultValue ?? "")
   const min = step.min ?? (step.disablePast ? todayMin(step.mode) : undefined)
   const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   return (
     <div className="fk-step fk-step-date-time">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       <input
         className="fk-input"
         type={inputTypeByMode[step.mode]}

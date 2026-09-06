@@ -41,6 +41,11 @@ export const catalogDemoFlow: Flow = parseFlow({
       currency: "eur",
       maxPerItem: 10,
       minItems: 1,
+      filters: [
+        { label: "Bestseller", icon: { kind: "emoji", value: "🔥" }, tag: "bestseller" },
+        { label: "Eco", icon: { kind: "emoji", value: "🌱" }, tag: "eco" },
+        { label: "Novità", icon: { kind: "emoji", value: "✨" }, tag: "new" },
+      ],
       items: [
         {
           value: "tshirt",
@@ -50,6 +55,7 @@ export const catalogDemoFlow: Flow = parseFlow({
             "**Cotone organico 180 g/m²**, filato ring-spun. Stampa serigrafica a base acqua, resistente a oltre 50 lavaggi.\n\nVestibilità regular unisex. Taglie **S–XXL**. Lavaggio a 30°, non asciugare in asciugatrice, stira a rovescio.\n\nSpedizione in 3-5 giorni lavorativi, reso gratuito entro 30 giorni.",
           price: 2500,
           image: { kind: "emoji", value: "👕" },
+          tags: ["bestseller", "eco"],
         },
         {
           value: "mug",
@@ -60,6 +66,7 @@ export const catalogDemoFlow: Flow = parseFlow({
           price: 1200,
           image: { kind: "emoji", value: "☕" },
           maxQuantity: 4,
+          tags: ["bestseller"],
         },
         {
           value: "stickers",
@@ -67,6 +74,7 @@ export const catalogDemoFlow: Flow = parseFlow({
           description: "10 adesivi vinilici.",
           price: 500,
           image: { kind: "emoji", value: "✨" },
+          tags: ["new"],
         },
         {
           value: "tote",
@@ -74,6 +82,7 @@ export const catalogDemoFlow: Flow = parseFlow({
           description: "Manici lunghi, tasca interna.",
           price: 1800,
           image: { kind: "emoji", value: "👜" },
+          tags: ["eco", "new"],
         },
       ],
     },

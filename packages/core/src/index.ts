@@ -9,6 +9,7 @@
 import "./intro-step"
 import "./select-cards-step"
 import "./catalog-step"
+import "./product-step"
 import "./address-step"
 import "./scale-step"
 import "./chips-step"
@@ -16,6 +17,8 @@ import "./faces-step"
 import "./notes-step"
 import "./media-step"
 import "./file-step"
+import "./photo-step"
+import "./barcode-scan-step"
 import "./media-display-step"
 import "./date-time-step"
 import "./nps-step"
@@ -39,11 +42,13 @@ import "./info-step"
 import "./long-content-step"
 
 export * from "./schema"
+export * from "./flow-versioning"
 export * from "./intro-step"
 export * from "./select-cards-step"
 export {
   catalogStepSchema,
   catalogItemSchema,
+  catalogFilterSchema,
   catalogTotal,
   computeOrderTotal,
   buildOrderSummary,
@@ -52,11 +57,14 @@ export {
 export type {
   CatalogStep,
   CatalogItem,
+  CatalogFilter,
   CatalogLine,
   CatalogValue,
   OrderSummary,
   OrderSummaryLine,
 } from "./catalog-step"
+export { productStepSchema, asProductValue, productTotal } from "./product-step"
+export type { ProductStep, ProductValue } from "./product-step"
 export { addressStepSchema, asAddressValue } from "./address-step"
 export type { AddressStep, AddressValue } from "./address-step"
 export { buildTaxInput } from "./tax"
@@ -73,6 +81,8 @@ export * from "./faces-step"
 export * from "./notes-step"
 export * from "./media-step"
 export * from "./file-step"
+export * from "./photo-step"
+export * from "./barcode-scan-step"
 export * from "./media-display-step"
 export * from "./date-time-step"
 export * from "./nps-step"

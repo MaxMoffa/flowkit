@@ -1,4 +1,4 @@
-import { asAddressValue, resolveText, type AddressStep, type AddressValue } from "@flowkit-io/core"
+import { asAddressValue, resolveText, resolveContentText, type AddressStep, type AddressValue } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -35,12 +35,15 @@ export function AddressStepView({
     onChange(merged.country || merged.line1 || merged.postalCode ? merged : null)
   }
 
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
+
   return (
     <div className="fk-step fk-step-address">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && (
+      <StepTitle image={step.image} title={title} />
+      {subtitle && (
         <p className="fk-subtitle">
-          <FlowMarkdown text={step.subtitle} variant="block" />
+          <FlowMarkdown text={subtitle} variant="block" />
         </p>
       )}
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import type { MediaStep } from "@flowkit-io/core"
-import { resolveMediaAccept } from "@flowkit-io/core"
+import { resolveMediaAccept, resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { useFileUpload } from "./shared/use-file-upload"
 import { useMediaCaptureAvailability } from "./shared/use-media-capture-availability"
@@ -38,11 +38,13 @@ export function MediaStepView({ step, value, onChange, flow, answers, meta, vali
     videoFormats: step.videoFormats,
   })
   const captureLabel = acceptImages && acceptVideos ? "📷 Scatta foto/video" : acceptVideos ? "🎥 Registra video" : "📷 Scatta foto"
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   return (
     <div className="fk-step fk-step-media" onBlur={handleBlur} {...ariaProps}>
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
 
       {canAddMore && (
         <div className="fk-media-actions">

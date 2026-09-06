@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { listBookingSlotDates, listBookingSlotsForDate } from "@flowkit-io/core"
+import { listBookingSlotDates, listBookingSlotsForDate, resolveContentText } from "@flowkit-io/core"
 import type { AnswerValue, BookingSlot, BookingSlotStep, BookingSlotValue } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
@@ -50,10 +50,13 @@ export function BookingSlotStepView({ step, value, onChange, flow }: StepCompone
     onChange(nextValue as unknown as AnswerValue)
   }
 
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
+
   return (
     <div className="fk-step fk-step-booking-slot">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
 
       {dates.length === 0 ? (
         <p className="fk-remote-status">Nessuna data disponibile.</p>

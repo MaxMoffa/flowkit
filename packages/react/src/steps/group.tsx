@@ -1,5 +1,5 @@
 import type { AnswerValue, GroupStep } from "@flowkit-io/core"
-import { answerKey, getStepValidationIssue, resolveValidationMessage } from "@flowkit-io/core"
+import { answerKey, getStepValidationIssue, resolveValidationMessage, resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { getStepComponent } from "../registry"
 import { FlowMarkdown } from "../markdown"
@@ -58,17 +58,20 @@ export function GroupStepView({
           .filter((entry) => entry.issue !== null)
       : []
 
+  const groupTitle = groupStep.title !== undefined ? resolveContentText(flow, groupStep.title) : undefined
+  const groupSubtitle = groupStep.subtitle !== undefined ? resolveContentText(flow, groupStep.subtitle) : undefined
+
   return (
     <div className={`fk-step fk-step-group fk-group-${effectiveLayout}`}>
-      <StepTitle image={groupStep.image} title={groupStep.title} />
-      {groupStep.subtitle && <p className="fk-subtitle"><FlowMarkdown text={groupStep.subtitle} variant="block" /></p>}
+      <StepTitle image={groupStep.image} title={groupTitle} />
+      {groupSubtitle && <p className="fk-subtitle"><FlowMarkdown text={groupSubtitle} variant="block" /></p>}
       {invalidChildren.length >= 2 && (
         <div className="fk-error-summary" role="alert">
           <p className="fk-error-summary-title">Controlla i campi evidenziati</p>
           <ul className="fk-error-summary-list">
             {invalidChildren.map(({ child, issue }) => (
               <li key={child.id}>
-                {child.title ?? child.id}: {resolveValidationMessage(flow, child, issue!)}
+                {(child.title !== undefined ? resolveContentText(flow, child.title) : undefined) ?? child.id}: {resolveValidationMessage(flow, child, issue!)}
               </li>
             ))}
           </ul>

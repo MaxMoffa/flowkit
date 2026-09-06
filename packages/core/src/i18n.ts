@@ -1,4 +1,4 @@
-import type { Flow, Step } from "./schema"
+import type { Flow, Step, ContentText } from "./schema"
 import type { ValidationIssue } from "./registry"
 
 export type Locale = "it" | "en"
@@ -16,6 +16,7 @@ export const defaultMessages: Record<Locale, Record<string, string>> = {
     backAriaLabel: "Indietro",
     submit: "Invia segnalazione ✓",
     submitWithPayment: "Completa pagamento e invia ✓",
+    submitWithPaymentAmount: "Paga {amount} ✓",
     paymentTotal: "Totale",
     paymentFailed: "Pagamento non riuscito, riprova.",
     returnToReview: "Torna al riepilogo",
@@ -31,6 +32,20 @@ export const defaultMessages: Record<Locale, Record<string, string>> = {
     verificationWidgetError: "Errore del widget di verifica.",
     fileAddPlaceholder: "Aggiungi file",
     attachmentSuffix: "allegato/i",
+    photoCapture: "Scatta foto",
+    photoRetake: "Scatta un'altra foto",
+    photoRequestingPermission: "Richiesta di accesso alla fotocamera…",
+    photoPermissionDenied: "Accesso alla fotocamera negato. Puoi comunque scegliere una foto.",
+    photoNoCamera: "Nessuna fotocamera disponibile. Puoi comunque scegliere una foto.",
+    barcodeRequestingPermission: "Richiesta di accesso alla fotocamera…",
+    barcodePermissionDenied: "Accesso alla fotocamera negato. Inserisci il codice manualmente.",
+    barcodeNoCamera: "Nessuna fotocamera disponibile. Inserisci il codice manualmente.",
+    barcodeScanning: "Inquadra il codice a barre o il QR code.",
+    barcodeFound: "Codice trovato",
+    barcodeLoadError: "Impossibile avviare la scansione. Inserisci il codice manualmente.",
+    barcodeRescan: "Scansiona di nuovo",
+    barcodeManualLabel: "Inserisci il codice manualmente",
+    barcodeManualPlaceholder: "Codice",
     catalogAdd: "Aggiungi",
     catalogIncrease: "Aumenta la quantità",
     catalogDecrease: "Riduci la quantità",
@@ -39,6 +54,7 @@ export const defaultMessages: Record<Locale, Record<string, string>> = {
     catalogEmpty: "Nessun articolo selezionato",
     catalogDetails: "vedi i dettagli",
     catalogClose: "Chiudi",
+    cartOpen: "Carrello",
     addressCountry: "Paese",
     addressLine1: "Indirizzo",
     addressLine2: "Interno, scala… (facoltativo)",
@@ -49,8 +65,12 @@ export const defaultMessages: Record<Locale, Record<string, string>> = {
     taxCalculating: "Calcolo delle imposte…",
     taxError: "Impossibile calcolare le imposte ora.",
     taxEstimated: "stima",
+    taxInclusiveNote: "IVA inclusa",
+    taxExclusiveNote: "+ IVA",
     orderSubtotal: "Subtotale",
     catalogEstimatedTotal: "Totale stimato",
+    catalogFilters: "Filtri",
+    catalogFilterEmpty: "Nessun prodotto per questo filtro.",
     otherOption: "Altro",
     otherOptionPlaceholder: "Specifica…",
     "validation.required": "Campo obbligatorio: compilalo per continuare.",
@@ -70,6 +90,7 @@ export const defaultMessages: Record<Locale, Record<string, string>> = {
     backAriaLabel: "Back",
     submit: "Submit ✓",
     submitWithPayment: "Complete payment & submit ✓",
+    submitWithPaymentAmount: "Pay {amount} ✓",
     paymentTotal: "Total",
     paymentFailed: "Payment failed, please try again.",
     returnToReview: "Back to review",
@@ -85,6 +106,20 @@ export const defaultMessages: Record<Locale, Record<string, string>> = {
     verificationWidgetError: "Verification widget error.",
     fileAddPlaceholder: "Add file",
     attachmentSuffix: "attachment(s)",
+    photoCapture: "Take a photo",
+    photoRetake: "Take another photo",
+    photoRequestingPermission: "Requesting camera access…",
+    photoPermissionDenied: "Camera access denied. You can still choose a photo.",
+    photoNoCamera: "No camera available. You can still choose a photo.",
+    barcodeRequestingPermission: "Requesting camera access…",
+    barcodeNoCamera: "No camera available. Enter the code manually.",
+    barcodePermissionDenied: "Camera access denied. Enter the code manually.",
+    barcodeScanning: "Point the camera at the barcode or QR code.",
+    barcodeFound: "Code found",
+    barcodeLoadError: "Couldn't start scanning. Enter the code manually.",
+    barcodeRescan: "Scan again",
+    barcodeManualLabel: "Enter the code manually",
+    barcodeManualPlaceholder: "Code",
     catalogAdd: "Add",
     catalogIncrease: "Increase quantity",
     catalogDecrease: "Decrease quantity",
@@ -93,6 +128,7 @@ export const defaultMessages: Record<Locale, Record<string, string>> = {
     catalogEmpty: "No items selected",
     catalogDetails: "see details",
     catalogClose: "Close",
+    cartOpen: "Cart",
     addressCountry: "Country",
     addressLine1: "Address",
     addressLine2: "Apt, suite, unit (optional)",
@@ -103,8 +139,12 @@ export const defaultMessages: Record<Locale, Record<string, string>> = {
     taxCalculating: "Calculating tax…",
     taxError: "Couldn't calculate tax right now.",
     taxEstimated: "estimate",
+    taxInclusiveNote: "Tax included",
+    taxExclusiveNote: "+ tax",
     orderSubtotal: "Subtotal",
     catalogEstimatedTotal: "Estimated total",
+    catalogFilters: "Filters",
+    catalogFilterEmpty: "No products for this filter.",
     otherOption: "Other",
     otherOptionPlaceholder: "Please specify…",
     "validation.required": "This field is required: fill it in to continue.",
@@ -149,6 +189,20 @@ export function resolveText(flow: Flow, key: string, fallback?: string): string 
     fallback ??
     key
   )
+}
+
+/**
+ * Resolves a `ContentText` value (step title/subtitle, option label/description,
+ * catalog/product item label/description/details) against the flow's own `content`
+ * dictionary (`Flow.content` — a namespace separate from `flow.texts`, which is
+ * reserved for the library's fixed system/chrome keys). A literal string resolves to
+ * itself unchanged (default, zero-regression behavior). An object value resolves, in
+ * order: `flow.content[value.key]`, else `value.fallback`, else the raw `value.key`
+ * (so an unresolved key never renders as blank/undefined).
+ */
+export function resolveContentText(flow: Flow, value: ContentText): string {
+  if (typeof value === "string") return value
+  return flow.content?.[value.key] ?? value.fallback ?? value.key
 }
 
 /** Resolves a validation issue's user-facing message: the step's own per-field

@@ -90,7 +90,8 @@ export function LocationLeafletStepView({
   step,
   value,
   onChange,
+  flow,
 }: StepComponentProps<LocationLeafletStepConfig>) {
   const state = useLocationStep(step, value, onChange, leafletEngine)
-  return <LocationStepLayout step={step} state={state} />
+  return <LocationStepLayout step={step} state={state} flow={flow} />
 }

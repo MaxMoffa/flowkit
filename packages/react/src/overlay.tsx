@@ -124,6 +124,8 @@ function FlowOverlayContent({
   initialAnswers,
   estimatedAddress,
   haptics,
+  locale,
+  content,
 }: FlowOverlayContentProps) {
   const resolved = usePresentation(presentation)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -239,6 +241,8 @@ function FlowOverlayContent({
               initialAnswers={initialAnswers}
               estimatedAddress={estimatedAddress}
               haptics={haptics}
+              locale={locale}
+              content={content}
             />
           </div>
         </div>

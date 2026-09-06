@@ -5,7 +5,7 @@ import type { AnswerValue, Flow, RadioStep } from "@flowkit-io/core"
 import "@flowkit-io/core"
 import { RadioStepView } from "./radio"
 
-const flow: Flow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC" }
+const flow: Flow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC", schemaVersion: 1 }
 
 function baseStep(extra: Partial<RadioStep> = {}): RadioStep {
   return {
@@ -62,5 +62,48 @@ describe("RadioStepView: otherOption", () => {
     const otherRadio = container.querySelector(".fk-list-other input[type=radio]") as HTMLInputElement
     expect(otherRadio.checked).toBe(true)
     expect((container.querySelector(".fk-list-other-input") as HTMLInputElement).value).toBe("Carrier pigeon")
+  })
+})
+
+describe("RadioStepView: ContentText title/subtitle/option label", () => {
+  const contentStep = baseStep({
+    title: { key: "channel.title", fallback: "Come preferisci essere contattato?" },
+    subtitle: { key: "channel.subtitle", fallback: "Scegli un canale" },
+    options: [
+      { value: "email", label: { key: "channel.email", fallback: "Email (default)" } },
+      { value: "phone", label: "Phone" },
+    ],
+  })
+
+  it("renders each ContentText field's own fallback when flow.content is unset", () => {
+    const { container } = render(<StatefulRadio step={contentStep} />)
+    expect(container.querySelector(".fk-title")?.textContent).toBe("Come preferisci essere contattato?")
+    expect(container.querySelector(".fk-subtitle")?.textContent).toBe("Scegli un canale")
+    expect(container.querySelector(".fk-list-label")?.textContent).toBe("Email (default)")
+  })
+
+  it("renders the flow.content dictionary value when present, over the fallback", () => {
+    const flowWithContent: Flow = {
+      ...flow,
+      content: {
+        "channel.title": "Canale preferito?",
+        "channel.subtitle": "Scegli tra le opzioni",
+        "channel.email": "Email (dizionario)",
+      },
+    }
+    const { container } = render(
+      <RadioStepView
+        step={contentStep}
+        value={null}
+        onChange={() => {}}
+        flow={flowWithContent}
+        answers={{}}
+        meta={{}}
+        onMetaChange={() => {}}
+      />,
+    )
+    expect(container.querySelector(".fk-title")?.textContent).toBe("Canale preferito?")
+    expect(container.querySelector(".fk-subtitle")?.textContent).toBe("Scegli tra le opzioni")
+    expect(container.querySelector(".fk-list-label")?.textContent).toBe("Email (dizionario)")
   })
 })

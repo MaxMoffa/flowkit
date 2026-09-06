@@ -29,6 +29,10 @@ export interface FileUpload {
   remaining: number | undefined
   canAddMore: boolean
   addFiles: (files: FileList | null) => Promise<void>
+  /** Same pipeline as `addFiles`, for a single File that didn't come through a
+   *  `FileList` picker — the shot photo.tsx's shutter button just captured off a
+   *  `<canvas>`. Respects `maxItems` exactly like `addFiles` does. */
+  addCapturedFile: (file: File) => Promise<void>
   removeItem: (id: string) => void
 }
 
@@ -43,10 +47,8 @@ export function useFileUpload({ value, onChange, maxItems, kindOf }: FileUploadO
   const remaining = maxItems !== undefined ? Math.max(0, maxItems - items.length) : undefined
   const canAddMore = remaining === undefined || remaining > 0
 
-  async function addFiles(files: FileList | null) {
-    if (!files || files.length === 0) return
-    const list = remaining !== undefined ? Array.from(files).slice(0, remaining) : Array.from(files)
-    const newItems = await Promise.all(
+  async function toUploadedItems(list: File[]): Promise<UploadedItem[]> {
+    return Promise.all(
       list.map(async (file) => ({
         id: makeId(),
         name: file.name,
@@ -56,6 +58,18 @@ export function useFileUpload({ value, onChange, maxItems, kindOf }: FileUploadO
         kind: kindOf(file),
       })),
     )
+  }
+
+  async function addFiles(files: FileList | null) {
+    if (!files || files.length === 0) return
+    const list = remaining !== undefined ? Array.from(files).slice(0, remaining) : Array.from(files)
+    const newItems = await toUploadedItems(list)
+    onChange([...items, ...newItems] as unknown as AnswerValue)
+  }
+
+  async function addCapturedFile(file: File) {
+    if (remaining !== undefined && remaining <= 0) return
+    const newItems = await toUploadedItems([file])
     onChange([...items, ...newItems] as unknown as AnswerValue)
   }
 
@@ -63,5 +77,5 @@ export function useFileUpload({ value, onChange, maxItems, kindOf }: FileUploadO
     onChange(items.filter((i) => i.id !== id) as unknown as AnswerValue)
   }
 
-  return { items, remaining, canAddMore, addFiles, removeItem }
+  return { items, remaining, canAddMore, addFiles, addCapturedFile, removeItem }
 }

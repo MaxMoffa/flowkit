@@ -5,7 +5,9 @@ test.describe("confirmation footer buttons", () => {
   test.use({ viewport: { width: 1280, height: 900 } })
 
   test("desktop: secondary and primary buttons sit side by side in one row", async ({ page }) => {
-    await openPreset(page, { preset: "result-actions-demo" })
+    // Desktop-only layout (fk-shell >=1024px container query) — index.html's phone
+    // frame never reaches that width, so this needs the fullscreen route.
+    await openPreset(page, { preset: "result-actions-demo", frame: "desktop" })
     await page.locator(".fk-scale-pill", { hasText: "5" }).click()
     await page.getByRole("button", { name: "Continua", exact: true }).click()
 

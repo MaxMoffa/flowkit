@@ -13,3 +13,4 @@ docs/.vitepress/cache
 CLAUDE.md
 DECISIONS.md
 TASKS.md
+.claude/

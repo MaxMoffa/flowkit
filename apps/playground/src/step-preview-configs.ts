@@ -231,6 +231,22 @@ export const stepPreviewConfigs: Partial<Record<string, Step>> = {
     multiple: true,
   } as unknown as Step,
 
+  photo: {
+    id: "preview",
+    type: "photo",
+    title: "Take a photo of the receipt",
+    required: false,
+    maxPhotos: 1,
+  } as unknown as Step,
+
+  "barcode-scan": {
+    id: "preview",
+    type: "barcode-scan",
+    title: "Scan the product barcode",
+    required: false,
+    allowManualEntry: true,
+  } as unknown as Step,
+
   "media-display": {
     id: "preview",
     type: "media-display",
@@ -278,6 +294,9 @@ export const stepPreviewConfigs: Partial<Record<string, Step>> = {
     publishableKey: "pk_test_TYooMQauvdEDq54NiTphI7jx",
     amount: 1500,
     currency: "eur",
+    // Shows the real "method selected" success UI without loading Stripe Elements —
+    // see payment-stripe-step.ts's previewSelected doc comment.
+    previewSelected: true,
   } as unknown as Step,
 
   verification: {

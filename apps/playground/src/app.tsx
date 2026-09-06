@@ -6,6 +6,7 @@ import { createLocalAdapter } from "@flowkit-io/adapters"
 import type { Answers, CurrentStepInfo, Flow } from "@flowkit-io/core"
 import { loadPreset, presetKeys, presetLabels } from "./presets-registry"
 import { ensureOptInStepsRegistered } from "./opt-in-steps"
+import { simulateStripeTestCardOutcome } from "./simulate-stripe-decline"
 
 const adapter = createLocalAdapter({ namespace: "flowkit-playground" })
 
@@ -192,6 +193,7 @@ export function App() {
                 theme={theme}
                 mode={mode}
                 onSubmit={async (answers) => {
+                  simulateStripeTestCardOutcome(flow, answers)
                   await adapter.submit(flow.id, answers)
                   setLastSubmission(answers)
                 }}

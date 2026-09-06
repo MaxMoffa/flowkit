@@ -3,7 +3,7 @@ import { render } from "@testing-library/react"
 import type { MediaDisplayStep } from "@flowkit-io/core"
 import { MediaDisplayStepView } from "./media-display"
 
-const baseFlow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC" }
+const baseFlow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC", schemaVersion: 1 }
 
 function makeProps(step: Partial<MediaDisplayStep>) {
   return {

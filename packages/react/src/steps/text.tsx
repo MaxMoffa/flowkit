@@ -1,4 +1,5 @@
 import type { TextStep } from "@flowkit-io/core"
+import { resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -19,11 +20,13 @@ export function TextStepView({
   const stringValue = typeof value === "string" ? value : ""
   const smartFill = useSmartFill(step, stringValue, onChange, answers, meta, onMetaChange)
   const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   return (
     <div className="fk-step fk-step-text">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       {step.multiline ? (
         <textarea
           className="fk-textarea"

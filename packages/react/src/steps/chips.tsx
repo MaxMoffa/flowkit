@@ -1,4 +1,5 @@
 import type { ChipsStep } from "@flowkit-io/core"
+import { resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { optionColorClass, optionColorStyle } from "./shared/option-color"
 import { useToggleSelection } from "./shared/selection"
@@ -17,28 +18,34 @@ export function ChipsStepView({ step, value, onChange, flow, answers, meta, vali
     ? remote.options.map((opt) => ({ ...opt, description: undefined, color: undefined }))
     : step.options
   const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   return (
     <div className="fk-step fk-step-chips">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       <RemoteSearchInput remote={remote} />
       <RemoteOptionsStatus remote={remote} />
       <div className="fk-chips-wrap" onBlur={handleBlur} {...ariaProps}>
-        {options.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            className={`fk-chip ${selected.includes(opt.value) ? "fk-chip-selected" : ""}${opt.description ? " fk-chip-with-description" : ""} ${optionColorClass(opt.color)}`}
-            style={optionColorStyle(opt.color)}
-            onClick={() => toggle(opt.value)}
-          >
-            <FlowMarkdown text={opt.label} variant="inline" />
-            {opt.description && (
-              <span className="fk-chip-description"><FlowMarkdown text={opt.description} variant="block" /></span>
-            )}
-          </button>
-        ))}
+        {options.map((opt) => {
+          const label = resolveContentText(flow, opt.label)
+          const description = opt.description !== undefined ? resolveContentText(flow, opt.description) : undefined
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              className={`fk-chip ${selected.includes(opt.value) ? "fk-chip-selected" : ""}${description ? " fk-chip-with-description" : ""} ${optionColorClass(opt.color)}`}
+              style={optionColorStyle(opt.color)}
+              onClick={() => toggle(opt.value)}
+            >
+              <FlowMarkdown text={label} variant="inline" />
+              {description && (
+                <span className="fk-chip-description"><FlowMarkdown text={description} variant="block" /></span>
+              )}
+            </button>
+          )
+        })}
       </div>
       <FieldError id={errorId} message={message} />
       <RemoteLoadMoreButton remote={remote} />

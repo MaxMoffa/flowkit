@@ -1,4 +1,5 @@
 import type { NpsStep } from "@flowkit-io/core"
+import { resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -8,9 +9,10 @@ import { FieldError } from "./shared/field-error"
 export function NpsStepView({ step, value, onChange, flow, answers, meta, validationAttempt }: StepComponentProps<NpsStep>) {
   const values = Array.from({ length: 11 }, (_, i) => i)
   const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
   return (
     <div className="fk-step fk-step-nps">
-      <StepTitle image={step.image} title={step.title} />
+      <StepTitle image={step.image} title={title} />
       <p className="fk-subtitle">
         <FlowMarkdown
           text={step.question ?? "Quanto è probabile che ci consiglieresti a un amico?"}

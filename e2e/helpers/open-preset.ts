@@ -14,6 +14,16 @@ export interface OpenPresetOptions {
   start?: boolean
   /** Intro CTA label. Each preset writes its own; the default preset (odori) differs. */
   cta?: string
+  /**
+   * Mount via `fullscreen.html` at the given simulated container width instead of the
+   * default `index.html` narrow phone frame (`.pg-frame`, always ~390px regardless of
+   * the browser viewport). Needed for anything that asserts desktop-only layout
+   * (`@container fk-shell (min-width: 1024px)` in style.css) — the phone frame never
+   * reaches that container width, no matter how wide `page`'s own viewport is (see
+   * DECISIONS.md / e2e/container-not-viewport.spec.ts, the fix this option exists
+   * for). Omit to keep the default index.html/.pg-frame route.
+   */
+  frame?: "mobile" | "desktop"
 }
 
 /**
@@ -24,11 +34,20 @@ export interface OpenPresetOptions {
  * to find and meant a playground label change had to be applied in 50 places.
  */
 export async function openPreset(page: Page, options: OpenPresetOptions = {}): Promise<void> {
-  const { preset, theme, skip = [], start = true, cta = "Prova" } = options
+  const { preset, theme, skip = [], start = true, cta = "Prova", frame } = options
 
-  await page.goto("/")
-  if (preset) await page.getByLabel("Preset", { exact: true }).selectOption(preset)
-  if (theme) await page.getByLabel("Tema", { exact: true }).selectOption(theme)
+  if (frame) {
+    const params = new URLSearchParams()
+    if (preset) params.set("preset", preset)
+    if (theme) params.set("theme", theme)
+    const query = params.size > 0 ? `?${params.toString()}` : ""
+    await page.goto(`/fullscreen.html${query}`)
+    await page.getByRole("button", { name: frame === "mobile" ? "Mobile 390px" : "Desktop (100%)" }).click()
+  } else {
+    await page.goto("/")
+    if (preset) await page.getByLabel("Preset", { exact: true }).selectOption(preset)
+    if (theme) await page.getByLabel("Tema", { exact: true }).selectOption(theme)
+  }
   if (!start) return
 
   await page.getByRole("button", { name: cta }).click()

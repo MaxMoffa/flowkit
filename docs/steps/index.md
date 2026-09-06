@@ -63,8 +63,9 @@ see [`branch`](./branch.md) for the condition syntax.
 [`date-time`](./date-time.md) · [`booking-slot`](./booking-slot.md) ·
 [`notes`](./notes.md)
 
-**Media** — [`media`](./media.md) · [`file`](./file.md) ·
-[`media-display`](./media-display.md) · [`signature`](./signature.md)
+**Media** — [`media`](./media.md) · [`file`](./file.md) · [`photo`](./photo.md) ·
+[`barcode-scan`](./barcode-scan.md) · [`media-display`](./media-display.md) ·
+[`signature`](./signature.md)
 
 **Location** — [`location`](./location.md) (maplibre) ·
 [`location-leaflet`](./location-leaflet.md) (leaflet)
@@ -86,6 +87,8 @@ see [`branch`](./branch.md) for the condition syntax.
 | [`notes`](./notes.md) | `string` | Free textarea |
 | [`media`](./media.md) | `UploadedItem[]` | Image/video capture & upload |
 | [`file`](./file.md) | `UploadedItem[]` | Generic file upload |
+| [`photo`](./photo.md) | `UploadedItem[]` | Camera-only capture, no gallery |
+| [`barcode-scan`](./barcode-scan.md) | `{code,format?}` | Live barcode/QR scan, native + ZXing fallback + manual entry |
 | [`date-time`](./date-time.md) | `string` | Native date/time input |
 | [`booking-slot`](./booking-slot.md) | `{start,durationMinutes,timezone}` | Two-level date+slot picker |
 | [`nps`](./nps.md) | `number` | Net Promoter Score 0–10 |

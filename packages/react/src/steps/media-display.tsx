@@ -1,19 +1,22 @@
 import type { CSSProperties } from "react"
 import type { MediaDisplayStep } from "@flowkit-io/core"
+import { resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
 
-export function MediaDisplayStepView({ step }: StepComponentProps<MediaDisplayStep>) {
+export function MediaDisplayStepView({ step, flow }: StepComponentProps<MediaDisplayStep>) {
   const style: CSSProperties = {
     aspectRatio: step.aspectRatio,
     objectFit: step.fit,
     width: "100%",
   }
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
   return (
     <div className="fk-step fk-step-media-display">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       <div className="fk-media-display-frame">
         {step.kind === "video" ? (
           <video

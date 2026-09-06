@@ -8,15 +8,25 @@ export function sanitizeStepIcon(markup: string): string {
   return DOMPurify.sanitize(markup, { USE_PROFILES: { svg: true, svgFilters: true } })
 }
 
-const SIZE_CLASS: Record<"badge" | "review" | "inline", string> = {
+const SIZE_CLASS: Record<
+  "badge" | "review" | "inline" | "product-thumb" | "product-hero" | "catalog-filter",
+  string
+> = {
   badge: "fk-intro-badge",
   review: "fk-review-icon",
   inline: "fk-title-icon",
+  // Real product photo, not a small icon/badge — see `catalog.tsx` (list row
+  // thumbnail) and `product.tsx` (hero card banner) for where these are used.
+  "product-thumb": "fk-catalog-item-thumb",
+  "product-hero": "fk-product-card-image",
+  // Small chip icon for the catalog step's optional filter row (v2.43) — see
+  // `catalog.tsx`, smaller than "inline" so it fits a compact pill.
+  "catalog-filter": "fk-catalog-filter-icon",
 }
 
 export interface StepImageProps {
   image: StepImageValue | undefined
-  size: "badge" | "review" | "inline"
+  size: "badge" | "review" | "inline" | "product-thumb" | "product-hero" | "catalog-filter"
 }
 
 export function StepImage({ image, size }: StepImageProps) {

@@ -4,7 +4,7 @@ import "../index"
 import type { GroupStep, Step } from "@flowkit-io/core"
 import { GroupStepView } from "./group"
 
-const baseFlow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC" }
+const baseFlow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC", schemaVersion: 1 }
 
 // GroupStep isn't part of the Step union (would close a type cycle, see DECISIONS.md),
 // so GroupStepView's own `step` prop type is Step, cast internally — match that here.

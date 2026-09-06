@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import type { VerificationProvider, VerificationStep, VerificationValue } from "@flowkit-io/core"
-import { resolveText } from "@flowkit-io/core"
+import { resolveText, resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { loadExternalScript } from "./shared/external-script"
 import { FlowMarkdown } from "../markdown"
@@ -43,6 +43,8 @@ export function VerificationStepView({ step, value, onChange, flow }: StepCompon
   const [verifyError, setVerifyError] = useState<string | null>(null)
 
   const skipWidget = step.enabled === false || step.previewVerified === true
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   useEffect(() => {
     if (skipWidget) return
@@ -104,8 +106,8 @@ export function VerificationStepView({ step, value, onChange, flow }: StepCompon
   if (step.enabled === false) {
     return (
       <div className="fk-step fk-step-verification">
-        <StepTitle image={step.image} title={step.title} />
-        {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+        <StepTitle image={step.image} title={title} />
+        {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       </div>
     )
   }
@@ -114,8 +116,8 @@ export function VerificationStepView({ step, value, onChange, flow }: StepCompon
 
   return (
     <div className="fk-step fk-step-verification">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       {verified ? (
         <div className="fk-loc-row">
           <div className="fk-loc-ic">✅</div>

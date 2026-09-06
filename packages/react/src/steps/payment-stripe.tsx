@@ -1,10 +1,11 @@
-import { useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { loadStripe } from "@stripe/stripe-js"
 import type { Appearance, StripePaymentElementChangeEvent } from "@stripe/stripe-js"
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js"
 import {
   resolvePaymentAmount,
   resolveText,
+  resolveContentText,
   type PaymentMethodSummary,
   type PaymentStripeStep,
   type PaymentStripeValue,
@@ -20,6 +21,15 @@ function asPaymentStripeValue(value: unknown): PaymentStripeValue | null {
   if (value === null || typeof value !== "object") return null
   const current = value as PaymentStripeValue
   return current.status === "collected" && typeof current.confirmationTokenId === "string" ? current : null
+}
+
+/** Synthetic value written when `previewSelected: true` — same shape a real
+ *  collected card would have, so review/submit/getPendingPayment all see a normal
+ *  "collected" method without a real Stripe API call. */
+const PREVIEW_SELECTED_VALUE: PaymentStripeValue = {
+  status: "collected",
+  confirmationTokenId: "preview_confirmation_token",
+  summary: { type: "card", brand: "visa", last4: "4242" },
 }
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
@@ -189,25 +199,44 @@ export function PaymentStripeStepView({
   answers,
 }: StepComponentProps<PaymentStripeStep>) {
   const rootRef = useRef<HTMLDivElement>(null)
-  const [stripePromise] = useState(() =>
-    loadStripe(step.publishableKey, step.stripeAccount ? { stripeAccount: step.stripeAccount } : undefined),
-  )
+  // Once the visitor picks "Cambia" out of the preview summary, the real widget takes
+  // over for the rest of this step's lifetime (never reverts to the fake summary).
+  const [previewEditing, setPreviewEditing] = useState(false)
+  const skipWidget = step.previewSelected === true && !previewEditing
+  const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null)
   const [appearance, setAppearance] = useState<Appearance | null>(null)
 
   useLayoutEffect(() => {
     setAppearance(buildAppearance(rootRef.current))
   }, [])
 
+  useEffect(() => {
+    // Skips loadStripe() (which injects the js.stripe.com script tag) entirely while
+    // showing the preview summary — no real Stripe API surface touched.
+    if (skipWidget || stripePromise) return
+    setStripePromise(
+      loadStripe(step.publishableKey, step.stripeAccount ? { stripeAccount: step.stripeAccount } : undefined),
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skipWidget])
+
+  useEffect(() => {
+    if (skipWidget) onChange(PREVIEW_SELECTED_VALUE)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skipWidget])
+
   const collected = asPaymentStripeValue(value)
   // "fixed" → the static amount; "cart" → the order total built earlier in the flow.
   const amount = resolvePaymentAmount(step, flow, answers)
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   return (
     <div className="fk-step fk-step-payment-stripe" ref={rootRef}>
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && (
+      <StepTitle image={step.image} title={title} />
+      {subtitle && (
         <p className="fk-subtitle">
-          <FlowMarkdown text={step.subtitle} variant="block" />
+          <FlowMarkdown text={subtitle} variant="block" />
         </p>
       )}
       {step.description && (
@@ -219,7 +248,24 @@ export function PaymentStripeStepView({
           order total on every step, so repeating it here would just duplicate it. */}
       {amount <= 0 ? (
         <p className="fk-subtitle">{resolveText(flow, "catalogEmpty")}</p>
-      ) : appearance ? (
+      ) : skipWidget ? (
+        <div className="fk-payment-summary">
+          <div className="fk-loc-row">
+            <div className="fk-loc-ic">💳</div>
+            <div className="fk-loc-title">{summaryLabel(PREVIEW_SELECTED_VALUE.summary)}</div>
+          </div>
+          <button
+            type="button"
+            className="fk-payment-change fk-link"
+            onClick={() => {
+              onChange(null)
+              setPreviewEditing(true)
+            }}
+          >
+            <FlowMarkdown text={step.changeLabel} variant="inline" />
+          </button>
+        </div>
+      ) : appearance && stripePromise ? (
         <Elements
           stripe={stripePromise}
           options={{

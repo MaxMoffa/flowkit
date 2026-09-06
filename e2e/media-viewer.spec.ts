@@ -10,8 +10,12 @@ const onePixelPng = {
   ),
 }
 
-async function openMediaViewerWithNPhotos(page: import("@playwright/test").Page, n: number) {
-  await openPreset(page, { cta: "Segnala un odore →" })
+async function openMediaViewerWithNPhotos(
+  page: import("@playwright/test").Page,
+  n: number,
+  options: { frame?: "mobile" | "desktop" } = {},
+) {
+  await openPreset(page, { cta: "Segnala un odore →", ...options })
   await page.getByRole("region", { name: "Map" }).click()
   await page.getByRole("button", { name: "Continua", exact: true }).click()
   await page.locator(".fk-card").first().click()
@@ -103,11 +107,20 @@ test.describe("media viewer", () => {
   })
 
   test("thumbnail strip shows only at desktop widths", async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 800 })
-    await openMediaViewerWithNPhotos(page, 3)
+    // The thumbstrip's breakpoint is the fk-shell >=1024px *container* query, not the
+    // browser viewport — mount via fullscreen.html so the simulated container width
+    // (not page.setViewportSize) is what drives it. Same mounted flow/overlay both
+    // times (the width toggle doesn't reload the page), so this also proves the
+    // layout reacts live to the container, not to a one-time viewport read.
+    await openMediaViewerWithNPhotos(page, 3, { frame: "mobile" })
     await expect(page.locator(".fk-media-viewer-thumbstrip")).toBeHidden()
 
-    await page.setViewportSize({ width: 1280, height: 900 })
+    // The viewer's own fixed-position topbar covers the toolbar's width toggle while
+    // open — close it, flip the container width, then reopen.
+    await page.keyboard.press("Escape")
+    await expect(page.locator(".fk-media-viewer")).toBeHidden()
+    await page.getByRole("button", { name: "Desktop (100%)" }).click()
+    await page.locator(".fk-media-thumb").first().click()
     await expect(page.locator(".fk-media-viewer-thumbstrip")).toBeVisible()
     await expect(page.locator(".fk-media-viewer-thumb")).toHaveCount(3)
 

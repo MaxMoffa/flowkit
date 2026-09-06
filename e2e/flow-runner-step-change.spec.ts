@@ -25,7 +25,9 @@ test.describe("FlowRunner onStepChange", () => {
   test("reports 'initial' on mount, then 'next' across the invisible branch step, previousStep skipping straight to the step before it", async ({
     page,
   }) => {
-    await openPreset(page, { preset: "branch-demo", start: false })
+    // Desktop-only: this test clicks .fk-footer-back below, which only exists via the
+    // fk-shell >=1024px container query — see e2e/branch-step.spec.ts's identical note.
+    await openPreset(page, { preset: "branch-demo", start: false, frame: "desktop" })
 
     await expectCurrentStep(page, { id: "welcome", direction: "initial", previousStep: null })
 
@@ -44,7 +46,8 @@ test.describe("FlowRunner onStepChange", () => {
   test("fires 'branch-change' (same step, no navigation) when a Back-then-edited answer reroutes the branch", async ({
     page,
   }) => {
-    await openPreset(page, { preset: "branch-demo" }) // stops on has-pet
+    // Desktop-only: clicks .fk-footer-back below — same note as the test above.
+    await openPreset(page, { preset: "branch-demo", frame: "desktop" }) // stops on has-pet
 
     await page.getByRole("radio", { name: "No" }).check()
     await page.getByRole("button", { name: "Continua", exact: true }).click() // -> review

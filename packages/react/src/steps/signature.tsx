@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import type { SignatureStep } from "@flowkit-io/core"
+import { resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -50,7 +51,9 @@ function paintCanvas(
   img.src = dataUrl
 }
 
-export function SignatureStepView({ step, value, onChange }: StepComponentProps<SignatureStep>) {
+export function SignatureStepView({ step, value, onChange, flow }: StepComponentProps<SignatureStep>) {
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
   const isDrawingRef = useRef(false)
@@ -226,9 +229,9 @@ export function SignatureStepView({ step, value, onChange }: StepComponentProps<
           ✕
         </button>
       )}
-      {!fullscreen && <StepTitle image={step.image} title={step.title} />}
-      {!fullscreen && step.subtitle && (
-        <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>
+      {!fullscreen && <StepTitle image={step.image} title={title} />}
+      {!fullscreen && subtitle && (
+        <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>
       )}
       <div ref={wrapperRef} className="fk-signature-pad">
         {canvasEl}

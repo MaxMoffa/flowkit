@@ -4,6 +4,7 @@ import {
   formatMoney,
   getPendingPayment,
   resolveText,
+  resolveContentText,
 } from "@flowkit-io/core"
 import type { CalculateTax, Flow, OrderSummary, ReviewStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
@@ -135,17 +136,21 @@ export function ReviewStepView({
     estimatedAddress,
   )
 
-  // The `catalog` step's own report row would just repeat the summary table above it.
+  // The `catalog`/`product` step's own report row would just repeat the summary
+  // table above it.
   const rows = buildReportRows(flow, answers, visitedStepIds).filter((row) => {
     if (!orderSummary) return true
     const source = flow.steps.find((s) => s.id === row.stepId)
-    return source?.type !== "catalog"
+    return source?.type !== "catalog" && source?.type !== "product"
   })
+
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   return (
     <div className="fk-step fk-step-review">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       {orderSummary && (
         <OrderSummaryTable
           summary={orderSummary}

@@ -67,6 +67,8 @@ export default defineConfig({
           items: [
             { text: "media", link: "/steps/media" },
             { text: "file", link: "/steps/file" },
+            { text: "photo", link: "/steps/photo" },
+            { text: "barcode-scan", link: "/steps/barcode-scan" },
             { text: "media-display", link: "/steps/media-display" },
             { text: "signature", link: "/steps/signature" },
           ],

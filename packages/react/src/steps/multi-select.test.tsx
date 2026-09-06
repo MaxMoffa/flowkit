@@ -5,7 +5,7 @@ import type { AnswerValue, Flow, MultiSelectStep } from "@flowkit-io/core"
 import "@flowkit-io/core"
 import { MultiSelectStepView } from "./multi-select"
 
-const flow: Flow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC" }
+const flow: Flow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC", schemaVersion: 1 }
 
 function baseStep(options: MultiSelectStep["options"]): MultiSelectStep {
   return {

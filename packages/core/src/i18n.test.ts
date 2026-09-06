@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseFlow, resolveText, type Flow } from "./index"
+import { parseFlow, resolveText, resolveContentText, type Flow } from "./index"
 
 function makeFlow(overrides: Partial<Flow> = {}): Flow {
   return parseFlow({
@@ -50,5 +50,38 @@ describe("resolveText", () => {
     expect(resolveText(flow, "submit")).toBe("Invia segnalazione ✓")
     expect(resolveText(flow, "fileAddPlaceholder")).toBe("Aggiungi file")
     expect(resolveText(flow, "attachmentSuffix")).toBe("allegato/i")
+  })
+})
+
+describe("resolveContentText", () => {
+  it("returns a literal string value unchanged", () => {
+    const flow = makeFlow()
+    expect(resolveContentText(flow, "Ciao mondo")).toBe("Ciao mondo")
+  })
+
+  it("resolves an object value from flow.content when the key is present", () => {
+    const flow = makeFlow({ content: { greeting: "Ciao dal dizionario" } })
+    expect(resolveContentText(flow, { key: "greeting", fallback: "Ciao di default" })).toBe(
+      "Ciao dal dizionario",
+    )
+  })
+
+  it("falls back to the value's own fallback when flow.content has no entry", () => {
+    const flow = makeFlow()
+    expect(resolveContentText(flow, { key: "missing", fallback: "Testo di riserva" })).toBe(
+      "Testo di riserva",
+    )
+  })
+
+  it("falls back to the raw key when neither flow.content nor fallback resolve", () => {
+    const flow = makeFlow()
+    expect(resolveContentText(flow, { key: "totally.missing" })).toBe("totally.missing")
+  })
+
+  it("ignores flow.content entries that don't match the requested key", () => {
+    const flow = makeFlow({ content: { other: "Altro" } })
+    expect(resolveContentText(flow, { key: "greeting", fallback: "Ciao di default" })).toBe(
+      "Ciao di default",
+    )
   })
 })

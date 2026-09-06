@@ -89,7 +89,7 @@ const maplibreEngine: MapEngine = async ({ container, step, selectionMode, curre
   }
 }
 
-export function LocationStepView({ step, value, onChange }: StepComponentProps<LocationStepConfig>) {
+export function LocationStepView({ step, value, onChange, flow }: StepComponentProps<LocationStepConfig>) {
   const state = useLocationStep(step, value, onChange, maplibreEngine)
-  return <LocationStepLayout step={step} state={state} />
+  return <LocationStepLayout step={step} state={state} flow={flow} />
 }

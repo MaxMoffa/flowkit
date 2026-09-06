@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import type { FacesStep } from "@flowkit-io/core"
+import { resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown, stripMarkdownToPlainText } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -15,11 +16,13 @@ export function FacesStepView({ step, value, onChange, flow, answers, meta, vali
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const { message, errorId, handleBlur, ariaProps } = useFieldValidation(step, value, flow, answers, meta, validationAttempt)
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   return (
     <div className="fk-step fk-step-faces">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       <div className="fk-faces-row" onBlur={handleBlur} {...ariaProps}>
         {step.faces.map((f) => (
           <button

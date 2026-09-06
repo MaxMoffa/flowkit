@@ -1,3 +1,5 @@
+import type { Flow } from "@flowkit-io/core"
+import { resolveContentText } from "@flowkit-io/core"
 import type { AnyLocationStep } from "./types"
 import type { LocationStepState } from "./use-location-step"
 import { FlowMarkdown } from "../../../markdown"
@@ -6,12 +8,15 @@ import { StepTitle } from "../step-title"
 interface LocationStepLayoutProps {
   step: AnyLocationStep
   state: LocationStepState
+  flow: Flow
 }
 
 /** Chrome of both map steps: search bar, GPS button, selected-address row, permission
  *  guide, and the two layouts (fullContainer vs stacked/columns). Identical for every
  *  engine, since only what happens inside `.fk-map-canvas` depends on the library. */
-export function LocationStepLayout({ step, state }: LocationStepLayoutProps) {
+export function LocationStepLayout({ step, state, flow }: LocationStepLayoutProps) {
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
   const {
     current,
     query,
@@ -111,8 +116,8 @@ export function LocationStepLayout({ step, state }: LocationStepLayoutProps) {
     return (
       <div className="fk-step fk-step-location fk-step-location--full">
         <div className="fk-map-overlay-top">
-          <StepTitle image={step.image} title={step.title} />
-          {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+          <StepTitle image={step.image} title={title} />
+          {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
           {searchBlock}
         </div>
 
@@ -135,8 +140,8 @@ export function LocationStepLayout({ step, state }: LocationStepLayoutProps) {
   return (
     <div className={`fk-step fk-step-location${columnsEnabled ? " fk-step-location--columns" : ""}`}>
       <div className="fk-location-controls">
-        <StepTitle image={step.image} title={step.title} />
-        {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+        <StepTitle image={step.image} title={title} />
+        {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
 
         {searchBlock}
 

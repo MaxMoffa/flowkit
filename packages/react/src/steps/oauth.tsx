@@ -1,4 +1,4 @@
-import { buildAuthorizeUrl, generatePkcePair, type OAuthResult, type OAuthStep } from "@flowkit-io/core"
+import { buildAuthorizeUrl, generatePkcePair, resolveContentText, type OAuthResult, type OAuthStep } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -21,8 +21,10 @@ function asOAuthResult(value: unknown): OAuthResult | null {
   return typeof result.providerId === "string" ? result : null
 }
 
-export function OAuthStepView({ step, value, onChange }: StepComponentProps<OAuthStep>) {
+export function OAuthStepView({ step, value, onChange, flow }: StepComponentProps<OAuthStep>) {
   const connected = asOAuthResult(value)
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   async function connect(provider: (typeof step.providers)[number]) {
     let pkce
@@ -41,8 +43,8 @@ export function OAuthStepView({ step, value, onChange }: StepComponentProps<OAut
 
   return (
     <div className="fk-step fk-step-oauth">
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       <div className="fk-oauth-providers">
         {step.providers.map((provider) => (
           <button

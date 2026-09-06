@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from "react"
 import { FlowRunner } from "@flowkit-io/react"
 import { themes, type ThemeMode } from "@flowkit-io/themes"
 import { createLocalAdapter } from "@flowkit-io/adapters"
-import type { Answers, Flow } from "@flowkit-io/core"
+import type { Answers, CurrentStepInfo, Flow } from "@flowkit-io/core"
 import { loadPreset, presetKeys } from "./presets-registry"
 import { ensureOptInStepsRegistered } from "./opt-in-steps"
 import { buildStepPreviewFlow } from "./step-preview-flow"
+import { simulateStripeTestCardOutcome } from "./simulate-stripe-decline"
 
 type SimWidth = 390 | 768 | 1024 | null
 
@@ -69,7 +70,9 @@ export function FullscreenPreview() {
 
   const onSubmit = useMemo(
     () => async (answers: Answers) => {
-      if (flow && !stepPreviewType) await adapter.submit(flow.id, answers)
+      if (!flow || stepPreviewType) return
+      simulateStripeTestCardOutcome(flow, answers)
+      await adapter.submit(flow.id, answers)
     },
     [flow, stepPreviewType],
   )
@@ -122,6 +125,13 @@ export function FullscreenPreview() {
             mode={mode}
             initialStep={stepPreviewType ? "preview" : undefined}
             onSubmit={onSubmit}
+            onStepChange={(step) => {
+              // Debug hook, read by e2e/flow-runner-step-change.spec.ts — not part of
+              // the public API, no effect on rendering. Mirrors app.tsx's identical hook
+              // so desktop-only assertions (which need the fullscreen route's real
+              // container width) can still read the current step.
+              ;(window as unknown as { __flowkitCurrentStep?: CurrentStepInfo }).__flowkitCurrentStep = step
+            }}
           />
         )}
       </div>

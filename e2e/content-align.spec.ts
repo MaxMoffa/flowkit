@@ -4,7 +4,15 @@ import { openPreset } from "./helpers/open-preset"
 test.use({ viewport: { width: 1280, height: 900 } })
 
 test("showcase theme (layout.contentAlign: center): step content sits away from the top", async ({ page }) => {
-  await openPreset(page, { preset: "features-demo", theme: "showcase", skip: ["oauth", "pick-spot (has its own top override)"] })
+  // Desktop-only: layout.contentAlign centering only matters at the fk-shell
+  // >=1024px container query's wider reading column — index.html's phone frame
+  // never reaches that width, so this needs the fullscreen route.
+  await openPreset(page, {
+    preset: "features-demo",
+    theme: "showcase",
+    skip: ["oauth", "pick-spot (has its own top override)"],
+    frame: "desktop",
+  })
   // pick-preset-point (search+map+gps) got taller now that columns are container-based rather
   // than viewport-forced (v2.25) — the 390px playground frame no longer squishes it into two
   // columns, so it can fill the frame's height with no room left to center. Use a short-content

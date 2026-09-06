@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import type { ScaleStep } from "@flowkit-io/core"
+import { resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -22,13 +23,15 @@ export function ScaleStepView({ step, value, onChange, flow, answers, meta, vali
   const idx = current - step.min
   const sliderLabel = step.valueLabels?.[idx] ?? ""
   const sliderColor = step.valueColors?.[idx] ?? defaultColors[idx] ?? "var(--fk-text)"
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   // Header and min/max labels are identical in both variants: only the control between
   // them changes, so the two used to be a copy-pasted pair of full returns.
   return (
     <div className={`fk-step fk-step-scale${isSlider ? " fk-step-scale-slider" : ""}`}>
-      <StepTitle image={step.image} title={step.title} />
-      {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+      <StepTitle image={step.image} title={title} />
+      {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
 
       {isSlider ? (
         <>

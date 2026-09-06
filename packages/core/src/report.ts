@@ -5,16 +5,19 @@ import { getStepTypeDefinition } from "./registry"
 import { isUploadedItemArray, type UploadedItem } from "./upload-item"
 import { asCatalogValue, catalogTotal, type CatalogStep } from "./catalog-step"
 import { asAddressValue } from "./address-step"
+import { asBarcodeScanValue } from "./barcode-scan-step"
 import { formatMoney } from "./money"
+import { resolveContentText } from "./i18n"
 
-export function optionLabel(step: Step, rawValue: string): string {
+export function optionLabel(flow: Flow, step: Step, rawValue: string): string {
   if (
     step.type === "select-cards" ||
     step.type === "chips" ||
     step.type === "multi-select" ||
     step.type === "radio"
   ) {
-    return step.options.find((o) => o.value === rawValue)?.label ?? rawValue
+    const option = step.options.find((o) => o.value === rawValue)
+    return option ? resolveContentText(flow, option.label) : rawValue
   }
   if (step.type === "faces") {
     return (
@@ -63,28 +66,34 @@ function formatPaymentMethod(value: unknown): string {
   return `💳 ${label}`
 }
 
-function formatCatalogAnswer(step: CatalogStep, value: unknown): string {
+function formatCatalogAnswer(flow: Flow, step: CatalogStep, value: unknown): string {
   const parsed = asCatalogValue(value)
   const lines = (parsed?.items ?? []).filter((line) => line.quantity > 0)
   if (lines.length === 0) return "—"
-  const labels = new Map(step.items.map((item) => [item.value, item.label]))
+  const labels = new Map(step.items.map((item) => [item.value, resolveContentText(flow, item.label)]))
   const parts = lines.map((line) => `${line.quantity}× ${labels.get(line.value) ?? line.value}`)
   return `🛒 ${parts.join(", ")} · ${formatMoney(catalogTotal(step, value), step.currency)}`
 }
 
-export function formatAnswer(step: Step, value: unknown): string {
+export function formatAnswer(flow: Flow, step: Step, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—"
-  if (step.type === "media" || step.type === "file") {
+  if (step.type === "media" || step.type === "file" || step.type === "photo") {
     const items = Array.isArray(value) ? value : []
     if (items.length === 0) return "—"
-    // A `file` step lists the file names (a PDF/doc has a meaningful name); a `media`
-    // step stays a count (photos rarely have useful names).
+    // A `file` step lists the file names (a PDF/doc has a meaningful name); `media`/
+    // `photo` stay a count (photos rarely have useful names).
     if (step.type === "file" && isUploadedItemArray(items)) {
       return `📎 ${items.map((i) => i.name).join(", ")}`
     }
-    return `${step.type === "media" ? "📷" : "📎"}×${items.length}`
+    return `${step.type === "file" ? "📎" : "📷"}×${items.length}`
   }
-  if (step.type === "catalog") return formatCatalogAnswer(step as CatalogStep, value)
+  if (step.type === "barcode-scan") {
+    const scanned = asBarcodeScanValue(value)
+    return scanned ? `🔎 ${scanned.code}` : "—"
+  }
+  if (step.type === "catalog" || step.type === "product") {
+    return formatCatalogAnswer(flow, step as CatalogStep, value)
+  }
   if (step.type === "address") {
     const address = asAddressValue(value)
     if (!address) return "—"
@@ -95,19 +104,19 @@ export function formatAnswer(step: Step, value: unknown): string {
   if (step.type === "checkbox") return value === true ? "✓ Accettato" : "—"
   if (step.type === "signature") return "✍️ Firma"
   if (step.type === "payment-stripe") return formatPaymentMethod(value)
-  if (Array.isArray(value)) return value.map((v) => optionLabel(step, String(v))).join(", ")
+  if (Array.isArray(value)) return value.map((v) => optionLabel(flow, step, String(v))).join(", ")
   if ((step.type as string) === "group") {
     const children = (step as unknown as { steps: Step[] }).steps
     const answers = value as Record<string, unknown>
     return (
       children
-        .map((child) => formatAnswer(child, answers[answerKey(child)]))
+        .map((child) => formatAnswer(flow, child, answers[answerKey(child)]))
         .filter((v) => v && v !== "—")
         .join(", ") || "—"
     )
   }
   if (typeof value === "object") return "—"
-  return optionLabel(step, String(value))
+  return optionLabel(flow, step, String(value))
 }
 
 /** Fallback emoji per step type, used when a step has no `image` of its own. */
@@ -116,6 +125,7 @@ const DEFAULT_TYPE_EMOJI: Record<string, string> = {
   "location-leaflet": "📍",
   "select-cards": "🏷️",
   catalog: "🛒",
+  product: "🛍️",
   address: "📮",
   scale: "📊",
   chips: "⏱️",
@@ -127,6 +137,8 @@ const DEFAULT_TYPE_EMOJI: Record<string, string> = {
   group: "📝",
   media: "📷",
   file: "📎",
+  photo: "📸",
+  "barcode-scan": "🔎",
   "date-time": "🗓️",
   "payment-stripe": "💳",
 }
@@ -145,7 +157,7 @@ export function defaultIcon(step: Step): StepImage {
  *  inside a group step's aggregated value, so a report row can embed them even when the
  *  step that captured them isn't a top-level step in the flow. */
 function collectImages(step: Step, value: unknown): UploadedItem[] {
-  if ((step.type === "media" || step.type === "file") && isUploadedItemArray(value)) {
+  if ((step.type === "media" || step.type === "file" || step.type === "photo") && isUploadedItemArray(value)) {
     return value.filter((item) => item.kind === "image")
   }
   if (step.type === "signature" && typeof value === "string" && value) {
@@ -193,8 +205,8 @@ export function buildReportRows(flow: Flow, answers: Answers, visitedStepIds?: S
     return {
       stepId: s.id,
       icon: defaultIcon(s),
-      title: s.title ?? s.id,
-      value: formatAnswer(s, value),
+      title: s.title !== undefined ? resolveContentText(flow, s.title) : s.id,
+      value: formatAnswer(flow, s, value),
       media: media.length > 0 ? media : undefined,
     }
   })

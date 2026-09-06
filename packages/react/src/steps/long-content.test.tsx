@@ -3,7 +3,7 @@ import { render, fireEvent } from "@testing-library/react"
 import type { LongContentStep } from "@flowkit-io/core"
 import { LongContentStepView } from "./long-content"
 
-const baseFlow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC" }
+const baseFlow = { id: "t", title: "t", locale: "it", steps: [], disableBack: false, timezone: "UTC", schemaVersion: 1 }
 
 function makeProps(step: Partial<LongContentStep>, onMetaChange = vi.fn(), meta: Record<string, unknown> = {}) {
   return {

@@ -11,21 +11,27 @@ import {
 import type {
   AddressValue,
   Answers,
+  ContentText,
   CurrentStepInfo,
   Flow,
   FlowState,
+  Locale,
   StepChangeDirection,
 } from "@flowkit-io/core"
+import type { CatalogItem, CatalogValue, PaymentStripeStep } from "@flowkit-io/core"
 import {
   answerKey,
   applyBranch,
+  asCatalogValue,
   buildOrderSummary,
   canGoBack,
   canGoNext,
+  catalogTotal,
   computeInitialFlowState,
   createFlowState,
   filterValidAnswers,
   flowHasPayment,
+  formatMessage,
   formatMoney,
   getCurrentStep,
   getCurrentStepInfo,
@@ -38,7 +44,9 @@ import {
   next as nextState,
   prev as prevState,
   resolveBranch,
+  resolveContentText,
   resolveFlowPath,
+  resolvePaymentAmount,
   resolveText,
   returnToStep,
   setAnswerAndInvalidateDownstream,
@@ -51,6 +59,7 @@ import { ThemeProvider } from "./theme-provider"
 import { useFlowRunnerLayout } from "./use-flow-runner-layout"
 import { haptic } from "./haptics"
 import type { FlowSubmitHandler } from "./types"
+import { taxBehaviorNote } from "./steps/shared/tax-note"
 
 /** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
 type StepWithIntroFields = { cta?: string }
@@ -100,6 +109,16 @@ export interface FlowRunnerProps {
    *  an effect where the browser supports the Vibration API (Android); a silent no-op
    *  elsewhere (iOS Safari, desktop). Set `false` to opt out entirely. */
   haptics?: boolean
+  /** Overrides `flow.locale` for this render, without mutating the flow config itself —
+   *  same "platform injects it at runtime" spirit as `estimatedAddress`. Useful when the
+   *  same saved flow is served in several languages and the active one is decided
+   *  outside the flow (e.g. the visitor's browser/account locale). Unset = `flow.locale`. */
+  locale?: Locale
+  /** Overrides `flow.content` for this render, without mutating the flow config itself —
+   *  same spirit as `locale` above. Lets a host serve one flow definition in multiple
+   *  languages by swapping only the content dictionary per request, instead of
+   *  duplicating the whole flow. Unset = `flow.content`. */
+  content?: Record<string, string>
 }
 
 /** Imperative handle exposed via `ref`: a `currentStep` that's always in sync with the
@@ -129,7 +148,7 @@ export interface FlowRunnerHandle {
 
 export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function FlowRunner(
   {
-    flow,
+    flow: flowProp,
     theme,
     mode,
     onSubmit,
@@ -139,9 +158,21 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     initialAnswers,
     estimatedAddress,
     haptics = true,
+    locale,
+    content,
   },
   ref,
 ) {
+  /** `locale`/`content` win over the flow's own values when passed — injected by the
+   *  platform at runtime (e.g. the visitor's active language), same pattern as
+   *  `estimatedAddress`, without mutating the saved flow config. */
+  const flow = useMemo(
+    () =>
+      locale === undefined && content === undefined
+        ? flowProp
+        : { ...flowProp, locale: locale ?? flowProp.locale, content: content ?? flowProp.content },
+    [flowProp, locale, content],
+  )
   const [state, setState] = useState<FlowState>(() =>
     computeInitialFlowState(flow, { initialStepId: initialStep, initialAnswers }),
   )
@@ -246,8 +277,11 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     if (progressInfo.total === null) return undefined
     const stepsById = new Map(flow.steps.map((s) => [s.id, s]))
     return resolveFlowPath(flow, state).stepIds.map((id) => {
-      const s = stepsById.get(id) as { title?: string; subtitle?: string } | undefined
-      return { title: s?.title, subtitle: s?.subtitle }
+      const s = stepsById.get(id) as { title?: ContentText; subtitle?: ContentText } | undefined
+      return {
+        title: s?.title !== undefined ? resolveContentText(flow, s.title) : undefined,
+        subtitle: s?.subtitle !== undefined ? resolveContentText(flow, s.subtitle) : undefined,
+      }
     })
   }, [flow, state, progressInfo.total])
   const progressProps = {
@@ -262,15 +296,114 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
    *  so the amount stays in view from item selection through payment. The final review
    *  step is the exception — it renders its own itemized recap with the (tax-inclusive)
    *  total, so a second figure in the footer would just be confusing. */
-  const orderTotal = useMemo(() => {
+  /** Same `buildOrderSummary` call backs both the plain `orderTotal` line (every
+   *  step's footer) and the fuller `cart` recap (the footer's cart button/panel,
+   *  see flow-footer.tsx) — computed once here instead of twice. */
+  const orderSummary = useMemo(() => {
     if (isReviewType) return null
     const summary = buildOrderSummary(flow, state.answers)
-    if (!summary || summary.total <= 0) return null
+    return summary && summary.total > 0 ? summary : null
+  }, [flow, state.answers, isReviewType])
+
+  /** Same discreet "+ IVA" / "IVA inclusa" hint the `catalog`/`product` steps show
+   *  next to each price (see `steps/shared/tax-note.ts`), reused here for the
+   *  footer's running total and cart panel so the same flow reads consistently
+   *  wherever a price appears. */
+  const taxNote = useMemo(() => {
+    const paymentStep = flow.steps.find((s) => s.type === "payment-stripe") as PaymentStripeStep | undefined
+    return taxBehaviorNote(flow, paymentStep)
+  }, [flow])
+
+  const orderTotal = useMemo(() => {
+    if (!orderSummary) return null
     return {
       label: resolveText(flow, "catalogTotal"),
-      amount: formatMoney(summary.total, summary.currency, flow.locale),
+      amount: formatMoney(orderSummary.total, orderSummary.currency, flow.locale),
+      taxNote,
     }
-  }, [flow, state.answers, isReviewType])
+  }, [flow, orderSummary, taxNote])
+
+  /** Amount the review step's submit button will charge, formatted for the "Paga
+   *  {amount}" label below — `null` when the flow has no payment step, or the
+   *  resolved amount is 0 (e.g. `amountSource: "cart"` with an empty cart), in which
+   *  case the label falls back to the plain (amount-less) `submitWithPayment` text. */
+  const paymentDueAmount = useMemo(() => {
+    const paymentStep = flow.steps.find((s) => s.type === "payment-stripe") as PaymentStripeStep | undefined
+    if (!paymentStep) return null
+    const amount = resolvePaymentAmount(paymentStep, flow, state.answers)
+    return amount > 0 ? formatMoney(amount, paymentStep.currency, flow.locale) : null
+  }, [flow, state.answers])
+
+  /** Same +/-/remove logic as `catalog.tsx`/`product.tsx`'s own `setQuantity`, but
+   *  targeting an arbitrary `stepId` (not the step currently on screen) — the cart
+   *  panel can list rows from several `catalog`/`product` steps at once. Mirrors
+   *  `handleChange` above (functional `setState` update, branch invalidation,
+   *  `onChange` callback) instead of reusing it, since it writes to a different step
+   *  than the one in scope. Quantity 0 removes the line, same as the in-step control. */
+  const handleCartLineQuantityChange = useCallback(
+    (stepId: string, itemValue: string, quantity: number) => {
+      const cartStep = flow.steps.find((s) => s.id === stepId)
+      if (!cartStep || (cartStep.type !== "catalog" && cartStep.type !== "product")) return
+      // Structural cast: both `catalog` and `product` steps share this exact
+      // `items`/`maxPerItem` pricing shape (see `PricedItemsStep` in catalog-step.ts).
+      const priced = cartStep as unknown as { items: CatalogItem[]; maxPerItem: number }
+      const current = asCatalogValue(state.answers[answerKey(cartStep)])
+      const item = priced.items.find((entry) => entry.value === itemValue)
+      if (!item) return
+      const cap = item.maxQuantity ?? priced.maxPerItem
+      const cappedQuantity = quantity > 0 ? Math.min(quantity, cap) : 0
+      const others = (current?.items ?? []).filter((line) => line.value !== itemValue)
+      const items = cappedQuantity > 0 ? [...others, { value: itemValue, quantity: cappedQuantity }] : others
+      // Keep line order stable (config order), same as the in-step control.
+      const ordered = priced.items
+        .map((entry) => items.find((line) => line.value === entry.value))
+        .filter((line): line is { value: string; quantity: number } => line !== undefined)
+      const next: CatalogValue = { items: ordered, total: 0 }
+      next.total = catalogTotal(priced, next)
+      const value = ordered.length > 0 ? next : null
+      const result = setAnswerAndInvalidateDownstream(flow, state, cartStep, value)
+      if (result.invalidated) {
+        pendingDirectionRef.current = "branch-change"
+        branchChangeRef.current = true
+        setReturnTo(null)
+      }
+      setState((s) => setAnswerAndInvalidateDownstream(flow, s, cartStep, value).state)
+      onChange?.(result.state.answers)
+    },
+    [flow, state, onChange],
+  )
+
+  const cart = useMemo(() => {
+    if (!orderSummary) return null
+    const count = orderSummary.lines
+      .filter((line) => line.kind === "item")
+      .reduce((sum, line) => sum + line.quantity, 0)
+    // Per-line quantity cap, so the panel can disable "+" at the same ceiling the
+    // source step itself enforces — keyed by `stepId::value` since the same item
+    // `value` could theoretically repeat across two different catalog/product steps.
+    const lineCaps = new Map<string, number>()
+    for (const s of flow.steps) {
+      if (s.type !== "catalog" && s.type !== "product") continue
+      const priced = s as unknown as { items: CatalogItem[]; maxPerItem: number }
+      for (const item of priced.items) {
+        lineCaps.set(`${s.id}::${item.value}`, item.maxQuantity ?? priced.maxPerItem)
+      }
+    }
+    return {
+      summary: orderSummary,
+      count,
+      locale: flow.locale,
+      totalLabel: resolveText(flow, "catalogTotal"),
+      openLabel: resolveText(flow, "cartOpen"),
+      closeLabel: resolveText(flow, "catalogClose"),
+      decreaseLabel: resolveText(flow, "catalogDecrease"),
+      increaseLabel: resolveText(flow, "catalogIncrease"),
+      removeLabel: resolveText(flow, "catalogRemove"),
+      lineCaps,
+      onLineQuantityChange: handleCartLineQuantityChange,
+      taxNote,
+    }
+  }, [flow, orderSummary, handleCartLineQuantityChange, taxNote])
 
   useEffect(() => {
     setAttempt(0)
@@ -470,7 +603,9 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
       ? resolveText(flow, "returnToReview")
       : isFinalReviewSubmit
         ? ((step as StepWithReviewFields).submitLabel ??
-          resolveText(flow, flowHasPayment(flow) ? "submitWithPayment" : "submit"))
+          (paymentDueAmount !== null
+            ? formatMessage(resolveText(flow, "submitWithPaymentAmount"), { amount: paymentDueAmount })
+            : resolveText(flow, flowHasPayment(flow) ? "submitWithPayment" : "submit")))
         : isIntro
           ? ((step as StepWithIntroFields).cta ?? resolveText(flow, "continue"))
           : resolveText(flow, "continue")
@@ -547,6 +682,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
             onPrimary={handleNext}
             error={submitError}
             orderTotal={orderTotal}
+            cart={cart}
             progress={{
               Component: layout.ProgressComponent,
               show: layout.progressPosition === "footer",

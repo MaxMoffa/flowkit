@@ -1,12 +1,13 @@
 import { z } from "zod"
-import type { Flow } from "./schema"
+import type { Flow, ContentText } from "./schema"
 import type { Answers } from "./flow-state"
 import { answerKey } from "./flow-state"
 import { registerStepType, type ValidationIssue } from "./registry"
-import { baseStepFields, stepImageSchema } from "./schema"
+import { baseStepFields, stepImageSchema, contentTextSchema } from "./schema"
+import { resolveContentText } from "./i18n"
 
 /**
- * "catalog" step (v2.42) — the visitor builds an order: pick one or more of the
+ * "catalog" step (v2.43) — the visitor builds an order: pick one or more of the
  * listed items and, for each, choose a quantity. The answer is a list of
  * `{ value, quantity }` lines plus the computed `total` (minor units).
  *
@@ -14,16 +15,22 @@ import { baseStepFields, stepImageSchema } from "./schema"
  * flow with `amountSource: "cart"` charges the sum of every catalog step's total
  * (see `computeOrderTotal`), so the same building blocks compose into a real
  * checkout without a bespoke step type.
+ *
+ * v2.43 adds an optional `filters` chip row (`catalogFilterSchema`) matched against
+ * items' own `tags` — purely client-side display filtering (`catalog.tsx` local
+ * state), no effect on the schema or value of the stored answer.
  */
 export const catalogItemSchema = z.object({
   /** Stable id stored in the answer — not shown to the visitor. */
   value: z.string().min(1),
-  label: z.string().min(1),
+  /** `ContentText` (v2.4x): literal string (unchanged default) or `{ key, fallback? }`
+   *  resolved from `flow.content` — see `resolveContentText`. */
+  label: contentTextSchema,
   /** Short one-liner shown under the label on the card. */
-  description: z.string().optional(),
+  description: contentTextSchema.optional(),
   /** Longer markdown blurb — not shown on the card; opened in a drawer/dialog when the
    *  visitor taps the item. Absent = the item is not tap-to-expand. */
-  details: z.string().optional(),
+  details: contentTextSchema.optional(),
   /** Unit price in the step's currency minor unit (cents for EUR/USD). 0 = free. */
   price: z.number().int().nonnegative(),
   /** Per-item badge/thumbnail, same shape as a step's `image` (emoji / inline SVG / URL). */
@@ -34,9 +41,33 @@ export const catalogItemSchema = z.object({
    *  platform's tax calculation (see `payment-stripe`'s `calculateTax`). Absent =
    *  the payment step's default tax code applies. */
   taxCode: z.string().optional(),
+  /** Free-form facet tags (e.g. `["bestseller", "eco"]`), matched against the
+   *  step's own `filters` (each filter names one `tag`) to drive the optional
+   *  filter-chip row in the catalog UI. Purely a client-side display aid — never
+   *  validated, never part of the stored answer. Absent = the item has no tags and
+   *  disappears from the list whenever at least one filter is active. */
+  tags: z.array(z.string()).optional(),
 })
 
 export type CatalogItem = z.infer<typeof catalogItemSchema>
+
+/**
+ * One filter chip shown above the item list (v2.43). Deliberately 1:1 with a single
+ * `tag`, not a broader `value` distinct from it: every filter need here is "show
+ * items carrying this tag", and a step author who wants a filter to match several
+ * tags at once can just tag the matching items with one extra shared tag instead —
+ * simpler than introducing a second value space. See DECISIONS.md.
+ */
+export const catalogFilterSchema = z.object({
+  /** `ContentText` (v2.4x): literal string or `{ key, fallback? }` — same as `item.label`. */
+  label: contentTextSchema,
+  /** Optional chip icon, same shape as `item.image` / a step's own `image`. */
+  icon: stepImageSchema.optional(),
+  /** The `CatalogItem.tags` entry this filter matches. */
+  tag: z.string().min(1),
+})
+
+export type CatalogFilter = z.infer<typeof catalogFilterSchema>
 
 export const catalogStepSchema = z.object({
   ...baseStepFields,
@@ -49,6 +80,11 @@ export const catalogStepSchema = z.object({
   maxItems: z.number().int().positive().optional(),
   /** Default quantity ceiling for an item with no `maxQuantity` of its own. */
   maxPerItem: z.number().int().positive().default(99),
+  /** Optional filter-chip row shown above the item list (v2.43). Purely a
+   *  client-side display aid — filter selection is local UI state (`catalog.tsx`),
+   *  never part of the stored `CatalogValue` answer. Absent/empty = no filter row,
+   *  every item always shown (today's behavior, unchanged). */
+  filters: z.array(catalogFilterSchema).optional(),
 })
 
 export type CatalogStep = z.infer<typeof catalogStepSchema>
@@ -73,8 +109,10 @@ export function asCatalogValue(value: unknown): CatalogValue | null {
   return current
 }
 
-/** Non-zero lines only, deduplicated by `value` (last write wins). */
-function orderLines(value: unknown): CatalogLine[] {
+/** Non-zero lines only, deduplicated by `value` (last write wins). Exported so the
+ *  "product" step (product-step.ts, same order-line shape, different item cap) can
+ *  reuse it instead of re-deriving the dedup logic. */
+export function orderLines(value: unknown): CatalogLine[] {
   const parsed = asCatalogValue(value)
   if (!parsed) return []
   const byValue = new Map<string, number>()
@@ -84,8 +122,14 @@ function orderLines(value: unknown): CatalogLine[] {
   return [...byValue].map(([value, quantity]) => ({ value, quantity }))
 }
 
-/** Total for one catalog step's answer, in the step's currency minor unit. */
-export function catalogTotal(step: CatalogStep, value: unknown): number {
+/** Structural shape `catalogTotal` actually needs — narrower than `CatalogStep` on
+ *  purpose so the "product" step (product-step.ts: same `items`/pricing shape, its own
+ *  `type: "product"` literal) can pass its step config straight through without a cast
+ *  or a duplicated total function. */
+type PricedItemsStep = { items: CatalogItem[] }
+
+/** Total for one catalog (or product) step's answer, in the step's currency minor unit. */
+export function catalogTotal(step: PricedItemsStep, value: unknown): number {
   const prices = new Map(step.items.map((item) => [item.value, item.price]))
   return orderLines(value).reduce(
     (sum, line) => sum + (prices.get(line.value) ?? 0) * line.quantity,
@@ -148,7 +192,7 @@ export interface OrderSummary {
   total: number
 }
 
-type PricedOptionStep = { options?: { value: string; label?: string; price?: number }[] }
+type PricedOptionStep = { options?: { value: string; label?: ContentText; price?: number }[] }
 type PaymentStepShape = {
   id: string
   type: string
@@ -160,8 +204,10 @@ type PaymentStepShape = {
 
 /**
  * Itemized recap of every priced selection in the flow, for the review step:
- * - each `catalog` step contributes one `"item"` line per picked item (`price ×
- *   quantity`);
+ * - each `catalog` or `product` step contributes one `"item"` line per picked item
+ *   (`price × quantity`) — `product` (product-step.ts) is the same order-line shape
+ *   capped at 1-4 items for a "hero" single/few-product layout, so it shares this
+ *   exact recap logic;
  * - each `select-cards` / `multi-select` / `radio` / `chips` step contributes a
  *   `"fee"` line per selected option that carries a `price` (quantity 1);
  * - a `payment-stripe` step with `amountSource: "cart"` and a positive `amount`
@@ -175,7 +221,9 @@ export function buildOrderSummary(flow: Flow, answers: Answers): OrderSummary | 
   let currency: string | undefined
 
   for (const step of flow.steps) {
-    if (step.type === "catalog") {
+    if (step.type === "catalog" || step.type === "product") {
+      // Cast: `product` steps aren't literally `CatalogStep` (different `type`
+      // literal, no minItems/maxItems), but share every field this function reads.
       const catalog = step as CatalogStep
       currency ??= catalog.currency
       const byValue = new Map(catalog.items.map((item) => [item.value, item]))
@@ -189,7 +237,7 @@ export function buildOrderSummary(flow: Flow, answers: Answers): OrderSummary | 
         lines.push({
           stepId: step.id,
           value: item.value,
-          label: item.label,
+          label: resolveContentText(flow, item.label),
           quantity: line.quantity,
           unitAmount: item.price,
           amount: item.price * line.quantity,
@@ -214,7 +262,7 @@ export function buildOrderSummary(flow: Flow, answers: Answers): OrderSummary | 
         lines.push({
           stepId: step.id,
           value: option.value,
-          label: option.label ?? option.value,
+          label: option.label !== undefined ? resolveContentText(flow, option.label) : option.value,
           quantity: 1,
           unitAmount: option.price,
           amount: option.price,

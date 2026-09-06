@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react"
 import type { LongContentStep } from "@flowkit-io/core"
+import { resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
@@ -12,8 +13,10 @@ const SCROLL_END_EPSILON = 4
  *  width, own scroll region, flow chrome (header/footer) stays fixed outside it. When
  *  `requireScrollToEnd` is set, scrolling to the bottom sets the step's meta flag that
  *  gates canGoNext (see long-content-step.ts's validate) — no answer is stored. */
-export function LongContentStepView({ step, meta, onMetaChange }: StepComponentProps<LongContentStep>) {
+export function LongContentStepView({ step, meta, onMetaChange, flow }: StepComponentProps<LongContentStep>) {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
+  const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
   function checkScrolledToEnd(el: HTMLDivElement) {
     if (meta.scrolledToEnd === true) return
@@ -36,10 +39,10 @@ export function LongContentStepView({ step, meta, onMetaChange }: StepComponentP
 
   return (
     <div className="fk-step fk-step-long-content">
-      {(step.title || step.subtitle) && (
+      {(title || subtitle) && (
         <div className="fk-long-content-header">
-          <StepTitle image={step.image} title={step.title} />
-          {step.subtitle && <p className="fk-subtitle"><FlowMarkdown text={step.subtitle} variant="block" /></p>}
+          <StepTitle image={step.image} title={title} />
+          {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
         </div>
       )}
       <div ref={scrollRef} className="fk-long-content-scroll" onScroll={(e) => checkScrolledToEnd(e.currentTarget)}>
