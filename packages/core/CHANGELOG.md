@@ -1,5 +1,66 @@
 # @flowkit-io/core
 
+## 1.3.0 — 2026-09-06
+
+### Added
+
+- **`product` step** — hero showcase for 1-4 items, sharing `catalog`'s item shape
+  (`catalogItemSchema` reused verbatim: value/label/description/details/price/image/
+  maxQuantity/taxCode) and order-summary logic (`buildOrderSummary`/`catalogTotal`
+  treat `product` identically to `catalog`), capped at 4 items. `productStepSchema`,
+  `asProductValue`, `productTotal`.
+- **Opt-in content-translation dictionary.** `ContentText` — a step/option field
+  (title, subtitle, label, description, catalog/product item text…) can now be either
+  a literal string (unchanged default) or `{ key, fallback? }`, resolved against the
+  flow's own `flow.content` dictionary via `resolveContentText(flow, value)`. Separate
+  namespace from `flow.texts` (the library's fixed chrome/system strings). Fully
+  opt-in — every existing literal-string flow keeps working unchanged.
+- `catalog`/`product` items gain `tags?: string[]`. `catalog` step gains
+  `filters?: CatalogFilter[]` (`{ label: ContentText, icon?: StepImage, tag: string }`)
+  — a filter 1:1 with a tag; rendering/filtering behavior lives in `@flowkit-io/react`.
+- `payment-stripe` gains `previewSelected: boolean` (default `false`) — when `true`,
+  never loads Stripe Elements; the step immediately shows a fake "method selected"
+  summary and synthesizes a `PaymentStripeValue` via the renderer, for previewing the
+  step's full UI without a working publishable key. Same pattern as `verification`'s
+  `previewVerified`.
+- **`photo` step** — dedicated camera-capture step (schema only; the live-preview
+  camera UI lives in `@flowkit-io/react`). `maxPhotos` (default 1), answer value is
+  `UploadedItem[]`, same shape `media`/`file` already use.
+- **`barcode-scan` step** — live camera scan of a barcode/QR code. `formats?:
+  BarcodeFormat[]` (Barcode Detection API symbology names, default
+  `DEFAULT_BARCODE_FORMATS`), `allowManualEntry` (default `true`). Answer value
+  `{ code, format? }`. `barcodeFormatSchema`, `resolveBarcodeFormats`,
+  `asBarcodeScanValue`.
+- **`flow.schemaVersion` + migration framework** (`flow-versioning.ts`) — versions the
+  flow *config's own shape*, separate from this package's npm semver.
+  `CURRENT_FLOW_SCHEMA_VERSION` (starts at `1`), `FLOW_MIGRATIONS` (keyed by the
+  version each migrates from), `migrateFlowInput`, `getRawFlowSchemaVersion`.
+  `parseFlow` migrates a saved flow up to the current version before validating it, so
+  a future breaking change to the flow shape doesn't break already-saved flows outright
+  — and throws a clear "upgrade @flowkit-io/core" error for a flow saved with a newer
+  schema version than the running build supports. `Flow.schemaVersion` is always
+  present (defaulted) on a value returned by `parseFlow`.
+- i18n: `submitWithPaymentAmount` ("Paga {amount} ✓" / "Pay {amount} ✓"),
+  `taxInclusiveNote` / `taxExclusiveNote` ("IVA inclusa"/"+ IVA" / "Tax included"/
+  "+ tax"), `catalogFilters`, `catalogFilterEmpty`, `cartOpen`, plus the `photo`/
+  `barcode-scan` chrome strings (capture/retake, permission/status/error text, manual
+  entry label).
+
+### Fixed
+
+- **`review` step's submit button never actually became "pay & submit".**
+  `submitLabel` carried a zod `.default("Invia segnalazione ✓")`, so it was never
+  `undefined` once parsed — the payment-aware fallback in `@flowkit-io/react`'s
+  `FlowRunner` (`flowHasPayment(flow) ? "submitWithPayment" : "submit"`) was
+  unreachable dead code despite `paymentSummary`'s own doc comment describing exactly
+  that behavior. `submitLabel` is now `.optional()`; an explicit config value still
+  always wins. Combined with `submitWithPaymentAmount` above, the button now names the
+  actual amount due when one is resolvable.
+- `barcode-scan`'s `required` field was accepted by the schema but silently ignored by
+  its own validation (`barcodeScanIssue` always required a value) — it happened to work
+  anyway via a generic `step.required === false` bypass elsewhere in the validation
+  pipeline, but is now checked explicitly, matching `catalog`/`product`/`address`.
+
 ## 1.2.0 — 2026-09-04
 
 ### Added

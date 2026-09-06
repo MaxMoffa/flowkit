@@ -1,5 +1,65 @@
 # @flowkit-io/react
 
+## 1.3.0 — 2026-09-06
+
+### Added
+
+- **`product` step component** — hero card(s) for 1-4 items; a single item gets a
+  bigger `-solo` treatment. Opt-in entry `@flowkit-io/react/steps/product`.
+- **`photo` step component** — live camera viewfinder (`getUserMedia` + `<video>`,
+  new shared `steps/shared/use-camera-stream.ts` hook), a capture button snapshots the
+  current frame to the same `UploadedItem[]` pipeline `media`/`file` already use.
+  Falls back to the previous `<input capture>` mechanism when the camera is denied/
+  unavailable/unsupported. Reuses `MediaViewer` for the shot-so-far grid.
+- **`barcode-scan` step component** — live decode via the native `BarcodeDetector` API
+  first, a dynamically-loaded ZXing fallback (`@zxing/library@0.21.3` UMD, jsDelivr,
+  loaded only when this step mounts and the native API is unavailable) otherwise.
+  Manual code entry is always available as a robustness/accessibility net — typing a
+  code writes the answer directly (no separate confirm button), so the flow's own
+  "Continua" is the only way to proceed either way. A camera-found result and a
+  manually-typed one are told apart by `format` (camera-only).
+- **`FlowRunnerProps.locale` / `FlowRunnerProps.content`** — override `flow.locale` /
+  `flow.content` for a render without mutating the stored flow config (same spirit as
+  the existing `estimatedAddress`), for a platform that serves one flow definition in
+  several languages.
+- **Footer cart panel is now editable.** Its +/- stepper and remove control write back
+  to whichever `catalog`/`product` step actually owns the clicked line (not always the
+  step currently on screen — the panel can aggregate rows from several such steps).
+- **Real product images**, not just a small icon badge: `StepImage` gains
+  `"product-thumb"` (catalog row, ~60px) and `"product-hero"` (product card, a
+  full-width banner, larger still on a solo card) sizes.
+- **Tax visibility note** ("+ IVA" / "IVA inclusa") next to prices in `catalog`,
+  `product`, the footer's running total, and the cart panel — shown only when the
+  flow's `payment-stripe` step has `calculateTax` configured.
+- **`catalog` step: facet filters.** A row of chip buttons (icon + label, from the new
+  `filters` config) above the item list; toggling one or more filters shows items
+  whose `tags` include ANY selected filter's tag (OR), an empty match shows a
+  dedicated empty-state message. Local UI state only — never part of the saved answer.
+- Layout now responds to the width of the box FlowKit is actually mounted in
+  (`@container` queries anchored on the flow's own root element), not the browser
+  window's viewport — a component embedded in a narrow container inside a wide
+  browser window now correctly stays in its mobile layout instead of switching to
+  desktop styling it has no room for. The footer's cart/dialog panel is the one
+  deliberate exception (a true page-level overlay, keyed to the real viewport instead,
+  like `FlowOverlay`'s own drawer/dialog switch).
+- Desktop (≥1024px container): `product` cards lay out in a 2-column grid; the
+  footer's running total moves beside the primary buttons instead of stacking above
+  them, with a new 🛒 cart trigger (badge = item count) that opens the cart panel as a
+  bottom drawer on mobile / centered dialog on desktop; once a cart/total is present,
+  the footer now spans its real available width (cart+total at the left edge,
+  Indietro/Continua at the right) instead of both being squeezed into the same
+  ~640px centered reading column the step content itself uses.
+
+### Fixed
+
+- The footer's running-total line spread its label/amount/tax-note evenly across the
+  row (`justify-content: space-between` over three items put the amount in the middle
+  instead of next to the tax note) — amount and tax note now sit grouped together at
+  the right, label at the left.
+- The cart panel's own trash-can icon rendered smaller/paler than the +/- stepper
+  buttons beside it despite an identical control size (emoji glyphs carry a lot of
+  built-in internal whitespace) — sized up to match.
+
 ## 1.2.0 — 2026-09-04
 
 ### Added
