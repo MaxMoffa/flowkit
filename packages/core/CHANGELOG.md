@@ -1,5 +1,13 @@
 # @flowkit-io/core
 
+## Unreleased
+
+### Changed
+
+- `report.ts`: the `payment-stripe` review row value no longer carries a leading `💳`
+  emoji (`Visa •••• 4242`, `PayPal`, …). The row already renders the `💳` type icon in
+  its own column, so the prefix was a duplicate.
+
 ## 1.3.0 — 2026-09-06
 
 ### Added

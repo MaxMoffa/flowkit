@@ -58,12 +58,12 @@ function formatPaymentMethod(value: unknown): string {
   if (!summary || typeof summary.type !== "string") return "—"
   if (summary.type === "card" && summary.last4) {
     const brand = summary.brand ? summary.brand.replace(/\b\w/g, (c) => c.toUpperCase()) : "Carta"
-    return `💳 ${brand} •••• ${summary.last4}`
+    return `${brand} •••• ${summary.last4}`
   }
-  const label =
+  return (
     PAYMENT_METHOD_LABELS[summary.type] ??
     summary.type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-  return `💳 ${label}`
+  )
 }
 
 function formatCatalogAnswer(flow: Flow, step: CatalogStep, value: unknown): string {

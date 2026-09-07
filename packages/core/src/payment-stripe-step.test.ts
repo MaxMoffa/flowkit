@@ -126,14 +126,14 @@ describe("previewSelected", () => {
 describe("buildReportRows: payment-stripe row", () => {
   it("renders a card as brand + last4", () => {
     const row = buildReportRows(flow, collected).find((r) => r.stepId === "pay")
-    expect(row?.value).toBe("💳 Visa •••• 4242")
+    expect(row?.value).toBe("Visa •••• 4242")
   })
 
   it("renders a non-card method by its label", () => {
     const row = buildReportRows(flow, {
       pay: { status: "collected", confirmationTokenId: "ct_1", summary: { type: "paypal" } },
     }).find((r) => r.stepId === "pay")
-    expect(row?.value).toBe("💳 PayPal")
+    expect(row?.value).toBe("PayPal")
   })
 
   it("shows an em dash when nothing is collected", () => {

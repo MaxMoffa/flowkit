@@ -148,8 +148,8 @@ When a flow contains a `payment-stripe` step, the final `review` step:
 - shows the amount as a highlighted **total** callout at the top (unless
   `paymentSummary: "hidden"` on the review step),
 - switches its submit button to `submitWithPayment` ("Completa pagamento e invia"),
-- lists the chosen method as a row (`💳 Visa •••• 4242`, `💳 PayPal`, …), clickable
-  to jump back and change it.
+- lists the chosen method as a row (`💳` icon + `Visa •••• 4242`, `PayPal`, …),
+  clickable to jump back and change it.
 
 ## Theming
 
