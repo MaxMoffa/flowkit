@@ -20,6 +20,13 @@ export interface FlowRunnerLayout {
   scopeStyle: CSSProperties | undefined
   scrollInnerStyle: CSSProperties
   animationClass: string
+  /** Applied to the generic error screen overlay: it isn't a step transition (no
+   *  direction), so only the theme's "fade" animation carries over — "slide"/"none"
+   *  leave it to appear instantly. Empty string when it shouldn't animate. */
+  errorAnimationClass: string
+  /** `--fk-anim-duration` value (ms) for whatever animation the theme asked for —
+   *  set on the error overlay alongside `errorAnimationClass`. */
+  animationDurationMs: number
   headerOrder: number
   footerOrder: number
   progressPosition: "header" | "footer"
@@ -80,6 +87,8 @@ export function useFlowRunnerLayout(
       "--fk-content-flex": contentAlign === "top" ? "1" : "none",
     } as CSSProperties,
     animationClass,
+    errorAnimationClass: animationName === "fade" ? "fk-anim-fade" : "",
+    animationDurationMs: tokens.animation?.duration ?? DEFAULT_ANIMATION_MS,
     headerOrder: tokens.layout?.headerPosition === "bottom" ? 3 : 1,
     footerOrder: tokens.layout?.footerPosition === "top" ? 0 : 4,
     progressPosition: tokens.layout?.progressPosition ?? "header",

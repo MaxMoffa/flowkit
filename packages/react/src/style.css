@@ -3675,7 +3675,10 @@
 }
 
 /* Generic error screen (flow.errorScreen) — an overlay over the whole flow shell, not
-   a step in the flow. Covers the header/footer too, so it reads as a distinct state. */
+   a step in the flow. Covers the header/footer too, so it reads as a distinct state.
+   Vertical rhythm is driven by explicit child margins (badge/title/message/actions),
+   not a flex `gap`, so the badge→title and message→actions gaps can differ from the
+   tight title→message one. */
 .fk-step-error {
   position: absolute;
   inset: 0;
@@ -3686,8 +3689,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: var(--fk-space-md);
-  padding: var(--fk-space-xl);
+  padding: var(--fk-space-xxl) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
   overflow-y: auto;
 }
 
@@ -3696,10 +3698,46 @@
   height: 88px;
   border-radius: 99px;
   background: var(--fk-danger-soft);
+  display: grid;
+  place-items: center;
+  margin: 0 0 var(--fk-space-xl);
+  flex: none;
+}
+
+/* Emoji glyphs render with a slight top bias inside their line box; nudge down so the
+   symbol sits optically centred in the circle. `line-height: 1` keeps the nudge stable. */
+.fk-error-badge .fk-emoji-xl {
+  display: block;
+  line-height: 1;
+  transform: translateY(0.04em);
+}
+
+.fk-error-badge .fk-error-badge-icon {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--fk-space-sm);
+  width: 44px;
+  height: 44px;
+  color: var(--fk-danger);
+}
+
+.fk-error-badge .fk-error-badge-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.fk-error-badge .fk-error-badge-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.fk-step-error .fk-title {
+  margin: 0 0 var(--fk-space-sm);
+  max-width: 22em;
+}
+
+.fk-step-error .fk-subtitle {
+  margin: 0;
+  max-width: 22em;
 }
 
 .fk-error-actions {
@@ -3708,7 +3746,7 @@
   gap: var(--fk-space-sm);
   width: 100%;
   max-width: 340px;
-  margin-top: var(--fk-space-lg);
+  margin-top: var(--fk-space-xl);
 }
 
 .fk-stat-row {

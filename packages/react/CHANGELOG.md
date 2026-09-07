@@ -11,7 +11,9 @@
   `FlowRunnerHandle.showError(payload)` and `StepComponentProps.onError(payload)` raise
   it from anywhere; a `retry` action re-runs `payload.onRetry` (or re-submits). New
   `ShowErrorPayload` type. `.fk-step-error` / `.fk-error-badge` / `.fk-error-actions`
-  CSS.
+  CSS. The screen carries over the theme's `fade` step animation (with its duration);
+  `slide` / no animation leave it appearing instantly. Focus moves to the first
+  recovery button on show.
 
 ## 1.3.0 — 2026-09-06
 

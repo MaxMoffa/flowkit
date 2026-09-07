@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
 } from "react"
 import type {
   AddressValue,
@@ -705,7 +706,16 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     <ThemeProvider theme={theme} mode={mode}>
       <div className="fk-root" style={layout.rootStyle}>
         {errorScreen && (
-          <ErrorScreenView resolved={errorScreen.resolved} onAction={handleErrorAction} />
+          <ErrorScreenView
+            resolved={errorScreen.resolved}
+            onAction={handleErrorAction}
+            className={layout.errorAnimationClass}
+            style={
+              layout.errorAnimationClass
+                ? ({ "--fk-anim-duration": `${layout.animationDurationMs}ms` } as CSSProperties)
+                : undefined
+            }
+          />
         )}
         {showHeader && (
           <div className="fk-header" style={{ order: layout.headerOrder }}>
