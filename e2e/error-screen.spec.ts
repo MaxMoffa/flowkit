@@ -1,54 +1,56 @@
-import { test, expect } from "@playwright/test"
+import { test, expect, type Page } from "@playwright/test"
 
 /**
  * Generic error screen (`flow.errorScreen`): the catalog demo declares `errorScreen: {}`,
  * so a rejected review submit — here a Stripe *decline* test card, turned into a real
- * `onSubmit` rejection by apps/playground/src/simulate-stripe-decline.ts — shows the
- * recovery screen instead of the one-line footer message. Default actions for a flow
- * with a payment step: "Riprova" + "Cambia metodo di pagamento" (jumps to the payment
- * step, then returns to the review).
+ * `onSubmit` rejection by apps/playground/src/simulate-stripe-decline.ts (keyed off the
+ * collected method's `last4`) — shows the recovery screen instead of the one-line
+ * footer message. Default actions for a flow with a payment step: "Riprova" + "Cambia
+ * metodo di pagamento" (jumps to the payment step, then returns to the review).
+ *
+ * The flow is driven to the review step via the playground's `window.__flowkitRunner`
+ * debug handle (same technique as `flow-runner-resume.spec.ts`) with a synthetic
+ * collected payment method, rather than actually filling the third-party Stripe Payment
+ * Element — that's slow and flaky in CI, and unrelated to what this spec covers.
  */
+function seedToReview(page: Page) {
+  return page.evaluate(() => {
+    const runner = (
+      window as unknown as {
+        __flowkitRunner: {
+          setAnswers: (a: Record<string, unknown>) => void
+          goToStep: (s: string) => boolean
+        }
+      }
+    ).__flowkitRunner
+    runner.setAnswers({
+      cart: { items: [{ value: "tshirt", quantity: 1 }], total: 2500 },
+      shipping: "standard",
+      address: { country: "IT", line1: "Via Roma 1", postalCode: "20100", city: "Milano" },
+      // last4 "0002" → simulate-stripe-decline.ts throws "Carta rifiutata dalla banca."
+      pay: {
+        status: "collected",
+        confirmationTokenId: "ct_test",
+        summary: { type: "card", brand: "visa", last4: "0002" },
+      },
+    })
+    return runner.goToStep("review")
+  })
+}
+
 test("error screen: a declined card shows the recovery screen; 'change payment method' jumps back to the payment step", async ({
   page,
 }) => {
-  test.slow() // Stripe Element load + fill
-
   await page.goto("/")
   await page.getByLabel("Preset", { exact: true }).selectOption("catalog-demo")
   await page.getByRole("button", { name: "Inizia" }).click()
-
-  // catalog → add an item
   await expect(page.getByRole("heading", { name: "Scegli i prodotti" })).toBeVisible()
-  await page
-    .locator(".fk-catalog-item", { hasText: "T-shirt FlowKit" })
-    .getByRole("button", { name: "Aggiungi" })
-    .click()
-  await page.getByRole("button", { name: "Continua", exact: true }).click()
 
-  // shipping
-  await page.getByText("Standard (3-5 giorni)").click()
-  await page.getByRole("button", { name: "Continua", exact: true }).click()
-
-  // address
-  await page.getByRole("textbox", { name: "Paese" }).fill("IT")
-  await page.getByRole("textbox", { name: "Indirizzo", exact: true }).fill("Via Roma 1")
-  await page.getByRole("textbox", { name: "CAP" }).fill("20100")
-  await page.getByRole("textbox", { name: "Città" }).fill("Milano")
-  await page.getByRole("button", { name: "Continua", exact: true }).click()
-
-  // payment — fill the Stripe Payment Element with a decline test card (4000...0002)
-  await expect(page.getByRole("heading", { name: "Completa il pagamento" })).toBeVisible()
-  const stripe = page.frameLocator(".fk-step-payment-stripe iframe").first()
-  await stripe.getByRole("textbox", { name: "Card number" }).fill("4000000000000002")
-  await stripe.getByRole("textbox", { name: "Expiration date" }).fill("12 / 34")
-  await stripe.getByRole("textbox", { name: "Security code" }).fill("123")
-  await expect(page.getByText("Visa •••• 0002")).toBeVisible()
-  await page.getByRole("button", { name: "Continua", exact: true }).click()
-
-  // review → submit → decline → error screen
+  expect(await seedToReview(page)).toBe(true)
   await expect(page.getByRole("heading", { name: "Controlla e paga" })).toBeVisible()
-  await page.getByRole("button", { name: /^Paga / }).click()
 
+  // submit → decline → error screen
+  await page.getByRole("button", { name: /^Paga / }).click()
   const alert = page.getByRole("alert")
   await expect(alert).toBeVisible()
   await expect(alert).toContainText("Qualcosa è andato storto")
