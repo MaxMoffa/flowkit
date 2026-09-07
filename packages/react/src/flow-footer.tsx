@@ -86,6 +86,9 @@ interface StepFooterProps {
   onPrimary: () => void
   /** Message from a rejected submit (e.g. a failed deferred payment), shown above the row. */
   error?: string | null
+  /** Small print under the primary button (intro step's `ctaFootnote` — e.g. a
+   *  platform disclaimer). Restricted markdown, so a link is allowed. */
+  footnote?: string | null
   /** Running order total (catalog items + priced options), shown as a plain line just
    *  above the button row on every step once the order is non-empty. Both strings are
    *  already localized. */
@@ -110,6 +113,7 @@ export function StepFooter({
   isSubmit,
   onPrimary,
   error,
+  footnote,
   orderTotal,
   cart,
   progress,
@@ -187,6 +191,11 @@ export function StepFooter({
           </button>
         )}
       </div>
+      {footnote && (
+        <div className="fk-footer-note">
+          <FlowMarkdown text={footnote} variant="block" />
+        </div>
+      )}
       {cartOpen && cart && sheetContainer && (
         <SheetDialog
           namespace="fk-cart-sheet"

@@ -4,6 +4,11 @@
 
 ### Added
 
+- **`ctaFootnote`** (`ContentText`, optional) on the `intro` **and** `review` steps —
+  small print rendered under the primary button, with the library's restricted markdown
+  (bold/italic/link/list). Separate fields (opening disclaimer vs. pre-submit one), for
+  a platform (e.g. FlowLab) to attach a standing disclaimer to flows its users author.
+  Purely presentational — no field, no validation.
 - **`flow.errorScreen`** — opt-in generic error screen shown by `FlowRunner` outside the
   step flow when a `review` submit rejects (or on an imperative `showError()`). Config
   `{ image?, title?, message?, actions? }`; `errorActionSchema` (`retry` / `goToStep` /

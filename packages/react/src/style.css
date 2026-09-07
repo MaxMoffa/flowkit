@@ -711,6 +711,21 @@
   text-align: center;
 }
 
+/* Small print under the primary button (intro step's `ctaFootnote`). */
+.fk-footer-note {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--fk-text2);
+  text-align: center;
+  text-wrap: pretty;
+}
+
+.fk-footer-note a {
+  color: var(--fk-text2);
+  text-decoration: underline;
+}
+
 /* Running order total: plain line above the button row, no card / no fill. Label on
    the left, amount (+ tax note, when present) grouped together on the right — NOT
    `justify-content: space-between` on all three children, which would spread the

@@ -36,7 +36,17 @@ export const catalogDemoFlow: Flow = parseFlow({
   // "Cambia metodo di pagamento" (jumps back to the payment step, returns to review).
   errorScreen: {},
   steps: [
-    { id: "welcome", type: "intro", title: "Ordina la merce", cta: "Inizia" },
+    {
+      id: "welcome",
+      type: "intro",
+      title: "Ordina la merce",
+      cta: "Inizia",
+      // Small print under the CTA — the kind of standing disclaimer a platform like
+      // FlowLab would attach to flows its users author. Restricted markdown, so the
+      // link is clickable (and, being external, opens in a new tab).
+      ctaFootnote:
+        "Questo flow è stato creato da un utente della piattaforma. FlowLab non ne è l'autore e non risponde dei suoi contenuti. [Termini di servizio](https://example.com/termini)",
+    },
     {
       id: "cart",
       key: "cart",
@@ -124,7 +134,14 @@ export const catalogDemoFlow: Flow = parseFlow({
       currency: "eur",
       description: "Ordine demo FlowKit",
     },
-    { id: "review", type: "review", title: "Controlla e paga" },
+    {
+      id: "review",
+      type: "review",
+      title: "Controlla e paga",
+      // Second, independently-worded footnote — a pre-submit disclaimer.
+      ctaFootnote:
+        "Procedendo confermi che i dati inseriti sono corretti e accetti i [termini di servizio](https://example.com/termini) della piattaforma.",
+    },
     { id: "done", type: "confirmation", title: "Ordine ricevuto!" },
   ],
 })

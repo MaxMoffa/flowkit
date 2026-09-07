@@ -67,8 +67,12 @@ import type { FlowSubmitHandler, ShowErrorPayload } from "./types"
 import { taxBehaviorNote } from "./steps/shared/tax-note"
 
 /** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
-type StepWithIntroFields = { cta?: string }
-type StepWithReviewFields = { submitLabel?: string; mode?: "final" | "checkpoint" }
+type StepWithIntroFields = { cta?: string; ctaFootnote?: ContentText }
+type StepWithReviewFields = {
+  submitLabel?: string
+  mode?: "final" | "checkpoint"
+  ctaFootnote?: ContentText
+}
 type StepWithConfirmationFields = {
   secondaryCta?: string
   primaryCta?: string
@@ -702,6 +706,16 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
 
   const isMapStep = step.type === "location" || step.type === "location-leaflet"
 
+  /** Small print under the primary button — a platform's standing disclaimer on flows
+   *  its users author. Offered on the `intro` step (`introStepSchema.ctaFootnote`, an
+   *  opening disclaimer) and on `review` steps (`reviewStepSchema.ctaFootnote`, a
+   *  pre-submit one) — separate fields so the two can be worded differently. */
+  const ctaFootnote = useMemo(() => {
+    if (!isIntro && !isReviewType) return null
+    const value = (step as StepWithIntroFields & StepWithReviewFields).ctaFootnote
+    return value !== undefined ? resolveContentText(flow, value) : null
+  }, [isIntro, isReviewType, step, flow])
+
   return (
     <ThemeProvider theme={theme} mode={mode}>
       <div className="fk-root" style={layout.rootStyle}>
@@ -784,6 +798,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
             isSubmit={isFinalReviewSubmit}
             onPrimary={handleNext}
             error={submitError}
+            footnote={ctaFootnote}
             orderTotal={orderTotal}
             cart={cart}
             progress={{

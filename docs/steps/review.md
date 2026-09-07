@@ -25,6 +25,7 @@ unless `Flow.disableBack` is set, which also disables this shortcut.
 | `meta` | `string` | — | Info banner above the summary |
 | `submitLabel` | `string` | `"Invia segnalazione ✓"` | Only used by a `"final"` review — the submit button's text. Overrides the payment label below |
 | `paymentSummary` | `"auto" \| "hidden"` | `"auto"` | When the flow has a [`payment-stripe`](./payment-stripe.md) step: `"auto"` shows the amount as a total callout at the top; `"hidden"` omits it |
+| `ctaFootnote` | [`ContentText`](../core-concepts.md) | — | Small print under the submit button (restricted markdown, links allowed). Same mechanism as the [`intro`](./intro.md) step's field but separate, so a pre-submit disclaimer can be worded differently from the opening one. Purely presentational. |
 
 When the flow contains a `payment-stripe` step, a `"final"` review's submit button
 becomes `submitWithPayment` ("Completa pagamento e invia ✓") — because pressing it

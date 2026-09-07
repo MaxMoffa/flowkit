@@ -11,6 +11,7 @@ Initial "hero" screen, no header/progress bar. Component: `IntroStepView`.
 | `image` | `{kind,value}` | — | The base [`image`](./index.md#the-image-field) field, rendered in a rounded badge above the title (any of the 3 kinds) |
 | `cta` | `string` | `"Start"` | Primary button text in the footer |
 | `livePill` | `string` | — | If present, shows a pill with an animated green dot above the badge (e.g. "34 reports today nearby") |
+| `ctaFootnote` | [`ContentText`](../core-concepts.md) | — | Small print under the start button. Restricted markdown (bold/italic/link/list) — a clickable link is allowed, external ones open in a new tab. Meant for a platform (e.g. FlowLab) to attach a standing disclaimer to flows its users author. Purely presentational — no field, no validation. |
 
 Must be the **first** step of every flow — `parseFlow` enforces that the first step's
 registered type carries `role: "intro"` (see [Core concepts](../core-concepts.md)). For
@@ -21,7 +22,8 @@ see [`info`](./info.md).
 
 ```ts
 { id: "intro", type: "intro", title: "What's in the air?", subtitle: "Report it in 30 seconds.",
-  image: { kind: "emoji", value: "👃" }, cta: "Report a smell →", livePill: "34 reports today nearby" }
+  image: { kind: "emoji", value: "👃" }, cta: "Report a smell →", livePill: "34 reports today nearby",
+  ctaFootnote: "Created by a platform user. FlowLab is not the author and is not responsible for its content. [Terms](https://example.com/terms)" }
 ```
 
 [← All steps](./index.md)

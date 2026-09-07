@@ -4,6 +4,9 @@
 
 ### Added
 
+- **`ctaFootnote`** (`@flowkit-io/core`, on `intro` and `review` steps) renders as
+  `.fk-footer-note` — small print under the primary button, via `FlowMarkdown` so a
+  link is clickable.
 - **Generic error screen** (`flow.errorScreen`, `@flowkit-io/core`). When the flow
   declares it, a rejected `review` `onSubmit` shows a full recovery screen
   (`ErrorScreenView` — badge, title, message, stacked action buttons) instead of the

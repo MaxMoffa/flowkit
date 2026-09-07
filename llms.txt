@@ -49,7 +49,7 @@ Lista autorevole a runtime: `listRegisteredStepTypes()`.
 
 | Tipo | Scopo | Campi chiave |
 |---|---|---|
-| `intro` | Hero iniziale, no header | `emoji`, `cta` (default "Inizia"), `livePill` |
+| `intro` | Hero iniziale, no header | `emoji`, `cta` (default "Inizia"), `livePill`, `ctaFootnote` (testo piccolo sotto il pulsante, markdown+link; per disclaimer di piattaforma tipo FlowLab) |
 | `location` | Località con mappa reale (maplibre-gl) | `showMap`, `placeholder`, config estesa in `location-step.ts` |
 | `location-leaflet` | Come `location` ma con motore leaflet | stessa config di `location` |
 | `select-cards` | Selezione card singola/multipla | `multiple`, `options[]` |
@@ -64,7 +64,7 @@ Lista autorevole a runtime: `listRegisteredStepTypes()`.
 | `multi-select` | Selezione multipla con min/max | `options[]`, `min`, `max`, `otherOption` |
 | `radio` | Selezione singola a lista (radio button) | `options[]`, `otherOption` |
 | `text` | Testo/numero/email | `variant` (`text`\|`number`\|`email`), `multiline` |
-| `review` | Riepilogo prima dell'invio | `meta`, `submitLabel` |
+| `review` | Riepilogo prima dell'invio | `meta`, `submitLabel`, `ctaFootnote` (testo piccolo sotto il pulsante di invio, campo separato da quello dell'intro) |
 | `confirmation` | Schermata finale | `stats[]`, `emailShare`, `resultActions`, `primaryCta`, `secondaryCta`, `showHomeButton`, `showRestartButton` |
 | `oauth` | Flow OAuth+PKCE | `providers[]`, `allowAnonymous` |
 | `group` | Più step in un'unica schermata | `steps[]`, `layout`, `requiredChildren` |

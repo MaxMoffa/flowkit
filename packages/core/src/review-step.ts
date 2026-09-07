@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { registerStepType } from "./registry"
-import { baseStepFields } from "./schema"
+import { baseStepFields, contentTextSchema } from "./schema"
 
 export const reviewStepSchema = z.object({
   ...baseStepFields,
@@ -30,6 +30,14 @@ export const reviewStepSchema = z.object({
    * render the total themselves.
    */
   paymentSummary: z.enum(["auto", "hidden"]).default("auto"),
+  /**
+   * Small print rendered under the submit button, in the footer — same mechanism as
+   * the intro step's own `ctaFootnote` (restricted markdown, links allowed), but a
+   * separate field so a platform like FlowLab can word the opening disclaimer and the
+   * pre-submit one differently (e.g. "by submitting you confirm the data is correct
+   * and accept [our terms](...)"). Purely presentational — no field, no validation.
+   */
+  ctaFootnote: contentTextSchema.optional(),
 })
 
 export type ReviewStep = z.infer<typeof reviewStepSchema>
