@@ -9,7 +9,9 @@
   `{ image?, title?, message?, actions? }`; `errorActionSchema` (`retry` / `goToStep` /
   `back` / `restart` / `home` / `dismiss`). `resolveErrorScreen(flow, payload)` merges
   payload → config → i18n defaults and picks default actions (retry + "change payment
-  method" when the flow has a payment step). New i18n keys `errorTitle` /
+  method" when the flow has a payment step). Default badge is an inline SVG warning
+  triangle (inherits `currentColor`, centres exactly — like the confirmation checkmark),
+  overridable via `errorScreen.image`. New i18n keys `errorTitle` /
   `errorGenericMessage` / `errorRetry` / `errorChangePayment` / `errorEditStep` /
   `errorRestart` (it + en).
 

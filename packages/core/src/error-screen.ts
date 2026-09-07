@@ -30,7 +30,18 @@ export interface ResolvedErrorScreen {
   actions: ResolvedErrorAction[]
 }
 
-const DEFAULT_IMAGE: StepImage = { kind: "emoji", value: "⚠️" }
+/** Default badge: an inline SVG warning triangle rather than the ⚠️ emoji — it inherits
+ *  `currentColor` (danger) and sits perfectly centred in the circle, matching the
+ *  confirmation step's SVG checkmark. Authors can still set `errorScreen.image` to an
+ *  emoji/icon/image of their own. Sanitised on render by `@flowkit-io/react`. */
+const DEFAULT_IMAGE: StepImage = {
+  kind: "icon",
+  value:
+    '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    '<path d="M12 4 2 20h20L12 4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>' +
+    '<path d="M12 10v4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+    '<circle cx="12" cy="17.6" r="1.15" fill="currentColor"/></svg>',
+}
 
 /** Id of the flow's `payment-stripe` step, if any — the target of the default
  *  "change payment method" recovery action. */

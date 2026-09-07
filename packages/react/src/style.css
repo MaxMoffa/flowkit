@@ -3676,9 +3676,9 @@
 
 /* Generic error screen (flow.errorScreen) — an overlay over the whole flow shell, not
    a step in the flow. Covers the header/footer too, so it reads as a distinct state.
-   Vertical rhythm is driven by explicit child margins (badge/title/message/actions),
-   not a flex `gap`, so the badge→title and message→actions gaps can differ from the
-   tight title→message one. */
+   Mirrors the confirmation step's proportions: same 88px badge, same `.fk-title` /
+   `.fk-subtitle` sizes, badge→title margin `xl`, title→message `sm`, message→actions
+   `xl` (the subtitle's own bottom margin). */
 .fk-step-error {
   position: absolute;
   inset: 0;
@@ -3689,7 +3689,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--fk-space-xxl) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
+  padding: var(--fk-space-xl) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
   overflow-y: auto;
 }
 
@@ -3704,18 +3704,13 @@
   flex: none;
 }
 
-/* Emoji glyphs render with a slight top bias inside their line box; nudge down so the
-   symbol sits optically centred in the circle. `line-height: 1` keeps the nudge stable. */
-.fk-error-badge .fk-emoji-xl {
-  display: block;
-  line-height: 1;
-  transform: translateY(0.04em);
-}
-
+/* Default badge is an SVG icon (centres exactly); 40px to match the confirmation
+   step's checkmark. `line-height: 0` kills the inline-box gap under the <span>. */
 .fk-error-badge .fk-error-badge-icon {
   display: flex;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
+  line-height: 0;
   color: var(--fk-danger);
 }
 
@@ -3725,19 +3720,26 @@
 }
 
 .fk-error-badge .fk-error-badge-img {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
 }
 
+/* Emoji fallback (only when an author sets `errorScreen.image` to an emoji): its glyph
+   box has a slight top bias, nudge down so it reads centred in the circle. */
+.fk-error-badge .fk-emoji-xl {
+  display: block;
+  line-height: 1;
+  transform: translateY(0.03em);
+}
+
 .fk-step-error .fk-title {
-  margin: 0 0 var(--fk-space-sm);
-  max-width: 22em;
+  display: block;
+  max-width: 20em;
 }
 
 .fk-step-error .fk-subtitle {
-  margin: 0;
-  max-width: 22em;
+  max-width: 24em;
 }
 
 .fk-error-actions {
@@ -3746,7 +3748,6 @@
   gap: var(--fk-space-sm);
   width: 100%;
   max-width: 340px;
-  margin-top: var(--fk-space-xl);
 }
 
 .fk-stat-row {

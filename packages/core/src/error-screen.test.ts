@@ -42,7 +42,8 @@ describe("resolveErrorScreen", () => {
     const resolved = resolveErrorScreen(makeFlow())
     expect(resolved.title).toBe("Qualcosa è andato storto")
     expect(resolved.message).toBe("Si è verificato un errore. Riprova.")
-    expect(resolved.image).toEqual({ kind: "emoji", value: "⚠️" })
+    expect(resolved.image.kind).toBe("icon")
+    expect(resolved.image.value).toContain("<svg")
   })
 
   it("uses the locale-appropriate defaults", () => {

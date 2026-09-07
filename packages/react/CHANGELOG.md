@@ -13,7 +13,8 @@
   `ShowErrorPayload` type. `.fk-step-error` / `.fk-error-badge` / `.fk-error-actions`
   CSS. The screen carries over the theme's `fade` step animation (with its duration);
   `slide` / no animation leave it appearing instantly. Focus moves to the first
-  recovery button on show.
+  recovery button on show. Badge / title / message sizes and spacing match the
+  confirmation step (88px badge, 40px default SVG icon, `.fk-title` 26px).
 
 ## 1.3.0 — 2026-09-06
 
