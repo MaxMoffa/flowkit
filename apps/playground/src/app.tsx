@@ -216,6 +216,9 @@ export function App() {
               initialAnswers={debugInitialAnswers}
               estimatedAddress={debugEstimatedCountry ? { country: debugEstimatedCountry } : undefined}
               onSubmit={async (answers) => {
+                // Client-side stand-in for a backend PaymentIntent.confirm() decline,
+                // so the catalog demo can show the generic error screen (flow.errorScreen).
+                simulateStripeTestCardOutcome(flow, answers)
                 await adapter.submit(flow.id, answers)
                 setLastSubmission(answers)
               }}

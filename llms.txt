@@ -127,6 +127,18 @@ Il footer sticky resta quello generico di `FlowRunner`; il corpo (`registerStepC
 è JSX completamente libero. Esempio: `apps/playground/src/custom-intro-demo.tsx`
 (`intro-hero` + `confirmation-hero`).
 
+## Gestione errori (`flow.errorScreen`)
+
+Opt-in. Con `flow.errorScreen` definito, un `onSubmit` del review che rejecta mostra
+una schermata di recupero a tutto campo (non uno step in `flow.steps`); senza, resta
+il messaggio a riga singola sotto il footer. Config `{ image?, title?, message?,
+actions? }`. Azioni: `retry`, `goToStep`(`stepId`), `back`, `restart`, `home`(`url`),
+`dismiss`. `actions` non impostato → default `retry` + "Cambia metodo di pagamento"
+(salta allo step `payment-stripe`) se il flow ne ha uno, altrimenti `retry` + `back`.
+Da qualsiasi punto: `FlowRunnerHandle.showError(payload)` / `props.onError(payload)`
+(no-op senza `flow.errorScreen`); un `payload.onRetry` abilita il bottone "Riprova".
+Esempio: `apps/playground/src/catalog-demo.tsx`.
+
 ## Theming
 
 `packages/themes` esporta temi come oggetti di design token (colori light/dark,

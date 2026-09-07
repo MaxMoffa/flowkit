@@ -16,6 +16,8 @@ import type {
   Flow,
   FlowState,
   Locale,
+  ResolvedErrorAction,
+  ResolvedErrorScreen,
   StepChangeDirection,
 } from "@flowkit-io/core"
 import type { CatalogItem, CatalogValue, PaymentStripeStep } from "@flowkit-io/core"
@@ -45,6 +47,7 @@ import {
   prev as prevState,
   resolveBranch,
   resolveContentText,
+  resolveErrorScreen,
   resolveFlowPath,
   resolvePaymentAmount,
   resolveText,
@@ -54,11 +57,12 @@ import {
 } from "@flowkit-io/core"
 import type { Theme, ThemeMode } from "@flowkit-io/themes"
 import { ConfirmationFooter, StepFooter } from "./flow-footer"
+import { ErrorScreenView } from "./error-screen"
 import { getStepComponent } from "./registry"
 import { ThemeProvider } from "./theme-provider"
 import { useFlowRunnerLayout } from "./use-flow-runner-layout"
 import { haptic } from "./haptics"
-import type { FlowSubmitHandler } from "./types"
+import type { FlowSubmitHandler, ShowErrorPayload } from "./types"
 import { taxBehaviorNote } from "./steps/shared/tax-note"
 
 /** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
@@ -144,6 +148,12 @@ export interface FlowRunnerHandle {
    *  screen's restart button performs. Ignores `initialStep`/`initialAnswers` (those
    *  only ever apply at mount). */
   reset: () => void
+  /** Shows the generic error screen (see `flow.errorScreen`) with this payload —
+   *  for a failure raised outside the review submit (a custom step's own async call,
+   *  an adapter error the host caught). No-op unless the flow declares `errorScreen`.
+   *  Pass `actions` to override the default recovery buttons; a `retry` action re-runs
+   *  `onRetry` if given. */
+  showError: (payload: ShowErrorPayload) => void
 }
 
 export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function FlowRunner(
@@ -202,6 +212,22 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     pendingDirectionRef.current = "initial"
     setState(createFlowState())
   }, [])
+  /** Builds and shows the resolved error screen. `onRetry` (when given) makes a
+   *  "retry" action available and is what it re-runs. No-op unless the flow declares
+   *  `errorScreen` — otherwise callers/consumers fall back to whatever local error
+   *  handling they had before (the review footer message for the submit path). */
+  const raiseError = useCallback(
+    (payload: ShowErrorPayload) => {
+      if (flow.errorScreen === undefined) return
+      const { onRetry, ...rest } = payload
+      setSubmitError(null)
+      setErrorScreen({
+        resolved: resolveErrorScreen(flow, { ...rest, canRetry: !!onRetry }),
+        onRetry,
+      })
+    },
+    [flow],
+  )
   useImperativeHandle(
     ref,
     () => ({
@@ -217,8 +243,9 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
         setState((s) => ({ ...s, answers: filterValidAnswers(flow, answers) }))
       },
       reset: handleRestart,
+      showError: raiseError,
     }),
-    [currentStep, flow, state, handleRestart],
+    [currentStep, flow, state, handleRestart, raiseError],
   )
   /** Set while the user is editing an answer they reached by clicking a review row: the
    *  next "Continua" returns to `reviewStepId` instead of moving +1. Recorded together
@@ -237,6 +264,13 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
    *  shown in the footer, keeps the user on the review step. Cleared on any step
    *  change and on the next submit attempt. */
   const [submitError, setSubmitError] = useState<string | null>(null)
+  /** Non-null while the generic error screen (`flow.errorScreen`) is showing — holds
+   *  the fully resolved screen plus the retry callback (if the failed operation was
+   *  retryable). Rendered instead of the current step; cleared by any recovery action. */
+  const [errorScreen, setErrorScreen] = useState<{
+    resolved: ResolvedErrorScreen
+    onRetry?: () => void | Promise<void>
+  } | null>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
   const step = getCurrentStep(flow, state)
   const StepView = getStepComponent(step.type)
@@ -527,7 +561,14 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
         // A rejected onSubmit (typically a failed deferred payment charge) must
         // not advance the flow: keep the user on the review step and show why.
         haptic("blocked", haptics)
-        setSubmitError(err instanceof Error && err.message ? err.message : resolveText(flow, "paymentFailed"))
+        const message = err instanceof Error && err.message ? err.message : resolveText(flow, "paymentFailed")
+        if (flow.errorScreen !== undefined) {
+          // Opt-in: a full recovery screen (retry / change payment method / …)
+          // instead of the one-line footer message.
+          raiseError({ message, onRetry: () => onSubmit?.(state.answers) })
+        } else {
+          setSubmitError(message)
+        }
         return
       }
     }
@@ -540,7 +581,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     }
     pendingDirectionRef.current = "next"
     setState((s) => nextState(flow, s))
-  }, [flow, state, isFinalReviewSubmit, onSubmit, activeReturnTo, haptics])
+  }, [flow, state, isFinalReviewSubmit, onSubmit, activeReturnTo, haptics, raiseError])
 
   const handlePrev = useCallback(() => {
     if (flow.disableBack) return
@@ -559,6 +600,54 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
       setState((s) => goToStep(flow, s, stepId))
     },
     [flow, step.id, haptics],
+  )
+
+  /** Carries out a recovery action picked on the generic error screen. `retry` re-runs
+   *  the stored `onRetry` (re-showing the screen if it fails again, advancing the flow
+   *  if it succeeds); the rest reuse the existing navigation handlers. Every branch
+   *  first clears the error screen. */
+  const handleErrorAction = useCallback(
+    (item: ResolvedErrorAction) => {
+      const action = item.action
+      const retry = errorScreen?.onRetry
+      setErrorScreen(null)
+      switch (action.kind) {
+        case "retry":
+          if (retry) {
+            void (async () => {
+              try {
+                await retry()
+                setDirection("next")
+                pendingDirectionRef.current = "next"
+                setState((s) => nextState(flow, s))
+              } catch (err) {
+                haptic("blocked", haptics)
+                const message =
+                  err instanceof Error && err.message ? err.message : resolveText(flow, "paymentFailed")
+                raiseError({ message, onRetry: retry })
+              }
+            })()
+          } else {
+            void handleNext()
+          }
+          break
+        case "goToStep":
+          handleNavigateToStep(action.stepId)
+          break
+        case "back":
+          handlePrev()
+          break
+        case "restart":
+          handleRestart()
+          break
+        case "home":
+          window.location.href = action.url
+          break
+        case "dismiss":
+          break
+      }
+    },
+    [errorScreen, flow, haptics, raiseError, handleNext, handleNavigateToStep, handlePrev, handleRestart],
   )
 
   /** Enter in a single-line text-like input (text/email/number/date/…) attempts to
@@ -615,6 +704,9 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   return (
     <ThemeProvider theme={theme} mode={mode}>
       <div className="fk-root" style={layout.rootStyle}>
+        {errorScreen && (
+          <ErrorScreenView resolved={errorScreen.resolved} onAction={handleErrorAction} />
+        )}
         {showHeader && (
           <div className="fk-header" style={{ order: layout.headerOrder }}>
             <div className="fk-header-inner">
@@ -664,6 +756,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
                   onMetaChange={handleMetaChange}
                   visitedStepIds={visitedStepIds}
                   validationAttempt={attempt}
+                  onError={raiseError}
                 />
               </div>
             </div>

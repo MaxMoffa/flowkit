@@ -80,7 +80,7 @@ interface CurrentStepInfo {
 }
 ```
 
-`FlowRunner` also exposes a `ref` handle (`FlowRunnerHandle`) with a `currentStep` property that always mirrors the most recent `onStepChange` call — including the very first one, already correct on the initial render, so you can read it without maintaining your own state. The handle also lets you drive the flow from outside: `goToStep(stepId)` jumps to a step if it's reachable given the current answers (returns `false` and does nothing otherwise, never throws), `getAnswers()`/`setAnswers(answers)` read and replace the collected answers, and `reset()` returns the flow to its blank starting state (same as the confirmation screen's restart action — ignores `initialStep`/`initialAnswers`, see below).
+`FlowRunner` also exposes a `ref` handle (`FlowRunnerHandle`) with a `currentStep` property that always mirrors the most recent `onStepChange` call — including the very first one, already correct on the initial render, so you can read it without maintaining your own state. The handle also lets you drive the flow from outside: `goToStep(stepId)` jumps to a step if it's reachable given the current answers (returns `false` and does nothing otherwise, never throws), `getAnswers()`/`setAnswers(answers)` read and replace the collected answers, `reset()` returns the flow to its blank starting state (same as the confirmation screen's restart action — ignores `initialStep`/`initialAnswers`, see below), and `showError(payload)` raises the generic error screen (see [Handling failures](#handling-failures-the-error-screen)).
 
 ```tsx
 import { useRef } from "react"
@@ -103,6 +103,48 @@ function App() {
 A "branch" (`role: "logic"`) step is fully transparent: it never triggers `onStepChange` and never appears as `currentStep` — the callback only fires once FlowRunner has resolved it and landed on the next visible step, and that step's `previousStep` points at the step before the branch, not at the branch itself.
 
 `direction` explains how a step became current: `"initial"` on mount and after `flow.disableBack`-independent restarts (the confirmation step's "restart" action), `"next"`/`"prev"` for the primary/back buttons, `"jump"` for a review-row shortcut (or the "return to review" continue after editing one, or an imperative `goToStep`), and `"branch-change"` for a case with no equivalent in the other directions: the user edits an answer that drives a branch — having gone Back past it, or having reached it from a review row — and that branch now resolves to a different target than the one they'd already walked. The edit doesn't move the visible step (still whichever field they're editing) but does discard any already-collected answers for the now-unreachable steps and recompute `total` — `onStepChange` fires again for the same `id` so an integration can react. It fires even when `index`/`total` come out identical (two routes of the same length): the steps ahead changed, which is the point of the event. Note that continuing from such an edit walks the newly opened route rather than jumping back to the review, since its steps have never been answered. `"popstate"` is reserved for a future browser-history integration; nothing emits it yet.
+
+## Handling failures: the error screen
+
+By default, a rejected `onSubmit` (typically a declined deferred payment) keeps the user on the `review` step and shows the rejection message as a line under the footer. Set `flow.errorScreen` to get a full recovery screen instead:
+
+```ts
+const flow = parseFlow({
+  id: "shop",
+  title: "Shop",
+  errorScreen: {},          // opt in — every field below is optional
+  // errorScreen: {
+  //   image: { kind: "emoji", value: "🚫" },
+  //   title: "Pagamento non riuscito",
+  //   message: "La banca ha rifiutato la carta.",
+  //   actions: [{ kind: "retry" }, { kind: "goToStep", stepId: "pay", label: "Cambia carta" }],
+  // },
+  steps: [ /* … */ ],
+})
+```
+
+The screen is **not** a step in `flow.steps` — `FlowRunner` renders it as an overlay over the whole flow shell when a failure is raised, and clears it when the user picks a recovery action. Actions:
+
+| `kind` | Effect |
+| --- | --- |
+| `retry` | Re-runs the failed operation. Succeeds → the flow advances; fails again → the screen reappears with the new message |
+| `goToStep` (`stepId`) | Jumps to that step. Raised from the `review` step, the flow returns there once the step is answered again |
+| `back` / `restart` | Same as the header back button / the confirmation restart |
+| `home` (`url`) | `window.location.href = url` |
+| `dismiss` | Just closes the screen, leaving the user where they were |
+
+With `actions` unset, `FlowRunner` picks a sensible default: `retry` + **"Cambia metodo di pagamento"** (jumping to the `payment-stripe` step) when the flow has one, `retry` + `back` otherwise. Each field of `flow.errorScreen` is a default that a runtime payload can override per occurrence.
+
+Raise the screen yourself from outside the review submit — a custom step's own async call, an adapter error you caught — via the ref handle or a step's `props.onError`:
+
+```tsx
+flowRef.current?.showError({
+  message: "Non è stato possibile inviare i dati.",
+  onRetry: () => resend(),        // makes a "Riprova" button appear
+})
+```
+
+`showError` / `onError` are no-ops unless the flow declares `errorScreen`.
 
 ## Resuming a flow
 

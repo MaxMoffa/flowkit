@@ -128,6 +128,50 @@ export const otherOptionSchema = z.object({
 
 export type OtherOption = z.infer<typeof otherOptionSchema>
 
+/**
+ * One recovery action offered on the generic error screen (`Flow.errorScreen`).
+ * Resolved to a labeled button by `resolveErrorScreen` (error-screen.ts) and carried
+ * out by FlowRunner:
+ * - `retry`   — re-run the operation that failed (offered only when one is actually
+ *               retryable, e.g. a rejected review `onSubmit`)
+ * - `goToStep`— jump to `stepId` (e.g. back to the `payment-stripe` step to pick
+ *               another method); raised from the review step, the flow returns there
+ *               once that step is answered again
+ * - `back` / `restart` — the same moves the header / confirmation buttons make
+ * - `home`    — navigate to `url`
+ * - `dismiss` — just close the error screen, leaving the user where they were
+ * `label` overrides the default i18n text for the button.
+ */
+export const errorActionSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("retry"), label: z.string().optional() }),
+  z.object({ kind: z.literal("goToStep"), stepId: z.string().min(1), label: z.string().optional() }),
+  z.object({ kind: z.literal("back"), label: z.string().optional() }),
+  z.object({ kind: z.literal("restart"), label: z.string().optional() }),
+  z.object({ kind: z.literal("home"), url: z.string().min(1), label: z.string().optional() }),
+  z.object({ kind: z.literal("dismiss"), label: z.string().optional() }),
+])
+
+export type ErrorAction = z.infer<typeof errorActionSchema>
+
+/**
+ * Opt-in generic error screen. NOT a step in `flow.steps` — FlowRunner shows it on
+ * demand to explain a failure and offer recovery actions: automatically when a final
+ * `review` step's `onSubmit` rejects (typically a declined deferred payment), or
+ * imperatively via `ref.showError()` / a step's `props.onError()`. Absent = previous
+ * behavior (a rejected `onSubmit` just shows a line under the review footer). Every
+ * field here is a default the runtime payload can override per occurrence; `actions`
+ * unset = FlowRunner picks a sensible set (retry + "change payment method" when the
+ * flow has a payment step, retry + back otherwise).
+ */
+export const errorScreenConfigSchema = z.object({
+  image: stepImageSchema.optional(),
+  title: z.string().optional(),
+  message: z.string().optional(),
+  actions: z.array(errorActionSchema).optional(),
+})
+
+export type ErrorScreenConfig = z.infer<typeof errorScreenConfigSchema>
+
 export const baseStepFields = {
   id: z.string().min(1),
   /** `ContentText` (v2.4x): literal string (unchanged default) or `{ key, fallback? }`
@@ -332,6 +376,13 @@ export interface Flow {
    * slower-moving number — most releases of this library never bump it.
    */
   schemaVersion: number
+  /**
+   * Opt-in generic error screen shown by FlowRunner outside the normal step flow —
+   * see `errorScreenConfigSchema` and `resolveErrorScreen` (error-screen.ts). Unset =
+   * a rejected review `onSubmit` just shows a message under the footer (previous
+   * behavior).
+   */
+  errorScreen?: ErrorScreenConfig
 }
 
 const flowShapeSchema = z.object({
@@ -343,6 +394,7 @@ const flowShapeSchema = z.object({
   timezone: z.string().default("UTC"),
   texts: z.record(z.string(), z.string()).optional(),
   content: z.record(z.string(), z.string()).optional(),
+  errorScreen: errorScreenConfigSchema.optional(),
   /** See flow-versioning.ts. `parseFlow` always migrates up to
    *  `CURRENT_FLOW_SCHEMA_VERSION` before this schema ever validates the input, so
    *  this default only matters for a direct `flowShapeSchema.parse()` call bypassing

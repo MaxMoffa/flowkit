@@ -30,6 +30,11 @@ const mockCalculateTax: CalculateTax = async (input) => {
 export const catalogDemoFlow: Flow = parseFlow({
   id: "catalog-demo",
   title: "Carrello + pagamento",
+  // Opt-in generic error screen: a rejected review submit (here, a declined test
+  // card — see simulate-stripe-decline.ts) shows a recovery screen instead of the
+  // one-line footer message. `actions` unset → FlowRunner offers "Riprova" +
+  // "Cambia metodo di pagamento" (jumps back to the payment step, returns to review).
+  errorScreen: {},
   steps: [
     { id: "welcome", type: "intro", title: "Ordina la merce", cta: "Inizia" },
     {
@@ -110,7 +115,7 @@ export const catalogDemoFlow: Flow = parseFlow({
       type: "payment-stripe",
       title: "Completa il pagamento",
       subtitle:
-        "Demo pubblica: l'importo è calcolato dal carrello + spedizione. Nessun addebito reale (niente backend).",
+        "Demo pubblica: l'importo è calcolato dal carrello + spedizione. Nessun addebito reale (niente backend). Per vedere la schermata di errore usa la carta di test 4000 0000 0000 0002 (rifiutata).",
       amountSource: "cart",
       taxBehavior: "exclusive",
       calculateTax: mockCalculateTax,

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added
+
+- **`flow.errorScreen`** — opt-in generic error screen shown by `FlowRunner` outside the
+  step flow when a `review` submit rejects (or on an imperative `showError()`). Config
+  `{ image?, title?, message?, actions? }`; `errorActionSchema` (`retry` / `goToStep` /
+  `back` / `restart` / `home` / `dismiss`). `resolveErrorScreen(flow, payload)` merges
+  payload → config → i18n defaults and picks default actions (retry + "change payment
+  method" when the flow has a payment step). New i18n keys `errorTitle` /
+  `errorGenericMessage` / `errorRetry` / `errorChangePayment` / `errorEditStep` /
+  `errorRestart` (it + en).
+
 ### Changed
 
 - `report.ts`: the `payment-stripe` review row value no longer carries a leading `💳`

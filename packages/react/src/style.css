@@ -3674,6 +3674,43 @@
   margin: 0 auto var(--fk-space-xl);
 }
 
+/* Generic error screen (flow.errorScreen) — an overlay over the whole flow shell, not
+   a step in the flow. Covers the header/footer too, so it reads as a distinct state. */
+.fk-step-error {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: var(--fk-canvas);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--fk-space-md);
+  padding: var(--fk-space-xl);
+  overflow-y: auto;
+}
+
+.fk-error-badge {
+  width: 88px;
+  height: 88px;
+  border-radius: 99px;
+  background: var(--fk-danger-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--fk-space-sm);
+}
+
+.fk-error-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fk-space-sm);
+  width: 100%;
+  max-width: 340px;
+  margin-top: var(--fk-space-lg);
+}
+
 .fk-stat-row {
   display: flex;
   gap: var(--fk-space-md);

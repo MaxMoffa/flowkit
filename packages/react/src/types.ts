@@ -1,4 +1,12 @@
-import type { AddressValue, AnswerValue, Answers, Flow, Step } from "@flowkit-io/core"
+import type { AddressValue, AnswerValue, Answers, ErrorPayloadInput, Flow, Step } from "@flowkit-io/core"
+
+/** Public shape accepted by `FlowRunnerHandle.showError()` and a step's
+ *  `props.onError()`. Adds an optional `onRetry` callback (a function, hence not part
+ *  of the JSON-serializable `ErrorPayloadInput`) run when the user picks a `retry`
+ *  action on the error screen. */
+export interface ShowErrorPayload extends Omit<ErrorPayloadInput, "canRetry"> {
+  onRetry?: () => void | Promise<void>
+}
 
 export interface StepComponentProps<T extends Step = Step> {
   step: T
@@ -28,6 +36,10 @@ export interface StepComponentProps<T extends Step = Step> {
    *  this step is invalid — see steps/shared/use-field-validation.ts. Force-surfaces a
    *  field's error even before it's been blurred. 0/undefined = no attempt yet. */
   validationAttempt?: number
+  /** Raise the generic error screen (see `flow.errorScreen`) from inside a step — e.g.
+   *  a custom step whose own async call failed. No-op unless the flow declares
+   *  `errorScreen`. */
+  onError?: (payload: ShowErrorPayload) => void
 }
 
 export type FlowSubmitHandler = (answers: Record<string, AnswerValue>) => void | Promise<void>

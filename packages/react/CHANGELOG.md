@@ -1,5 +1,18 @@
 # @flowkit-io/react
 
+## Unreleased
+
+### Added
+
+- **Generic error screen** (`flow.errorScreen`, `@flowkit-io/core`). When the flow
+  declares it, a rejected `review` `onSubmit` shows a full recovery screen
+  (`ErrorScreenView` — badge, title, message, stacked action buttons) instead of the
+  one-line footer message; without it, the footer-message behavior is unchanged.
+  `FlowRunnerHandle.showError(payload)` and `StepComponentProps.onError(payload)` raise
+  it from anywhere; a `retry` action re-runs `payload.onRetry` (or re-submits). New
+  `ShowErrorPayload` type. `.fk-step-error` / `.fk-error-badge` / `.fk-error-actions`
+  CSS.
+
 ## 1.3.0 — 2026-09-06
 
 ### Added
