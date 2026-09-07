@@ -7,6 +7,7 @@ import { loadPreset, presetKeys } from "./presets-registry"
 import { ensureOptInStepsRegistered } from "./opt-in-steps"
 import { buildStepPreviewFlow } from "./step-preview-flow"
 import { simulateStripeTestCardOutcome } from "./simulate-stripe-decline"
+import { simulateStripe3dsOutcome } from "./simulate-stripe-3ds"
 
 type SimWidth = 390 | 768 | 1024 | null
 
@@ -72,6 +73,7 @@ export function FullscreenPreview() {
     () => async (answers: Answers) => {
       if (!flow || stepPreviewType) return
       simulateStripeTestCardOutcome(flow, answers)
+      simulateStripe3dsOutcome(flow, answers)
       await adapter.submit(flow.id, answers)
     },
     [flow, stepPreviewType],

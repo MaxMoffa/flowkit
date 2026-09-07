@@ -9,7 +9,14 @@ import type { Flow, Step } from "@flowkit-io/core"
 const OPT_IN_STEP_LOADERS: Partial<Record<string, () => Promise<unknown>>> = {
   location: () => import("@flowkit-io/react/map-maplibre"),
   "location-leaflet": () => import("@flowkit-io/react/map-leaflet"),
-  "payment-stripe": () => import("@flowkit-io/react/payment-stripe"),
+  "payment-stripe": () =>
+    import("@flowkit-io/react/payment-stripe").then(async (m) => {
+      // Install the playground's mock 3DS runner *after* the entry registered the
+      // real one, so window.confirm stands in for Stripe's challenge modal.
+      const { installMock3dsRunner } = await import("./simulate-stripe-3ds")
+      installMock3dsRunner()
+      return m
+    }),
   verification: () => import("@flowkit-io/react/verification"),
 }
 

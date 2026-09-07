@@ -7,6 +7,7 @@ import type { Answers, CurrentStepInfo, Flow } from "@flowkit-io/core"
 import { loadPreset, presetKeys, presetLabels } from "./presets-registry"
 import { ensureOptInStepsRegistered } from "./opt-in-steps"
 import { simulateStripeTestCardOutcome } from "./simulate-stripe-decline"
+import { simulateStripe3dsOutcome } from "./simulate-stripe-3ds"
 
 const adapter = createLocalAdapter({ namespace: "flowkit-playground" })
 
@@ -194,6 +195,7 @@ export function App() {
                 mode={mode}
                 onSubmit={async (answers) => {
                   simulateStripeTestCardOutcome(flow, answers)
+                  simulateStripe3dsOutcome(flow, answers)
                   await adapter.submit(flow.id, answers)
                   setLastSubmission(answers)
                 }}
@@ -216,9 +218,11 @@ export function App() {
               initialAnswers={debugInitialAnswers}
               estimatedAddress={debugEstimatedCountry ? { country: debugEstimatedCountry } : undefined}
               onSubmit={async (answers) => {
-                // Client-side stand-in for a backend PaymentIntent.confirm() decline,
-                // so the catalog demo can show the generic error screen (flow.errorScreen).
+                // Client-side stand-ins for a backend PaymentIntent.confirm(): a decline
+                // (→ generic error screen) and an SCA card that needs 3D Secure (→
+                // FlowRunner runs the challenge and re-submits, see simulate-stripe-3ds.ts).
                 simulateStripeTestCardOutcome(flow, answers)
+                simulateStripe3dsOutcome(flow, answers)
                 await adapter.submit(flow.id, answers)
                 setLastSubmission(answers)
               }}

@@ -1,5 +1,17 @@
 # @flowkit-io/react
 
+## 1.6.0 — 2026-09-08
+
+### Added
+
+- **`registerStripeNextActionRunner` / `getStripeNextActionRunner`** and the
+  `StripeNextActionRunner` / `StripeNextActionRequest` / `StripeNextActionResult`
+  types are now exported from the main and `/lean` entries (added internal-only in
+  1.5.0). The `@flowkit-io/react/payment-stripe` entry still registers the real
+  Stripe.js runner on import; a host can now register its own *after* that import to
+  swap the 3DS executor — a custom Stripe.js loader, or a mock for a demo / QA build
+  (the playground's 3DS demo does exactly this).
+
 ## 1.5.0 — 2026-09-08
 
 ### Added

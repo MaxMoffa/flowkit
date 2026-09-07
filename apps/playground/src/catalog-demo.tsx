@@ -125,7 +125,7 @@ export const catalogDemoFlow: Flow = parseFlow({
       type: "payment-stripe",
       title: "Completa il pagamento",
       subtitle:
-        "Demo pubblica: l'importo è calcolato dal carrello + spedizione. Nessun addebito reale (niente backend). Per vedere la schermata di errore usa la carta di test 4000 0000 0000 0002 (rifiutata).",
+        "Demo pubblica: l'importo è calcolato dal carrello + spedizione. Nessun addebito reale (niente backend). Carte di test: 4000 0000 0000 0002 → schermata di errore (rifiutata); 4000 0025 0000 3155 → challenge 3D Secure simulata poi successo.",
       amountSource: "cart",
       taxBehavior: "exclusive",
       calculateTax: mockCalculateTax,

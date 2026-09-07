@@ -21,15 +21,18 @@ export function getStepComponent(type: string): ComponentType<StepComponentProps
 }
 
 /**
- * Runner that completes a Stripe 3DS/SCA challenge in the browser. Registered by
- * the `@flowkit-io/react/payment-stripe` entry (the only module that loads
- * Stripe.js) and called by FlowRunner when a deferred charge rejects with
- * `PaymentRequiresActionError`. Lives here — the same cross-entry singleton the
- * step-component registry relies on — so FlowRunner never imports Stripe.js itself.
+ * Runner that completes a Stripe 3DS/SCA challenge in the browser, called by
+ * FlowRunner when a deferred charge rejects with `PaymentRequiresActionError`.
+ * The `@flowkit-io/react/payment-stripe` entry registers the real one (the only
+ * module that loads Stripe.js) on import — so FlowRunner never touches Stripe.js
+ * itself. Exposed for tests and for a host that wants to swap the executor (a
+ * custom Stripe.js loader, a mock for a demo/QA build); register yours *after*
+ * importing the payment entry so it wins. Lives here — the same cross-entry
+ * singleton the step-component registry relies on.
  */
 let stripeNextActionRunner: StripeNextActionRunner | null = null
 
-/** Pass `null` to unregister (used by tests). */
+/** Pass `null` to unregister. */
 export function registerStripeNextActionRunner(runner: StripeNextActionRunner | null): void {
   stripeNextActionRunner = runner
 }
