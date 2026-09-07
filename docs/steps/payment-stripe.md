@@ -61,12 +61,6 @@ import { getPendingPayment } from "@flowkit-io/core"
         }),
       })
       if (!res.ok) throw new Error("Pagamento rifiutato. Controlla i dati della carta.")
-      const { requiresAction, clientSecret } = await res.json()
-      if (requiresAction) {
-        const stripe = await loadStripe(publishableKey)
-        const { error } = await stripe!.handleNextAction({ clientSecret })
-        if (error) throw new Error(error.message ?? "Autenticazione non riuscita.")
-      }
     }
     await saveReport(answers)
   }}
@@ -82,12 +76,56 @@ const intent = await stripe.paymentIntents.create({
   confirm: true,
   return_url: "https://example.com/done",
 })
-// intent.status === "requires_action"  → return { requiresAction: true, clientSecret: intent.client_secret }
-// intent.status === "succeeded"         → return { ok: true }
+// intent.status === "succeeded"        → persist, return { ok: true }
+// intent.status === "requires_action"  → do NOT persist yet, return { clientSecret: intent.client_secret }
 ```
 
 `getPendingPayment` returns `null` when the flow has no payment step or the user
-didn't pick a method — assumes at most one `payment-stripe` step per flow.
+didn't pick a method — assumes at most one `payment-stripe` step per flow. It also
+carries the step's `publishableKey` / `stripeAccount`, which FlowKit uses for the
+3DS/SCA step below.
+
+## 3DS / SCA on a card that needs authentication
+
+An EU card (or any card the issuer flags) comes back from
+`PaymentIntent.create({ confirm: true })` with `status: "requires_action"` — the
+customer has to clear a 3D Secure challenge in the browser, which the backend
+can't do on its own. Signal it from `onSubmit` by throwing
+**`PaymentRequiresActionError`** (from `@flowkit-io/core`) with the
+PaymentIntent's `client_secret`:
+
+```ts
+import { getPendingPayment, PaymentRequiresActionError } from "@flowkit-io/core"
+
+onSubmit={async (answers) => {
+  const pay = getPendingPayment(flow, answers)
+  if (pay) {
+    const res = await fetch("/api/confirm-payment", { /* …as above… */ })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message ?? "Pagamento rifiutato.")
+    if (data.clientSecret) throw new PaymentRequiresActionError(data.clientSecret)
+  }
+  await saveReport(answers)
+}}
+```
+
+FlowKit then:
+
+1. runs the Stripe challenge in the browser (`stripe.handleNextAction`) — this
+   needs the **`@flowkit-io/react/payment-stripe`** entry imported (it already is,
+   for the step itself); it's the only place Stripe.js loads;
+2. on success, **re-invokes `onSubmit` once** — your backend re-confirms the now
+   authenticated PaymentIntent, checks it is `succeeded` (re-verify
+   amount / currency / metadata as an anti-replay guard — the first call must not
+   have persisted anything), and this time persists and resolves;
+3. if the customer cancels or the challenge fails, the flow stays on `review` with
+   the error message (or the `flow.errorScreen`, with a **Riprova** action that
+   repeats steps 1–2).
+
+A second `requires_action` from the retry is surfaced as a normal error, not
+looped. If `@flowkit-io/react/payment-stripe` isn't imported, the thrown
+`PaymentRequiresActionError` falls back to a generic auth error (and a console
+message) — the challenge can't run without Stripe.js.
 
 ## Tax (`calculateTax`)
 

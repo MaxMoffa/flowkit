@@ -118,6 +118,8 @@ export {
   getPendingPayment,
   flowHasPayment,
   resolvePaymentAmount,
+  PaymentRequiresActionError,
+  isPaymentRequiresAction,
 } from "./payment-stripe-step"
 export type {
   PaymentStripeStep,

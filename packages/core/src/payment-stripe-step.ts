@@ -138,6 +138,57 @@ export interface PendingPayment {
   amount: number
   currency: string
   summary: PaymentMethodSummary
+  /** The step's Stripe **publishable** key — FlowRunner needs it to run a 3DS/SCA
+   *  challenge in the browser (`stripe.handleNextAction`) after a deferred charge
+   *  came back `requires_action`. */
+  publishableKey: string
+  /** Stripe Connect destination account, when the step declares one. */
+  stripeAccount?: string
+}
+
+/**
+ * Thrown from `onSubmit` when the server-side PaymentIntent confirm came back
+ * `status: "requires_action"` — the card needs a 3DS/SCA challenge that only the
+ * browser can complete.
+ *
+ * FlowRunner catches it, runs the Stripe next-action challenge in the browser
+ * (via the `@flowkit-io/react/payment-stripe` entry — the only place Stripe.js is
+ * loaded) and, once the customer clears it, re-invokes `onSubmit` **once** so the
+ * consumer's backend can re-confirm the now-authenticated PaymentIntent and
+ * persist. The consumer's backend is expected to reject a re-submit whose
+ * PaymentIntent isn't `succeeded` (anti-replay), so the flow only advances on a
+ * real charge.
+ *
+ * Requires `@flowkit-io/react/payment-stripe` to be imported by the app (it
+ * registers the Stripe.js next-action runner). Without it, FlowRunner surfaces a
+ * normal error instead of the challenge.
+ */
+export class PaymentRequiresActionError extends Error {
+  readonly code = "requires_action" as const
+  /** The PaymentIntent's `client_secret`, from the backend's confirm response. */
+  readonly clientSecret: string
+  constructor(clientSecret: string, message = "Payment requires customer authentication (3DS/SCA).") {
+    super(message)
+    this.name = "PaymentRequiresActionError"
+    this.clientSecret = clientSecret
+  }
+}
+
+/**
+ * True for a `PaymentRequiresActionError`, or for any value structurally carrying
+ * `code: "requires_action"` and a string `clientSecret` — so a consumer whose
+ * bundle can't `instanceof` the class (duplicated module, thrown across a
+ * boundary) can still signal the same thing with a plain object.
+ */
+export function isPaymentRequiresAction(
+  err: unknown,
+): err is { code: "requires_action"; clientSecret: string } {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as { code?: unknown }).code === "requires_action" &&
+    typeof (err as { clientSecret?: unknown }).clientSecret === "string"
+  )
 }
 
 /**
@@ -166,6 +217,8 @@ export function getPendingPayment(flow: Flow, answers: Answers): PendingPayment 
       amount: resolvePaymentAmount(paymentStep, flow, answers),
       currency: paymentStep.currency,
       summary: value.summary,
+      publishableKey: paymentStep.publishableKey,
+      ...(paymentStep.stripeAccount ? { stripeAccount: paymentStep.stripeAccount } : {}),
     }
   }
   return null

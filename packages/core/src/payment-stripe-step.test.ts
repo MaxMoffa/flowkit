@@ -5,7 +5,9 @@ import {
   formatMoney,
   getPendingPayment,
   getStepTypeDefinition,
+  isPaymentRequiresAction,
   parseFlow,
+  PaymentRequiresActionError,
   paymentStripeStepSchema,
   type Answers,
   type Flow,
@@ -78,18 +80,64 @@ describe("getPendingPayment", () => {
     expect(getPendingPayment(flow, {})).toBeNull()
   })
 
-  it("returns the token and the step's amount/currency once collected", () => {
+  it("returns the token, amount/currency and publishable key once collected", () => {
     expect(getPendingPayment(flow, collected)).toEqual({
       stepId: "pay",
       confirmationTokenId: "ctoken_123",
       amount: 1500,
       currency: "eur",
       summary: { type: "card", brand: "visa", last4: "4242" },
+      publishableKey: "pk_test_x",
     })
+  })
+
+  it("carries stripeAccount only when the step declares one", () => {
+    const connect = parseFlow({
+      id: "c",
+      title: "C",
+      steps: [
+        { id: "intro", type: "intro", title: "Start" },
+        {
+          id: "pay",
+          key: "pay",
+          type: "payment-stripe",
+          publishableKey: "pk_test_x",
+          amount: 1500,
+          currency: "eur",
+          stripeAccount: "acct_123",
+        },
+        { id: "review", type: "review" },
+        { id: "done", type: "confirmation" },
+      ],
+    })
+    expect(getPendingPayment(connect, collected)?.stripeAccount).toBe("acct_123")
   })
 
   it("returns null for a malformed value", () => {
     expect(getPendingPayment(flow, { pay: { status: "collected" } as never })).toBeNull()
+  })
+})
+
+describe("PaymentRequiresActionError / isPaymentRequiresAction", () => {
+  it("carries the client secret and a stable code", () => {
+    const err = new PaymentRequiresActionError("pi_1_secret_abc")
+    expect(err).toBeInstanceOf(Error)
+    expect(err.code).toBe("requires_action")
+    expect(err.clientSecret).toBe("pi_1_secret_abc")
+    expect(err.name).toBe("PaymentRequiresActionError")
+  })
+
+  it("is recognized by the guard — as the class or a plain look-alike object", () => {
+    expect(isPaymentRequiresAction(new PaymentRequiresActionError("cs_1"))).toBe(true)
+    expect(isPaymentRequiresAction({ code: "requires_action", clientSecret: "cs_2" })).toBe(true)
+  })
+
+  it("rejects anything else", () => {
+    expect(isPaymentRequiresAction(new Error("card declined"))).toBe(false)
+    expect(isPaymentRequiresAction({ code: "requires_action" })).toBe(false)
+    expect(isPaymentRequiresAction({ clientSecret: "cs" })).toBe(false)
+    expect(isPaymentRequiresAction(null)).toBe(false)
+    expect(isPaymentRequiresAction("requires_action")).toBe(false)
   })
 })
 

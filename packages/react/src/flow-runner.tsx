@@ -38,11 +38,13 @@ import {
   formatMoney,
   getCurrentStep,
   getCurrentStepInfo,
+  getPendingPayment,
   getProgressInfo,
   getStepMeta,
   getStepTypeDefinition,
   goToStep,
   isLastStep,
+  isPaymentRequiresAction,
   isStepReachable,
   next as nextState,
   prev as prevState,
@@ -59,7 +61,7 @@ import {
 import type { Theme, ThemeMode } from "@flowkit-io/themes"
 import { ConfirmationFooter, StepFooter } from "./flow-footer"
 import { ErrorScreenView } from "./error-screen"
-import { getStepComponent } from "./registry"
+import { getStepComponent, getStripeNextActionRunner } from "./registry"
 import { ThemeProvider } from "./theme-provider"
 import { useFlowRunnerLayout } from "./use-flow-runner-layout"
 import { haptic } from "./haptics"
@@ -551,6 +553,44 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     [step.id],
   )
 
+  /** Runs the consumer's `onSubmit`. If it rejects with a `requires_action`
+   *  (3DS/SCA) signal — `PaymentRequiresActionError` from `@flowkit-io/core`, or
+   *  any value with the same `code`/`clientSecret` shape — it runs the Stripe
+   *  next-action challenge in the browser (needs `@flowkit-io/react/payment-stripe`
+   *  imported, which registers the runner) and, once the customer clears it,
+   *  re-invokes `onSubmit` once so the backend can re-confirm the now-authenticated
+   *  PaymentIntent and persist. A second `requires_action` from that retry
+   *  propagates as a normal error — no loop. */
+  const submitFlow = useCallback(async () => {
+    try {
+      await onSubmit?.(state.answers)
+    } catch (err) {
+      if (!isPaymentRequiresAction(err)) throw err
+      const runner = getStripeNextActionRunner()
+      const pending = getPendingPayment(flow, state.answers)
+      if (!runner || !pending) {
+        if (!runner) {
+          // The consumer signalled a 3DS challenge but the entry that runs it
+          // (the only place Stripe.js loads) isn't imported.
+          console.error(
+            '[flowkit] onSubmit threw a "requires_action" payment error but ' +
+              "`@flowkit-io/react/payment-stripe` is not imported — the 3DS/SCA " +
+              "challenge cannot run. Import it to enable deferred card authentication.",
+          )
+        }
+        throw new Error(resolveText(flow, "payment3dsFailed"))
+      }
+      const result = await runner({
+        publishableKey: pending.publishableKey,
+        stripeAccount: pending.stripeAccount,
+        clientSecret: err.clientSecret,
+      })
+      if (!result.ok) throw new Error(result.error || resolveText(flow, "payment3dsFailed"))
+      // Challenge cleared — let the backend re-confirm the authenticated PI and persist.
+      await onSubmit?.(state.answers)
+    }
+  }, [flow, state.answers, onSubmit])
+
   const handleNext = useCallback(async () => {
     if (!canGoNext(flow, state)) {
       haptic("blocked", haptics)
@@ -561,7 +601,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     if (isFinalReviewSubmit) {
       setSubmitError(null)
       try {
-        await onSubmit?.(state.answers)
+        await submitFlow()
       } catch (err) {
         // A rejected onSubmit (typically a failed deferred payment charge) must
         // not advance the flow: keep the user on the review step and show why.
@@ -570,7 +610,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
         if (flow.errorScreen !== undefined) {
           // Opt-in: a full recovery screen (retry / change payment method / …)
           // instead of the one-line footer message.
-          raiseError({ message, onRetry: () => onSubmit?.(state.answers) })
+          raiseError({ message, onRetry: submitFlow })
         } else {
           setSubmitError(message)
         }
@@ -586,7 +626,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     }
     pendingDirectionRef.current = "next"
     setState((s) => nextState(flow, s))
-  }, [flow, state, isFinalReviewSubmit, onSubmit, activeReturnTo, haptics, raiseError])
+  }, [flow, state, isFinalReviewSubmit, submitFlow, activeReturnTo, haptics, raiseError])
 
   const handlePrev = useCallback(() => {
     if (flow.disableBack) return

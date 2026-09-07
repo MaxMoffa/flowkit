@@ -43,3 +43,29 @@ export interface StepComponentProps<T extends Step = Step> {
 }
 
 export type FlowSubmitHandler = (answers: Record<string, AnswerValue>) => void | Promise<void>
+
+/** What FlowRunner hands the Stripe next-action runner to complete a 3DS/SCA
+ *  challenge after a deferred charge came back `requires_action`. */
+export interface StripeNextActionRequest {
+  /** Stripe **publishable** key of the flow's `payment-stripe` step. */
+  publishableKey: string
+  /** Stripe Connect destination account, when the step declares one. */
+  stripeAccount?: string
+  /** `client_secret` of the PaymentIntent that needs the challenge (from the
+   *  backend's confirm response, carried on `PaymentRequiresActionError`). */
+  clientSecret: string
+}
+
+/** Outcome of a Stripe next-action challenge. `ok: false` keeps the user on the
+ *  review step with `error` (or the localized fallback) shown. */
+export interface StripeNextActionResult {
+  ok: boolean
+  error?: string
+}
+
+/** Implemented by the `@flowkit-io/react/payment-stripe` entry (the only module
+ *  that loads Stripe.js), registered via `registerStripeNextActionRunner` and
+ *  called by FlowRunner. */
+export type StripeNextActionRunner = (
+  request: StripeNextActionRequest,
+) => Promise<StripeNextActionResult>

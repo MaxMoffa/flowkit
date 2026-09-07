@@ -1,5 +1,19 @@
 # @flowkit-io/core
 
+## 1.5.0 — 2026-09-08
+
+### Added
+
+- **`PaymentRequiresActionError`** + **`isPaymentRequiresAction()`** — the deferred
+  `payment-stripe` 3DS/SCA hook. Thrown from `onSubmit` (with the PaymentIntent's
+  `client_secret`) when the backend's `PaymentIntent.confirm` came back
+  `requires_action`; `@flowkit-io/react`'s `FlowRunner` catches it, runs the browser
+  challenge, and re-invokes `onSubmit` once. `isPaymentRequiresAction` also matches a
+  plain `{ code: "requires_action", clientSecret }` look-alike (cross-bundle).
+- `PendingPayment` now carries `publishableKey` and `stripeAccount` (when set) — what
+  `FlowRunner` needs to run the challenge.
+- New i18n key `payment3dsFailed` (it + en).
+
 ## 1.4.0 — 2026-09-07
 
 ### Added

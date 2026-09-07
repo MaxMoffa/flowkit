@@ -1,5 +1,22 @@
 # @flowkit-io/react
 
+## 1.5.0 — 2026-09-08
+
+### Added
+
+- **Deferred payment 3DS/SCA**. When `onSubmit` rejects with
+  `PaymentRequiresActionError` (`@flowkit-io/core`), `FlowRunner` runs the Stripe
+  next-action challenge in the browser and re-invokes `onSubmit` once so the backend
+  can re-confirm + persist the authenticated PaymentIntent. A second `requires_action`
+  from the retry surfaces as a normal error (no loop); the challenge also runs from
+  the `flow.errorScreen` **Riprova** action. The challenge executor
+  (`stripe.handleNextAction`) is registered by the `@flowkit-io/react/payment-stripe`
+  entry — the only module that loads Stripe.js; `FlowRunner` itself stays Stripe-free
+  and no-ops (generic error + `console.error`) if that entry isn't imported.
+  `registerStripeNextActionRunner` / `getStripeNextActionRunner` and the
+  `StripeNextActionRunner` / `StripeNextActionRequest` / `StripeNextActionResult`
+  types.
+
 ## 1.4.0 — 2026-09-07
 
 ### Added
