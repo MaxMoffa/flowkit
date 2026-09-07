@@ -1,6 +1,6 @@
 # @flowkit-io/react
 
-## Unreleased
+## 1.4.0 — 2026-09-07
 
 ### Added
 

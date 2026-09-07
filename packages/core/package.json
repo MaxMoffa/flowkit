@@ -1,6 +1,6 @@
 {
   "name": "@flowkit-io/core",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Headless config schema, flow state machine, validation and i18n for Flowkit.",
   "license": "SEE LICENSE IN LICENSE.md",
   "author": "Massimo Moffa",
