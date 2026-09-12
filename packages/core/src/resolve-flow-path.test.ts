@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
   applyBranch,
   createFlowState,
+  getCurrentStep,
   getProgressInfo,
   goToStep,
   next,
@@ -280,6 +281,87 @@ describe("resolveFlowPath: what counts as 'not yet determinable'", () => {
 
     const atBranch = { ...state, index: 2 }
     expect(resolveBranch(flow, atBranch)).toBe("q2")
+  })
+})
+
+describe("resolveFlowPath: skip-if-false group (`when`)", () => {
+  function makeFlow(): Flow {
+    return parseFlow({
+      id: "group-when",
+      title: "Group when",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "has-company", type: "radio", options: [{ value: "yes", label: "Yes" }, { value: "no", label: "No" }] },
+        {
+          id: "company-group",
+          type: "group",
+          when: { key: "has_company", op: "eq", value: "yes" },
+          steps: [{ id: "company-name", type: "text" }],
+        },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+  }
+
+  it("when false: the group (and its position) is excluded from the resolved path", () => {
+    const flow = makeFlow()
+    let state = createFlowState()
+    state = next(flow, state) // welcome -> has-company
+    state = setAnswer(state, stepByIdInFlow(flow, "has-company"), "no")
+
+    const path = resolveFlowPath(flow, state)
+    expect(path.determinate).toBe(true)
+    expect(path.stepIds).toEqual(["has-company"])
+    expect(path.stepIds).not.toContain("company-group")
+
+    const info = getProgressInfo(flow, state)
+    expect(info.total).toBe(1)
+  })
+
+  it("when true: the group is included as a normal step", () => {
+    const flow = makeFlow()
+    let state = createFlowState()
+    state = next(flow, state)
+    state = setAnswer(state, stepByIdInFlow(flow, "has-company"), "yes")
+
+    const path = resolveFlowPath(flow, state)
+    expect(path.stepIds).toEqual(["has-company", "company-group"])
+  })
+
+  it("resolveBranch jumps straight past a skipped group to the next step, like a branch", () => {
+    const flow = makeFlow()
+    let state = createFlowState()
+    state = next(flow, state)
+    state = setAnswer(state, stepByIdInFlow(flow, "has-company"), "no")
+    state = next(flow, state) // has-company -> company-group (index only; not yet resolved)
+
+    expect(getCurrentStep(flow, state).id).toBe("company-group")
+    const target = resolveBranch(flow, state)
+    expect(target).toBe("end")
+  })
+
+  it("resolveBranch is a no-op (returns current id) on a visible group", () => {
+    const flow = makeFlow()
+    let state = createFlowState()
+    state = next(flow, state)
+    state = setAnswer(state, stepByIdInFlow(flow, "has-company"), "yes")
+    state = next(flow, state) // has-company -> company-group
+
+    expect(resolveBranch(flow, state)).toBe("company-group")
+  })
+
+  it("a group with no `when` is never skipped (fully backward-compatible)", () => {
+    const flow = parseFlow({
+      id: "group-no-when",
+      title: "Group no when",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "g", type: "group", steps: [{ id: "x", type: "text", required: false }] },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const path = resolveFlowPath(flow, createFlowState())
+    expect(path.stepIds).toEqual(["g"])
   })
 })
 

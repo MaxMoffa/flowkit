@@ -1,5 +1,11 @@
 import type { AnswerValue, GroupStep } from "@flowkit-io/core"
-import { answerKey, getStepValidationIssue, resolveValidationMessage, resolveContentText } from "@flowkit-io/core"
+import {
+  answerKey,
+  evaluateCondition,
+  getStepValidationIssue,
+  resolveValidationMessage,
+  resolveContentText,
+} from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { getStepComponent } from "../registry"
 import { FlowMarkdown } from "../markdown"
@@ -23,6 +29,10 @@ export function GroupStepView({
   validationAttempt,
 }: StepComponentProps) {
   const groupStep = step as unknown as GroupStep
+  // Belt-and-suspenders (v2.44 skip-if-false groups): FlowRunner's resolve-and-jump
+  // effect jumps past a skipped group before paint, same as it does for a "branch" step
+  // — this just makes sure nothing here renders even for that one, unpainted commit.
+  if (groupStep.when !== undefined && !evaluateCondition(groupStep.when, answers)) return null
   const aggregate = (value && typeof value === "object" && !Array.isArray(value) ? value : {}) as Record<
     string,
     AnswerValue

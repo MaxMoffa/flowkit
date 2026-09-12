@@ -1,5 +1,17 @@
 # @flowkit-io/react
 
+## 1.7.0 — 2026-09-12
+
+### Added
+
+- **Skip-if-false `group` steps** (`GroupStep.when`, `@flowkit-io/core` 1.6.0):
+  `FlowRunner` jumps straight past a group whose `when` evaluates false, the same
+  way it already does for an invisible "branch" step (synchronous pre-paint
+  resolve-and-jump, never reported through `onStepChange`, never pushed onto
+  `history`/Back). `GroupStepView` also renders `null` on its own for that one
+  unpainted commit, mirroring the branch step component's belt-and-suspenders.
+  Requires `@flowkit-io/core@^1.6.0` (bumped).
+
 ## 1.6.0 — 2026-09-08
 
 ### Added

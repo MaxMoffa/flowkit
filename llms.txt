@@ -67,7 +67,7 @@ Lista autorevole a runtime: `listRegisteredStepTypes()`.
 | `review` | Riepilogo prima dell'invio | `meta`, `submitLabel`, `ctaFootnote` (testo piccolo sotto il pulsante di invio, campo separato da quello dell'intro) |
 | `confirmation` | Schermata finale | `stats[]`, `emailShare`, `resultActions`, `primaryCta`, `secondaryCta`, `showHomeButton`, `showRestartButton` |
 | `oauth` | Flow OAuth+PKCE | `providers[]`, `allowAnonymous` |
-| `group` | Più step in un'unica schermata | `steps[]`, `layout`, `requiredChildren` |
+| `group` | Più step in un'unica schermata; `when` (Condition) rende l'intero gruppo saltabile — se falso, gruppo e figli sono trattati come assenti (non correnti, non richiesti, non nel progress, non in review/export), si prosegue con lo step successivo | `steps[]`, `layout`, `requiredChildren`, `when` |
 | `signature` | Firma su canvas | `penColor`, `allowFullscreen` |
 | `payment-stripe` | Raccoglie un metodo di pagamento Stripe; l'addebito è differito al submit finale (vedi `getPendingPayment` in `onSubmit`). Per il 3DS/SCA su carte EU: `onSubmit` lancia `PaymentRequiresActionError(clientSecret)` e FlowKit esegue la sfida nel browser e ri-chiama `onSubmit` una volta | `publishableKey`, `amount`, `currency` |
 

@@ -43,6 +43,7 @@ import {
   getStepMeta,
   getStepTypeDefinition,
   goToStep,
+  isCurrentStepSkipped,
   isLastStep,
   isPaymentRequiresAction,
   isStepReachable,
@@ -301,7 +302,11 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   const isIntro = stepRole === "intro"
   const isConfirmation = stepRole === "confirmation"
   const isLogic = stepRole === "logic"
-  const showHeader = !isIntro && !isConfirmation && !isLogic
+  /** True while `step` is a "group" whose `when` currently evaluates false (v2.44
+   *  skip-if-false groups) — treated the same as a "branch"/logic step for every purpose
+   *  below: never actually shown, jumped past by the effect a few lines down. */
+  const isSkippedNow = isCurrentStepSkipped(flow, state)
+  const showHeader = !isIntro && !isConfirmation && !isLogic && !isSkippedNow
   const isReviewType = stepRole === "review"
   const isFinalReviewSubmit = isReviewType && (step as StepWithReviewFields).mode !== "checkpoint"
 
@@ -473,26 +478,26 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     return () => window.removeEventListener("popstate", handlePopState)
   }, [flow.disableBack])
 
-  /** A "branch" (role: "logic") step is never shown: resolve its target and jump
-   *  synchronously, before the browser paints, so it never actually renders on screen
-   *  (its component itself also just renders null, belt-and-suspenders). Runs on mount
-   *  and on every index change; the `stepRole !== "logic"` guard makes it a no-op once
-   *  the jump has landed on a real step, so it can't loop. */
+  /** A "branch" (role: "logic") step, or a skipped "group" (`when` false), is never
+   *  shown: resolve its target and jump synchronously, before the browser paints, so it
+   *  never actually renders on screen (their components also just render null, belt-
+   *  and-suspenders). Runs on mount and on every index change; the `!isSkippedNow` guard
+   *  makes it a no-op once the jump has landed on a real step, so it can't loop. */
   useLayoutEffect(() => {
-    if (stepRole !== "logic") return
+    if (!isSkippedNow) return
     const target = resolveBranch(flow, state)
     setState((s) => applyBranch(flow, s, target))
-  }, [flow, state, stepRole])
+  }, [flow, state, isSkippedNow])
 
-  /** Reports the settled current step: skipped while still on a "logic" step (the
-   *  branch-resolution effect above hasn't landed yet — runs first, same commit) so a
-   *  branch is never itself reported, only the visible step it resolves to. Fires once
-   *  per actually-changed id/index/total, so re-renders that don't move anything (or an
-   *  intermediate commit mid a chained-branch resolution) are silent. `currentStep`
-   *  (state, for the ref handle) and the `onStepChange` call are set together here, so
-   *  the two can never observe different values. */
+  /** Reports the settled current step: skipped while still on a hidden step (the
+   *  resolve-and-jump effect above hasn't landed yet — runs first, same commit) so a
+   *  branch or a skipped group is never itself reported, only the visible step it
+   *  resolves to. Fires once per actually-changed id/index/total, so re-renders that
+   *  don't move anything (or an intermediate commit mid a chained resolution) are
+   *  silent. `currentStep` (state, for the ref handle) and the `onStepChange` call are
+   *  set together here, so the two can never observe different values. */
   useLayoutEffect(() => {
-    if (stepRole === "logic") return
+    if (isSkippedNow) return
     const forced = branchChangeRef.current
     branchChangeRef.current = false
     const prevInfo = emittedStepRef.current
@@ -514,7 +519,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     // (and re-diff/emit) on every unrelated parent render instead of only on real step
     // changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flow, state, stepRole])
+  }, [flow, state, isSkippedNow])
 
   const handleChange = useCallback(
     (value: Parameters<typeof setAnswerAndInvalidateDownstream>[3]) => {
@@ -826,7 +831,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
             </div>
           </div>
         </div>
-        {!last && !isLogic && (
+        {!last && !isLogic && !isSkippedNow && (
           <StepFooter
             order={layout.footerOrder}
             showBack={showHeader && !flow.disableBack}

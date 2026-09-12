@@ -165,4 +165,34 @@ describe("GroupStepView", () => {
       },
     })
   })
+
+  it("renders null when `when` evaluates false (belt-and-suspenders, mirrors the branch step)", () => {
+    const { container } = render(
+      <GroupStepView
+        step={groupStep({ when: { key: "show", op: "truthy" } })}
+        value={{}}
+        onChange={() => {}}
+        flow={baseFlow}
+        answers={{ show: false }}
+        meta={{}}
+        onMetaChange={() => {}}
+      />,
+    )
+    expect(container.firstChild).toBeNull()
+  })
+
+  it("renders normally when `when` evaluates true", () => {
+    const { container } = render(
+      <GroupStepView
+        step={groupStep({ when: { key: "show", op: "truthy" } })}
+        value={{}}
+        onChange={() => {}}
+        flow={baseFlow}
+        answers={{ show: true }}
+        meta={{}}
+        onMetaChange={() => {}}
+      />,
+    )
+    expect(container.querySelectorAll("textarea")).toHaveLength(2)
+  })
 })

@@ -8,16 +8,34 @@ function isLogicStep(step: Step): boolean {
   return getStepTypeDefinition(step.type)?.role === "logic"
 }
 
+/** True for a "group" step whose `when` evaluates false against `answers` (skip-if-
+ *  false groups, v2.44) — duplicated from group-step.ts's own `isGroupSkipped` rather
+ *  than imported, to avoid a flow-path.ts <-> group-step.ts <-> machine.ts import cycle
+ *  (group-step.ts imports `answerKey` from the "./machine" barrel, which re-exports
+ *  this file). Keep the two in sync. */
+function isGroupSkipped(step: Step, answers: Record<string, unknown>): boolean {
+  if ((step.type as string) !== "group") return false
+  const when = (step as unknown as { when?: Condition }).when
+  return when !== undefined && !evaluateCondition(when, answers)
+}
+
+/** A step that navigation must act as though doesn't exist: a "logic" (branch) step,
+ *  always, or a "group" step whose `when` currently evaluates false. */
+function isHidden(step: Step, answers: Record<string, unknown>): boolean {
+  return isLogicStep(step) || isGroupSkipped(step, answers)
+}
+
 /** Index of the first step that can actually be rendered from `from` onwards, falling
  *  back to the closest one *before* it — the escape hatch for a branch that resolves
- *  nowhere renderable (cycle, or a target past the end of the flow). `-1` only for the
- *  degenerate flow made of nothing but "logic" steps. */
-function firstVisibleIndex(flow: Flow, from: number): number {
+ *  nowhere renderable (cycle, or a target past the end of the flow), or for a skipped
+ *  group with nothing after it. `-1` only for the degenerate flow made of nothing but
+ *  hidden steps. */
+function firstVisibleIndex(flow: Flow, from: number, answers: Record<string, unknown>): number {
   for (let i = Math.max(from, 0); i < flow.steps.length; i += 1) {
-    if (!isLogicStep(flow.steps[i]!)) return i
+    if (!isHidden(flow.steps[i]!, answers)) return i
   }
   for (let i = Math.min(from, flow.steps.length) - 1; i >= 0; i -= 1) {
-    if (!isLogicStep(flow.steps[i]!)) return i
+    if (!isHidden(flow.steps[i]!, answers)) return i
   }
   return -1
 }
@@ -58,39 +76,54 @@ function buildIndexById(flow: Flow): Map<string, number> {
   return new Map(flow.steps.map((s, i) => [s.id, i] as const))
 }
 
-/** Resolves the "branch" (role: "logic") step the state is currently on and returns the
- *  id of the step to jump to: the first matching rule's `goTo`, else `fallback`, else
- *  the natural next step in flow order. Pure — doesn't itself change state, see
- *  applyBranch.
+/** Resolves the step the state is currently on, when it's one FlowRunner must jump past
+ *  without ever rendering, to the id of the step to actually land on: for a "branch"
+ *  (role: "logic") step, the first matching rule's `goTo`, else `fallback`, else the
+ *  natural next step in flow order; for a skipped "group" (`when` evaluates false, see
+ *  group-step.ts), always just the natural next step, since a group has no goTo/fallback
+ *  to configure. Pure — doesn't itself change state, see applyBranch.
  *
- *  Chained branches (a branch whose target is another branch) are followed through to
- *  the first step that can actually be rendered, so the returned id is always a real,
- *  non-"logic" step: a caller can jump to it in one move, and a config whose branches
- *  loop back onto each other degrades to the nearest renderable step instead of
- *  spinning forever (`FlowRunner` resolves branches in an effect — a cycle there would
- *  be an infinite render loop). Called on a non-logic step, returns that step's own id. */
+ *  Chained hidden steps (a branch whose target is another branch, or a skipped group
+ *  immediately followed by another, in any mix) are followed through to the first step
+ *  that can actually be rendered, so the returned id is always a real, visible step: a
+ *  caller can jump to it in one move, and a config whose branches loop back onto each
+ *  other degrades to the nearest renderable step instead of spinning forever
+ *  (`FlowRunner` resolves this in an effect — a cycle there would be an infinite render
+ *  loop). Called on an already-visible step, returns that step's own id. */
 export function resolveBranch(flow: Flow, state: FlowState): string {
   const start = state.index
   const current = getCurrentStep(flow, state)
-  if (!isLogicStep(current)) return current.id
+  if (!isHidden(current, state.answers)) return current.id
 
   const indexById = buildIndexById(flow)
   const seen = new Set<number>()
   let pos = start
-  while (pos >= 0 && pos < flow.steps.length && isLogicStep(flow.steps[pos]!) && !seen.has(pos)) {
+  while (pos >= 0 && pos < flow.steps.length && isHidden(flow.steps[pos]!, state.answers) && !seen.has(pos)) {
     seen.add(pos)
-    pos = resolveBranchTargetIndex(flow, flow.steps[pos] as unknown as BranchStep, pos, state.answers, indexById)
+    const step = flow.steps[pos]!
+    pos = isLogicStep(step)
+      ? resolveBranchTargetIndex(flow, step as unknown as BranchStep, pos, state.answers, indexById)
+      : pos + 1
   }
   const landed = flow.steps[pos]
-  if (landed && !isLogicStep(landed)) return landed.id
+  if (landed && !isHidden(landed, state.answers)) return landed.id
 
-  const escape = firstVisibleIndex(flow, start + 1)
+  const escape = firstVisibleIndex(flow, start + 1, state.answers)
   return escape === -1 ? current.id : flow.steps[escape]!.id
 }
 
-/** Jumps to a branch's resolved target. Unlike next()/goToStep(), doesn't push the
- *  branch step onto history: it's never rendered, so there's nothing for Back to
- *  return to. */
+/** Whether the state's current step must never actually render: a "branch" (role:
+ *  "logic") step, or a "group" step whose `when` evaluates false. `FlowRunner` gates its
+ *  resolve-and-jump effect (`resolveBranch` + `applyBranch`) on this instead of the old
+ *  `stepRole === "logic"` check alone, so a skipped group is jumped past the same way a
+ *  branch always has been. */
+export function isCurrentStepSkipped(flow: Flow, state: FlowState): boolean {
+  return isHidden(getCurrentStep(flow, state), state.answers)
+}
+
+/** Jumps to a branch's (or a skipped group's) resolved target. Unlike next()/goToStep(),
+ *  doesn't push the source step onto history: it's never rendered, so there's nothing
+ *  for Back to return to. */
 export function applyBranch(flow: Flow, state: FlowState, targetStepId: string): FlowState {
   const index = flow.steps.findIndex((s) => s.id === targetStepId)
   if (index === -1) {
@@ -183,6 +216,16 @@ export function resolveFlowPath(flow: Flow, state: FlowState): ResolvedPath {
       if (unresolvable) return { stepIds, determinate: false }
 
       pos = resolveBranchTargetIndex(flow, branch, pos, state.answers, indexById)
+      continue
+    }
+
+    // A skipped group (`when` evaluates false) always falls through to the very next
+    // position — unlike a branch, it has no goTo/fallback of its own to resolve, and
+    // (unlike a branch dependency) its own `when` is evaluated with the answers on hand
+    // right now: it's not gated on "has the flow reached this position yet", since the
+    // group itself is what would be reached.
+    if (isGroupSkipped(current, state.answers)) {
+      pos += 1
       continue
     }
 

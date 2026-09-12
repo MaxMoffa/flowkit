@@ -1,5 +1,28 @@
 # @flowkit-io/core
 
+## 1.6.0 — 2026-09-12
+
+### Added
+
+- **`GroupStep.when`** — a skip-if-false condition on the "group" step, reusing the
+  same `Condition` type/evaluator as `branch`'s `rules[].when`. When set and false
+  (`evaluateCondition(when, answers)`), the whole group — itself and every child in
+  `steps` — is treated as absent everywhere the flow is traversed: not the current
+  step, not required, not counted in `getProgressInfo`, not in `buildReportRows`.
+  `false` always falls through to the next step in the parent `steps[]` array —
+  unlike `branch`, there's no separate target to configure. Unset (default) = the
+  group always runs, identical to every flow authored before this field existed.
+  `branchStepSchema`/`applyBranch`/`resolveBranch`/`branchRuleSchema` are unchanged —
+  this is an additive alternative, not a replacement.
+- `isGroupSkipped(step, answers)` (group-step.ts) — exported for `@flowkit-io/react`.
+- `isCurrentStepSkipped(flow, state)` (flow-path.ts) — whether the state's current
+  step must never render (a "branch"/logic step, or a skipped group); `FlowRunner`
+  uses it in place of the old `stepRole === "logic"` check.
+- A `group` nested inside another `group`'s `steps[]` (already structurally supported
+  by the schema) is now explicitly verified not to crash; a nested group's own `when`
+  correctly excludes it from its parent's `requiredChildren` gating in both `"all"`
+  and `"any"` mode, without letting a skipped child satisfy `"any"` on its own.
+
 ## 1.5.0 — 2026-09-08
 
 ### Added

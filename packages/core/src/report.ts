@@ -8,6 +8,7 @@ import { asAddressValue } from "./address-step"
 import { asBarcodeScanValue } from "./barcode-scan-step"
 import { formatMoney } from "./money"
 import { resolveContentText } from "./i18n"
+import { isGroupSkipped } from "./group-step"
 
 export function optionLabel(flow: Flow, step: Step, rawValue: string): string {
   if (
@@ -194,6 +195,11 @@ export interface ReportRow {
 export function buildReportRows(flow: Flow, answers: Answers, visitedStepIds?: Set<string>): ReportRow[] {
   const reviewable = flow.steps.filter((s) => {
     if (visitedStepIds && !visitedStepIds.has(s.id)) return false
+    // Defense in depth for a skipped group (`when` false): normally excluded already
+    // because it's never visited (never in `visitedStepIds`, see flow-runner.tsx), but a
+    // caller with no FlowState to hand (e.g. server-side renderAnswersReportHtml) omits
+    // `visitedStepIds` entirely — this still keeps a skipped group's empty "—" row out.
+    if (isGroupSkipped(s, answers)) return false
     const def = getStepTypeDefinition(s.type)
     const role = def?.role
     if (role === "intro" || role === "review" || role === "confirmation" || role === "logic") return false
