@@ -1,5 +1,19 @@
 # @flowkit-io/react
 
+## 1.9.0 — 2026-09-13
+
+### Added
+
+- **"subflow" step** (`@flowkit-io/react/steps/subflow`, also registered by the default
+  entry — `@flowkit-io/core` 1.8.0): `SubflowStepView` renders exactly one child at a
+  time, with its own compact internal progress bar/counter and next/prev buttons,
+  distinct from the outer flow's own header/footer chrome. Internal nav position lives
+  in `meta.nav` (round-tripped via `onMetaChange`, same channel `group` already uses for
+  its children's own meta) — the answer `value` stays a pure `{ [childId]: value }`
+  aggregate, identical shape to `group`. A nested `branch`/skipped `group` child is
+  jumped past exactly like the top-level flow would. Requires `@flowkit-io/core@^1.8.0`
+  (bumped).
+
 ## 1.8.0 — 2026-09-13
 
 ### Added

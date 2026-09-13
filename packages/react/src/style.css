@@ -603,6 +603,61 @@
   min-width: 0;
 }
 
+/* "subflow" step (v2.4x): one child at a time, own mini progress + prev/next — a
+   fully self-contained mini flow nested inside a single outer page, unlike `group`
+   above (every child on the same page). */
+.fk-subflow-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-sm);
+  margin-bottom: var(--fk-space-md);
+}
+
+.fk-subflow-progress .fk-progress-track {
+  flex: 1;
+}
+
+.fk-subflow-progress-count {
+  font-size: 12px;
+  color: var(--fk-text2);
+  white-space: nowrap;
+}
+
+.fk-subflow-child {
+  margin-bottom: var(--fk-space-lg);
+}
+
+.fk-subflow-nav {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--fk-space-sm);
+}
+
+.fk-subflow-nav-btn {
+  border-radius: var(--fk-radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 20px;
+  cursor: pointer;
+  border: none;
+}
+
+.fk-subflow-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fk-subflow-nav-btn-primary {
+  background: var(--fk-accent);
+  color: #fff;
+}
+
+.fk-subflow-nav-btn-secondary {
+  background: var(--fk-surface);
+  color: var(--fk-text);
+  border: 1px solid var(--fk-border);
+}
+
 /* Option list: multi-select checkboxes, radio */
 .fk-list {
   display: flex;

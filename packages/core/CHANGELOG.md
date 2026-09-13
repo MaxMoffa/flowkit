@@ -1,5 +1,45 @@
 # @flowkit-io/core
 
+## 1.8.0 — 2026-09-13
+
+### Added
+
+- **"subflow" step** — a step that behaves as a fully self-contained mini flow: its
+  children render one at a time with their own internal next/prev navigation and
+  progress, unlike `group` (which fuses every child onto a single page). Children can
+  be arbitrary step types, including nested `group`/`branch`/section-tagged steps, or
+  another `subflow` (recursive). Answers still aggregate under the subflow's own id as
+  `Record<childId, value>` — the same nested pattern `group` uses — resolved
+  recursively by `parseFlow`/`resolveStepKeys`.
+- **Inline config only, by design.** `subflowStepSchema.steps` is a plain, already-
+  embedded step list — there's no notion of referencing an external flow by id.
+  Resolving "which flow version to embed" is left entirely to the consumer (e.g.
+  Flowlab), which is expected to inline the resolved `steps` before calling
+  `parseFlow`.
+- `SubflowNavState` (`{ index, history }`) — the subflow's own internal navigation
+  position. Deliberately not part of the answer `value` (which stays a pure aggregate):
+  a consumer's own persistence layer is expected to keep it in the step's `meta`, the
+  same channel `group` already uses for its children's own meta.
+- `resolveSubflowIndex`, `getSubflowPath`, `getSubflowProgress`, `isSubflowDone`,
+  `subflowNext`, `subflowPrev`, `initialSubflowNav` (subflow-step.ts) — the subflow's
+  own internal navigation/progress, built on the exact same branch/skip-resolution
+  engine the top-level flow uses (see the `flow-path.ts` refactor below), so a subflow
+  behaves identically to a real flow for jumping through a nested `branch`/skipped
+  `group` and for branch-aware progress — nothing duplicated, nothing re-invented.
+- `groupStepSchema`'s `requiredChildren` shape is now also exported as
+  `requiredChildrenSchema`, reused as-is by `subflowStepSchema` (same "all"/"any"/
+  "none" gating).
+- **`flow-path.ts` internals generalized** to operate on any `Step[]` list, not just
+  `flow.steps`: `isHidden`, `firstVisibleIndex`, `buildIndexById` are now exported and
+  list-generic; new `resolveVisibleIndex`/`walkStepPath` are the list-generic engines
+  `resolveBranch`/`resolveFlowPath` (top-level flow) and the new subflow helpers above
+  both delegate to. Purely a refactor — `resolveBranch(flow, state)`/
+  `resolveFlowPath(flow, state)` keep their exact previous signature and behavior
+  (verified by the full existing `resolve-flow-path.test.ts` suite, unchanged).
+- Not part of `StepTypeMap`/`BuiltinStepType` — same reason `group` isn't (typing
+  `steps: Step[]` there would close a cycle with `Step` itself).
+- No `CURRENT_FLOW_SCHEMA_VERSION` bump: the whole feature is a new, opt-in step type.
+
 ## 1.7.0 — 2026-09-13
 
 ### Added

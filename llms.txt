@@ -68,6 +68,7 @@ Lista autorevole a runtime: `listRegisteredStepTypes()`.
 | `confirmation` | Schermata finale | `stats[]`, `emailShare`, `resultActions`, `primaryCta`, `secondaryCta`, `showHomeButton`, `showRestartButton` |
 | `oauth` | Flow OAuth+PKCE | `providers[]`, `allowAnonymous` |
 | `group` | Più step in un'unica schermata; `when` (Condition) rende l'intero gruppo saltabile — se falso, gruppo e figli sono trattati come assenti (non correnti, non richiesti, non nel progress, non in review/export), si prosegue con lo step successivo | `steps[]`, `layout`, `requiredChildren`, `when` |
+| `subflow` | Flow dentro un flow: NON come `group` (fuso in 1 pagina) — i figli restano pagine separate con propria navigazione/progress interna (mini next/prev/counter), risolte una alla volta. Config inline-only (nessun riferimento a un flow esterno per id — se serve, risolvetelo voi prima di passare la config). Answers aggregate sotto l'id dello step (stesso pattern nested di `group`), risolte ricorsivamente. Figli arbitrari incl. `group`/`branch`/altri `subflow` | `steps[]`, `requiredChildren` |
 | `signature` | Firma su canvas | `penColor`, `allowFullscreen` |
 | `payment-stripe` | Raccoglie un metodo di pagamento Stripe; l'addebito è differito al submit finale (vedi `getPendingPayment` in `onSubmit`). Per il 3DS/SCA su carte EU: `onSubmit` lancia `PaymentRequiresActionError(clientSecret)` e FlowKit esegue la sfida nel browser e ri-chiama `onSubmit` una volta | `publishableKey`, `amount`, `currency` |
 

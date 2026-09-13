@@ -31,6 +31,7 @@ const stepEntries = [
   "branch",
   "info",
   "long-content",
+  "subflow",
 ]
 
 export default defineConfig({
