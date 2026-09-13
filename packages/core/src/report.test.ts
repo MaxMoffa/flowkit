@@ -141,6 +141,28 @@ describe("buildReportRows", () => {
     expect(rows.find((r) => r.title === "Extra")!.value).toBe("📷×2")
   })
 
+  it("aggregates a subflow's children into a single comma-joined row, same as group", () => {
+    const withSubflow: Flow = parseFlow({
+      id: "sf-demo",
+      title: "SF Demo",
+      steps: [
+        { id: "welcome", type: "intro" },
+        {
+          id: "profile",
+          type: "subflow",
+          title: "Profilo",
+          steps: [
+            { id: "first", type: "text" },
+            { id: "last", type: "text" },
+          ],
+        },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const rows = buildReportRows(withSubflow, { profilo: { first: "Mario", last: "Rossi" } })
+    expect(rows.find((r) => r.title === "Profilo")!.value).toBe("Mario, Rossi")
+  })
+
   it("lists the file names for a file step answer", () => {
     const fileFlow = parseFlow({
       id: "f",

@@ -33,6 +33,8 @@ const presetLoaders: Record<string, () => Promise<Flow>> = {
   "step-image-demo": () => import("./step-image-demo").then((m) => m.stepImageDemoFlow),
   "flow-overlay-demo": () => import("./flow-overlay-demo").then((m) => m.flowOverlayDemoFlow),
   "other-option-demo": () => import("./other-option-demo").then((m) => m.otherOptionDemoFlow),
+  "section-demo": () => import("./section-demo").then((m) => m.sectionDemoFlow),
+  "subflow-demo": () => import("./subflow-demo").then((m) => m.subflowDemoFlow),
 }
 
 export const presetKeys: string[] = Object.keys(presetLoaders)
@@ -81,4 +83,6 @@ export const presetLabels: Record<string, string> = {
   "step-image-demo": "Campo immagine (demo)",
   "flow-overlay-demo": "Flow in overlay: drawer/dialog (demo)",
   "other-option-demo": "Opzione «Altro» in radio/multi-select (demo)",
+  "section-demo": "Sezioni visive: banner + progress segmentata (demo)",
+  "subflow-demo": "Flow dentro un flow: subflow (demo)",
 }

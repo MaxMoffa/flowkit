@@ -106,7 +106,9 @@ export function formatAnswer(flow: Flow, step: Step, value: unknown): string {
   if (step.type === "signature") return "✍️ Firma"
   if (step.type === "payment-stripe") return formatPaymentMethod(value)
   if (Array.isArray(value)) return value.map((v) => optionLabel(flow, step, String(v))).join(", ")
-  if ((step.type as string) === "group") {
+  // "subflow" carries the exact same nested { [childId]: value } aggregate shape as
+  // "group" (see subflow-step.ts) — same join-the-children-into-one-line rendering.
+  if ((step.type as string) === "group" || (step.type as string) === "subflow") {
     const children = (step as unknown as { steps: Step[] }).steps
     const answers = value as Record<string, unknown>
     return (
@@ -136,6 +138,7 @@ const DEFAULT_TYPE_EMOJI: Record<string, string> = {
   faces: "🙂",
   notes: "📝",
   group: "📝",
+  subflow: "🧭",
   media: "📷",
   file: "📎",
   photo: "📸",
@@ -164,7 +167,7 @@ function collectImages(step: Step, value: unknown): UploadedItem[] {
   if (step.type === "signature" && typeof value === "string" && value) {
     return [{ id: step.id, name: "signature", mimeType: "image/svg+xml", size: 0, dataUrl: value, kind: "image" }]
   }
-  if ((step.type as string) === "group") {
+  if ((step.type as string) === "group" || (step.type as string) === "subflow") {
     const children = (step as unknown as { steps: Step[] }).steps
     const answers = (value as Record<string, unknown>) ?? {}
     return children.flatMap((child) => collectImages(child, answers[answerKey(child)]))
