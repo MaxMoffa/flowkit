@@ -9,7 +9,7 @@ export function sanitizeStepIcon(markup: string): string {
 }
 
 const SIZE_CLASS: Record<
-  "badge" | "review" | "inline" | "product-thumb" | "product-hero" | "catalog-filter",
+  "badge" | "review" | "inline" | "product-thumb" | "product-hero" | "catalog-filter" | "section-banner",
   string
 > = {
   badge: "fk-intro-badge",
@@ -22,11 +22,13 @@ const SIZE_CLASS: Record<
   // Small chip icon for the catalog step's optional filter row (v2.43) — see
   // `catalog.tsx`, smaller than "inline" so it fits a compact pill.
   "catalog-filter": "fk-catalog-filter-icon",
+  // Section banner icon (v2.4x "section" primitive) — see FlowRunner.
+  "section-banner": "fk-section-banner-icon",
 }
 
 export interface StepImageProps {
   image: StepImageValue | undefined
-  size: "badge" | "review" | "inline" | "product-thumb" | "product-hero" | "catalog-filter"
+  size: "badge" | "review" | "inline" | "product-thumb" | "product-hero" | "catalog-filter" | "section-banner"
 }
 
 export function StepImage({ image, size }: StepImageProps) {

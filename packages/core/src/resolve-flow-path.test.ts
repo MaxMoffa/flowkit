@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest"
 import {
   applyBranch,
   createFlowState,
+  getCurrentSectionId,
   getCurrentStep,
   getProgressInfo,
+  getSectionSegments,
   goToStep,
   next,
   parseFlow,
@@ -387,5 +389,59 @@ describe("resolveFlowPath: goToStep (review jump) still resolves", () => {
     const path = resolveFlowPath(flow, state)
     expect(path.determinate).toBe(true)
     expect(path.stepIds).toEqual(["a", "b"])
+  })
+})
+
+describe("getSectionSegments / getCurrentSectionId", () => {
+  function makeFlow(): Flow {
+    return parseFlow({
+      id: "sections",
+      title: "Sections",
+      sections: [
+        { id: "sec-a", title: "A" },
+        { id: "sec-b", title: "B" },
+      ],
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "a1", type: "text", required: false, sectionId: "sec-a" },
+        { id: "a2", type: "text", required: false, sectionId: "sec-a" },
+        { id: "plain", type: "text", required: false },
+        { id: "b1", type: "text", required: false, sectionId: "sec-b" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+  }
+
+  it("groups consecutive same-section path steps into one segment each", () => {
+    const flow = makeFlow()
+    const state = createFlowState()
+    const segments = getSectionSegments(flow, state)
+    expect(segments).toEqual([
+      { sectionId: "sec-a", startIndex: 0, length: 2 },
+      { sectionId: null, startIndex: 2, length: 1 },
+      { sectionId: "sec-b", startIndex: 3, length: 1 },
+    ])
+  })
+
+  it("getCurrentSectionId reflects the current step's own sectionId", () => {
+    const flow = makeFlow()
+    let state = createFlowState()
+    expect(getCurrentSectionId(flow, state)).toBe(null)
+    state = next(flow, state)
+    expect(getCurrentSectionId(flow, state)).toBe("sec-a")
+  })
+
+  it("a flow with no sections resolves to one null segment spanning the whole path", () => {
+    const flow = parseFlow({
+      id: "no-sections",
+      title: "No sections",
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "a", type: "text", required: false },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const segments = getSectionSegments(flow, createFlowState())
+    expect(segments).toEqual([{ sectionId: null, startIndex: 0, length: 1 }])
   })
 })

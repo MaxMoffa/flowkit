@@ -259,6 +259,50 @@ export function getProgressInfo(flow: Flow, state: FlowState): ProgressInfo {
   return { currentIndex, total, pct }
 }
 
+export interface ProgressSegment {
+  /** `null` groups a run of consecutive path steps that don't join any section — a
+   *  segmented progress-bar renderer draws it as a plain (untinted) part of the bar. */
+  sectionId: string | null
+  /** Index within the resolved path (`ResolvedPath.stepIds`) this segment starts at. */
+  startIndex: number
+  length: number
+}
+
+/**
+ * Branch-aware, per-`sectionId` grouping (v2.4x "section" primitive) of the resolved
+ * path (see `resolveFlowPath`) into consecutive runs of the same `sectionId` — the same
+ * path `getProgressInfo` derives `total`/`currentIndex` from, just split wherever the
+ * section changes. `null` while the path isn't fully determined yet (mirrors
+ * `ResolvedPath.determinate`).
+ *
+ * A flow with no `sections` (or none of whose steps set `sectionId`) always resolves to
+ * exactly one segment (`sectionId: null`) spanning the whole path — the same shape a
+ * segmented progress-bar renderer gets for a flow that *does* use sections, so it never
+ * needs to special-case "no sections" as a separate code path.
+ */
+export function getSectionSegments(flow: Flow, state: FlowState): ProgressSegment[] | null {
+  const path = resolveFlowPath(flow, state)
+  if (!path.determinate) return null
+  const indexById = buildIndexById(flow)
+  const segments: ProgressSegment[] = []
+  path.stepIds.forEach((id, i) => {
+    const step = flow.steps[indexById.get(id)!]!
+    const sectionId = (step as { sectionId?: string }).sectionId ?? null
+    const last = segments[segments.length - 1]
+    if (last && last.sectionId === sectionId) last.length += 1
+    else segments.push({ sectionId, startIndex: i, length: 1 })
+  })
+  return segments
+}
+
+/** The `sectionId` of the flow's current step (`baseStepFields.sectionId`), or `null`
+ *  when unset. FlowRunner's section banner is keyed off this, not the step id, so it
+ *  persists across consecutive steps in the same section instead of remounting. */
+export function getCurrentSectionId(flow: Flow, state: FlowState): string | null {
+  const step = getCurrentStep(flow, state)
+  return (step as { sectionId?: string }).sectionId ?? null
+}
+
 /** How a `CurrentStepInfo` event came about — see `getCurrentStepInfo`. `"branch-change"`
  *  is not a movement between steps (the step id can stay the same): it fires when an
  *  edited answer invalidates the downstream path the user had already walked, see

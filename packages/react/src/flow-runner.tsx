@@ -36,10 +36,12 @@ import {
   flowHasPayment,
   formatMessage,
   formatMoney,
+  getCurrentSectionId,
   getCurrentStep,
   getCurrentStepInfo,
   getPendingPayment,
   getProgressInfo,
+  getSectionSegments,
   getStepMeta,
   getStepTypeDefinition,
   goToStep,
@@ -68,6 +70,7 @@ import { useFlowRunnerLayout } from "./use-flow-runner-layout"
 import { haptic } from "./haptics"
 import type { FlowSubmitHandler, ShowErrorPayload } from "./types"
 import { taxBehaviorNote } from "./steps/shared/tax-note"
+import { StepImage } from "./steps/shared/step-image"
 
 /** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
 type StepWithIntroFields = { cta?: string; ctaFootnote?: ContentText }
@@ -298,6 +301,26 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   const backDisabled = !canGoBack(flow, state)
   const progressInfo = useMemo(() => getProgressInfo(flow, state), [flow, state])
   const pct = progressInfo.pct !== null ? Math.round(progressInfo.pct * 100) : null
+  /** Section (v2.4x "section" primitive) the current step belongs to, if any — drives
+   *  the persistent header banner below. Looked up by id rather than kept as the step's
+   *  own field so the banner reference is stable (same object) across steps sharing a
+   *  section. */
+  const currentSection = useMemo(() => {
+    const sectionId = getCurrentSectionId(flow, state)
+    return sectionId ? (flow.sections?.find((s) => s.id === sectionId) ?? null) : null
+  }, [flow, state])
+  /** Per-section runs of the resolved path, colors resolved against `flow.sections` —
+   *  feeds the "bar" progress variant's segmented fill. `null` while indeterminate,
+   *  same as `progressInfo.total`. */
+  const progressSegments = useMemo(() => {
+    const segments = getSectionSegments(flow, state)
+    if (!segments) return undefined
+    return segments.map((segment) => ({
+      color: segment.sectionId ? flow.sections?.find((s) => s.id === segment.sectionId)?.color : undefined,
+      length: segment.length,
+      filledLength: Math.min(Math.max(progressInfo.currentIndex + 1 - segment.startIndex, 0), segment.length),
+    }))
+  }, [flow, state, progressInfo.currentIndex])
   const stepRole = getStepTypeDefinition(step.type)?.role
   const isIntro = stepRole === "intro"
   const isConfirmation = stepRole === "confirmation"
@@ -335,6 +358,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     currentIndex: progressInfo.currentIndex,
     total: progressInfo.total,
     steps: progressSteps,
+    segments: progressSegments,
   }
   const visitedStepIds = useMemo(() => new Set([...state.history, step.id]), [state.history, step.id])
 
@@ -799,6 +823,15 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
                 </span>
               )}
             </div>
+            {currentSection && (
+              <div
+                className="fk-section-banner"
+                style={{ "--fk-section-color": currentSection.color } as CSSProperties}
+              >
+                <StepImage image={currentSection.icon} size="section-banner" />
+                <span className="fk-section-banner-title">{resolveContentText(flow, currentSection.title)}</span>
+              </div>
+            )}
           </div>
         )}
         <div className="fk-body" style={{ order: 2 }}>

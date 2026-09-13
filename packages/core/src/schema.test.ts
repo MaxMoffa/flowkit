@@ -227,6 +227,55 @@ describe("base step fields", () => {
   })
 })
 
+describe("section primitive (sectionId + flow.sections)", () => {
+  it("accepts a step's sectionId that matches a flow.sections entry", () => {
+    const flow = parseFlow({
+      ...baseFlow,
+      sections: [{ id: "sec-1", title: "Sezione 1", color: "#2783DE" }],
+      steps: [
+        { id: "welcome", type: "intro" },
+        { id: "name", type: "text", sectionId: "sec-1" },
+        { id: "end", type: "confirmation" },
+      ],
+    })
+    const step = flow.steps[1] as { sectionId?: string }
+    expect(step.sectionId).toBe("sec-1")
+    expect(flow.sections).toEqual([{ id: "sec-1", title: "Sezione 1", color: "#2783DE" }])
+  })
+
+  it("rejects a sectionId with no matching flow.sections entry", () => {
+    expect(() =>
+      parseFlow({
+        ...baseFlow,
+        steps: [
+          { id: "welcome", type: "intro" },
+          { id: "name", type: "text", sectionId: "missing" },
+          { id: "end", type: "confirmation" },
+        ],
+      }),
+    ).toThrow(/sectionId "missing".*not.*present in flow.sections/)
+  })
+
+  it("rejects a sectionId on a nested group child with no matching section", () => {
+    expect(() =>
+      parseFlow({
+        ...baseFlow,
+        sections: [{ id: "sec-1", title: "Sezione 1" }],
+        steps: [
+          { id: "welcome", type: "intro" },
+          { id: "grp", type: "group", steps: [{ id: "child", type: "text", sectionId: "missing" }] },
+          { id: "end", type: "confirmation" },
+        ],
+      }),
+    ).toThrow(/sectionId "missing"/)
+  })
+
+  it("a flow with no sections at all keeps working unchanged", () => {
+    const flow = parseFlow(baseFlow)
+    expect(flow.sections).toBeUndefined()
+  })
+})
+
 describe("stepImageSchema", () => {
   it.each([
     { kind: "emoji", value: "🎉" },

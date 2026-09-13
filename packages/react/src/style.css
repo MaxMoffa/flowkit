@@ -239,6 +239,54 @@
   }
 }
 
+/* Segmented bar variant (v2.4x "section" primitive) — one track per section run
+   instead of a single fill, each tinted with its own section color. */
+.fk-progress-segmented {
+  display: flex;
+  gap: 3px;
+  background: none;
+  overflow: visible;
+}
+
+.fk-progress-segment {
+  height: 6px;
+  background: var(--fk-surface);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.fk-progress-segment-fill {
+  height: 100%;
+  background: var(--fk-segment-color, var(--fk-accent));
+  border-radius: 99px;
+  transition: width 320ms ease;
+}
+
+/* Persistent section banner (v2.4x) — sits inside the header, above the scrollable
+   step body, so it stays visible across every step that shares its sectionId. */
+.fk-section-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--fk-space-sm);
+  margin-top: var(--fk-space-sm);
+  padding: 10px var(--fk-space-md);
+  background: var(--fk-soft);
+  border-left: 3px solid var(--fk-section-color, var(--fk-accent));
+  border-radius: var(--fk-radius-sm);
+}
+
+.fk-section-banner-icon {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--fk-section-color, var(--fk-accent));
+}
+
+.fk-section-banner-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fk-text);
+}
+
 .fk-progress-dots {
   flex: 1;
   display: flex;

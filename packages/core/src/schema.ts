@@ -172,6 +172,25 @@ export const errorScreenConfigSchema = z.object({
 
 export type ErrorScreenConfig = z.infer<typeof errorScreenConfigSchema>
 
+/**
+ * One visual "section" (v2.4x) a flow can group steps under — banner/color/icon shared
+ * across the steps that join it via `baseStepFields.sectionId`, and the unit
+ * `@flowkit-io/react`'s progress bar segments by. NOT the same primitive as the `group`
+ * step: a group fuses N steps into a single page; a section is pure metadata over N
+ * steps that stay fully separate pages, each with its own navigation/validation
+ * unchanged. `title`/`icon` reuse `ContentText`/`StepImage` — no new i18n/image shape.
+ */
+export const sectionSchema = z.object({
+  id: z.string().min(1),
+  title: contentTextSchema,
+  /** CSS color (hex/rgb/named) for the section's banner/progress-bar segment. Optional
+   *  — unset renders with the theme's accent color, same as no section at all. */
+  color: z.string().optional(),
+  icon: stepImageSchema.optional(),
+})
+
+export type Section = z.infer<typeof sectionSchema>
+
 export const baseStepFields = {
   id: z.string().min(1),
   /** `ContentText` (v2.4x): literal string (unchanged default) or `{ key, fallback? }`
@@ -213,6 +232,15 @@ export const baseStepFields = {
    *  flow.texts["validation.<rule>"], then the shipped default — see
    *  i18n.ts's resolveValidationMessage. */
   validationMessages: z.record(z.string(), z.string()).optional(),
+  /**
+   * Optional membership in one of `flow.sections` (v2.4x "section" primitive) — this
+   * step's own navigation/validation are entirely unaffected; it only drives the shared
+   * banner/color and progress-bar segmentation `@flowkit-io/react` renders while
+   * consecutive steps share the same id. Must name an id present in `flow.sections`,
+   * checked once by `parseFlow` (see `assertSectionIdsValid`), not per-field. Unset =
+   * no section, identical to every flow authored before this field existed.
+   */
+  sectionId: z.string().optional(),
 }
 
 /**
@@ -383,6 +411,14 @@ export interface Flow {
    * behavior).
    */
   errorScreen?: ErrorScreenConfig
+  /**
+   * Visual sections (v2.4x) a step can join via its own `sectionId` — pure metadata for
+   * @flowkit-io/react's persistent section banner and per-section progress-bar
+   * segmentation. Never affects navigation/validation, which stay entirely per-step
+   * (contrast with the `group` step, which fuses steps into one page). Unset/empty = no
+   * flow uses sections, identical to every flow authored before this field existed.
+   */
+  sections?: Section[]
 }
 
 const flowShapeSchema = z.object({
@@ -395,6 +431,7 @@ const flowShapeSchema = z.object({
   texts: z.record(z.string(), z.string()).optional(),
   content: z.record(z.string(), z.string()).optional(),
   errorScreen: errorScreenConfigSchema.optional(),
+  sections: z.array(sectionSchema).optional(),
   /** See flow-versioning.ts. `parseFlow` always migrates up to
    *  `CURRENT_FLOW_SCHEMA_VERSION` before this schema ever validates the input, so
    *  this default only matters for a direct `flowShapeSchema.parse()` call bypassing
@@ -462,6 +499,29 @@ function assertFlowStepOrder(steps: Step[]): void {
   }
 }
 
+/** Throws if any step (including a `group`'s nested children — `sectionId` is a
+ *  `baseStepFields` entry, so it's just as legal there) names a `sectionId` absent from
+ *  `flow.sections` — a typo would otherwise silently render no banner/segment instead of
+ *  failing fast, the same "fail at parseFlow, not at render" bar the flow's other
+ *  cross-references (branch `goTo`, review `stepId`) don't quite hold today but a new
+ *  primitive doesn't need to repeat. */
+function assertSectionIdsValid(steps: Step[], sections: Section[] | undefined): void {
+  const ids = new Set((sections ?? []).map((s) => s.id))
+  function visit(list: Step[]): void {
+    for (const raw of list) {
+      const step = raw as unknown as { id: string; sectionId?: string; steps?: Step[] }
+      if (step.sectionId !== undefined && !ids.has(step.sectionId)) {
+        throw new Error(
+          `Invalid flow: step id="${step.id}" has sectionId "${step.sectionId}", which is not ` +
+            `present in flow.sections.`,
+        )
+      }
+      if (Array.isArray(step.steps)) visit(step.steps)
+    }
+  }
+  visit(steps)
+}
+
 /** Lowercase, non `[a-z0-9]` runs collapsed to a single `_`, trimmed — same shape the
  *  `key` field's own regex requires, so a slugified title/id always validates. */
 export function slugify(input: string): string {
@@ -527,6 +587,7 @@ export function parseFlow(input: unknown): Flow {
   const shape = flowShapeSchema.parse(migrateFlowInput(input))
   const steps = shape.steps.map(parseStep)
   assertFlowStepOrder(steps)
+  assertSectionIdsValid(steps, shape.sections)
   resolveStepKeys(steps, shape.content)
   return { ...shape, steps }
 }

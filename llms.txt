@@ -78,6 +78,30 @@ scaricare maplibre-gl, leaflet o Stripe.js a chi non li usa.
 
 Dettagli completi per ogni tipo: `docs/steps-reference.md`.
 
+### Sezioni visive (`flow.sections`) — NON è il `group` step
+
+`group` fonde N step in un'unica pagina. Una "section" è l'opposto: raggruppa N step
+che restano pagine separate (navigazione/validazione invariate) sotto un banner/colore
+condiviso e una progress bar segmentata. Metadato puro, nessun nuovo step type.
+
+```ts
+const flow = parseFlow({
+  id: "onboarding",
+  title: "Onboarding",
+  sections: [{ id: "personal", title: "Dati personali", color: "#2783DE", icon: { kind: "emoji", value: "👤" } }],
+  steps: [
+    { id: "welcome", type: "intro" },
+    { id: "name", type: "text", sectionId: "personal" },
+    { id: "email", type: "text", sectionId: "personal" },
+    { id: "end", type: "confirmation" },
+  ],
+})
+```
+
+`sectionId` su uno step deve corrispondere a un `id` in `sections[]` — controllato una
+volta da `parseFlow` (typo = errore subito, non un banner mancante in silenzio). Non
+richiede bump di `CURRENT_FLOW_SCHEMA_VERSION` (campo opzionale/additivo).
+
 ## Step personalizzati (registry runtime)
 
 Nessuna union chiusa: registra un tipo nuovo senza toccare `schema.ts`:

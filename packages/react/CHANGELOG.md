@@ -1,5 +1,21 @@
 # @flowkit-io/react
 
+## 1.8.0 — 2026-09-13
+
+### Added
+
+- **"section" primitive** (`@flowkit-io/core` 1.7.0): `FlowRunner` shows a persistent
+  banner (`.fk-section-banner` — icon/title, color-tinted left border) inside the
+  header whenever the current step's `sectionId` resolves to a `flow.sections` entry.
+  Keyed by section, not by step, so it doesn't remount/re-animate across consecutive
+  steps that share it.
+- `ProgressComponentProps.segments` — per-section runs of the resolved path, colors
+  already resolved against `flow.sections` (core's `getSectionSegments`). The built-in
+  "bar" variant (`BarProgress`) renders one tinted sub-track per segment instead of a
+  single fill whenever there's more than one; a flow with no sections still resolves to
+  one segment, so its look is unchanged. "dots"/"steps" ignore the new prop for now.
+  Requires `@flowkit-io/core@^1.7.0` (bumped).
+
 ## 1.7.0 — 2026-09-12
 
 ### Added
