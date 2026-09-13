@@ -20,39 +20,38 @@ function isGroupSkipped(step: Step, answers: Record<string, unknown>): boolean {
 }
 
 /** A step that navigation must act as though doesn't exist: a "logic" (branch) step,
- *  always, or a "group" step whose `when` currently evaluates false. Generic over any
- *  step list (not just a top-level `flow.steps`) — also the "hidden" check a `subflow`
- *  step's own internal navigation uses for its children (see subflow-step.ts). */
-export function isHidden(step: Step, answers: Answers): boolean {
+ *  always, or a "group" step whose `when` currently evaluates false. */
+function isHidden(step: Step, answers: Record<string, unknown>): boolean {
   return isLogicStep(step) || isGroupSkipped(step, answers)
 }
 
 /** Index of the first step that can actually be rendered from `from` onwards, falling
  *  back to the closest one *before* it — the escape hatch for a branch that resolves
- *  nowhere renderable (cycle, or a target past the end of the list), or for a skipped
- *  group with nothing after it. `-1` only for the degenerate case of nothing but hidden
- *  steps. Generic over any step list, same reason as `isHidden`. */
-export function firstVisibleIndex(steps: Step[], from: number, answers: Answers): number {
-  for (let i = Math.max(from, 0); i < steps.length; i += 1) {
-    if (!isHidden(steps[i]!, answers)) return i
+ *  nowhere renderable (cycle, or a target past the end of the flow), or for a skipped
+ *  group with nothing after it. `-1` only for the degenerate flow made of nothing but
+ *  hidden steps. */
+function firstVisibleIndex(flow: Flow, from: number, answers: Record<string, unknown>): number {
+  for (let i = Math.max(from, 0); i < flow.steps.length; i += 1) {
+    if (!isHidden(flow.steps[i]!, answers)) return i
   }
-  for (let i = Math.min(from, steps.length) - 1; i >= 0; i -= 1) {
-    if (!isHidden(steps[i]!, answers)) return i
+  for (let i = Math.min(from, flow.steps.length) - 1; i >= 0; i -= 1) {
+    if (!isHidden(flow.steps[i]!, answers)) return i
   }
   return -1
 }
 
 /** Resolves one "branch" step to the *index* of its target: the first matching rule's
- *  `goTo`, else `fallback`, else the natural next step in list order (which may be one
+ *  `goTo`, else `fallback`, else the natural next step in flow order (which may be one
  *  past the last step — callers handle that). Shared by `resolveBranch` (runtime jump)
- *  and `walkStepPath` (path/progress), so the two can never disagree on where a branch
- *  leads. Generic over any step list via `indexById` — same reason as `isHidden`.
+ *  and `resolveFlowPath` (path/progress), so the two can never disagree on where a
+ *  branch leads.
  *
  *  A `goTo`/`fallback` naming a step that doesn't exist (a config typo — nothing
  *  validates these ids at parse time) is skipped rather than honored: the flow degrades
  *  to the next candidate and ultimately to the natural next step, instead of dead-ending
  *  on a target that can't be reached. */
 function resolveBranchTargetIndex(
+  flow: Flow,
   branch: BranchStep,
   pos: number,
   answers: Answers,
@@ -73,37 +72,8 @@ function resolveBranchTargetIndex(
   return pos + 1
 }
 
-/** Generic over any step list — same reason as `isHidden`. */
-export function buildIndexById(steps: Step[]): Map<string, number> {
-  return new Map(steps.map((s, i) => [s.id, i] as const))
-}
-
-/** Generic, list-level version of `resolveBranch`'s own jump-through-hidden-steps loop:
- *  resolves `fromIndex` past any hidden step (a "branch"/logic step, or a skipped
- *  "group"), following branch targets and falling back to the closest visible step when
- *  nothing renderable is reachable. Used both by `resolveBranch` (top-level flow) and by
- *  a `subflow` step's own internal navigation (subflow-step.ts) — a subflow behaves as a
- *  fully self-contained mini flow, including how it jumps through invisible children.
- *  Chained hidden steps are followed through exactly as `resolveBranch` documents;
- *  returns `fromIndex` unchanged when it's already visible, and a valid, visible index
- *  otherwise (never -1: falls back to `fromIndex` itself for the degenerate case of
- *  nothing but hidden steps, same escape hatch `resolveBranch` has always had). */
-export function resolveVisibleIndex(steps: Step[], fromIndex: number, answers: Answers): number {
-  if (fromIndex < 0 || fromIndex >= steps.length) return fromIndex
-  if (!isHidden(steps[fromIndex]!, answers)) return fromIndex
-
-  const indexById = buildIndexById(steps)
-  const seen = new Set<number>()
-  let pos = fromIndex
-  while (pos >= 0 && pos < steps.length && isHidden(steps[pos]!, answers) && !seen.has(pos)) {
-    seen.add(pos)
-    const step = steps[pos]!
-    pos = isLogicStep(step) ? resolveBranchTargetIndex(step as unknown as BranchStep, pos, answers, indexById) : pos + 1
-  }
-  if (pos >= 0 && pos < steps.length && !isHidden(steps[pos]!, answers)) return pos
-
-  const escape = firstVisibleIndex(steps, fromIndex + 1, answers)
-  return escape === -1 ? fromIndex : escape
+function buildIndexById(flow: Flow): Map<string, number> {
+  return new Map(flow.steps.map((s, i) => [s.id, i] as const))
 }
 
 /** Resolves the step the state is currently on, when it's one FlowRunner must jump past
@@ -121,8 +91,25 @@ export function resolveVisibleIndex(steps: Step[], fromIndex: number, answers: A
  *  (`FlowRunner` resolves this in an effect — a cycle there would be an infinite render
  *  loop). Called on an already-visible step, returns that step's own id. */
 export function resolveBranch(flow: Flow, state: FlowState): string {
-  const resolvedIndex = resolveVisibleIndex(flow.steps, state.index, state.answers)
-  return flow.steps[resolvedIndex]!.id
+  const start = state.index
+  const current = getCurrentStep(flow, state)
+  if (!isHidden(current, state.answers)) return current.id
+
+  const indexById = buildIndexById(flow)
+  const seen = new Set<number>()
+  let pos = start
+  while (pos >= 0 && pos < flow.steps.length && isHidden(flow.steps[pos]!, state.answers) && !seen.has(pos)) {
+    seen.add(pos)
+    const step = flow.steps[pos]!
+    pos = isLogicStep(step)
+      ? resolveBranchTargetIndex(flow, step as unknown as BranchStep, pos, state.answers, indexById)
+      : pos + 1
+  }
+  const landed = flow.steps[pos]
+  if (landed && !isHidden(landed, state.answers)) return landed.id
+
+  const escape = firstVisibleIndex(flow, start + 1, state.answers)
+  return escape === -1 ? current.id : flow.steps[escape]!.id
 }
 
 /** Whether the state's current step must never actually render: a "branch" (role:
@@ -193,16 +180,10 @@ export interface ResolvedPath {
  * (`resolveBranch`) doesn't wait for it either — the path must mirror what navigation
  * actually does, not be more conservative than it.
  */
-/**
- * Generic, list-level version of `resolveFlowPath`'s own walk: resolves every "branch"
- * step from `fromIndex` onward with `evaluateCondition`, the same way `resolveVisibleIndex`
- * does for a single jump. Used both by `resolveFlowPath` (top-level flow) and by a
- * `subflow` step's own internal progress (subflow-step.ts).
- */
-export function walkStepPath(steps: Step[], answers: Answers, fromIndex: number): ResolvedPath {
+export function resolveFlowPath(flow: Flow, state: FlowState): ResolvedPath {
   const indexByKey = new Map<string, number>()
-  const indexById = buildIndexById(steps)
-  steps.forEach((s, i) => {
+  const indexById = buildIndexById(flow)
+  flow.steps.forEach((s, i) => {
     indexByKey.set(answerKey(s), i)
     // A group's children answer into the same flat key namespace as top-level steps
     // (resolveStepKeys enforces flow-wide uniqueness across both), but are only ever
@@ -216,11 +197,11 @@ export function walkStepPath(steps: Step[], answers: Answers, fromIndex: number)
   const seenPositions = new Set<number>()
   let pos = 0
 
-  while (pos < steps.length) {
+  while (pos < flow.steps.length) {
     if (seenPositions.has(pos)) return { stepIds, determinate: false }
     seenPositions.add(pos)
 
-    const current = steps[pos]!
+    const current = flow.steps[pos]!
     const def = getStepTypeDefinition(current.type)
 
     if (def?.role === "logic") {
@@ -230,11 +211,11 @@ export function walkStepPath(steps: Step[], answers: Answers, fromIndex: number)
 
       const unresolvable = Array.from(dependencyKeys).some((key) => {
         const depIndex = indexByKey.get(key)
-        return depIndex !== undefined && depIndex > fromIndex && !(key in answers)
+        return depIndex !== undefined && depIndex > state.index && !(key in state.answers)
       })
       if (unresolvable) return { stepIds, determinate: false }
 
-      pos = resolveBranchTargetIndex(branch, pos, answers, indexById)
+      pos = resolveBranchTargetIndex(flow, branch, pos, state.answers, indexById)
       continue
     }
 
@@ -243,7 +224,7 @@ export function walkStepPath(steps: Step[], answers: Answers, fromIndex: number)
     // (unlike a branch dependency) its own `when` is evaluated with the answers on hand
     // right now: it's not gated on "has the flow reached this position yet", since the
     // group itself is what would be reached.
-    if (isGroupSkipped(current, answers)) {
+    if (isGroupSkipped(current, state.answers)) {
       pos += 1
       continue
     }
@@ -254,10 +235,6 @@ export function walkStepPath(steps: Step[], answers: Answers, fromIndex: number)
   }
 
   return { stepIds, determinate: true }
-}
-
-export function resolveFlowPath(flow: Flow, state: FlowState): ResolvedPath {
-  return walkStepPath(flow.steps, state.answers, state.index)
 }
 
 export interface ProgressInfo {
@@ -279,6 +256,26 @@ export function getProgressInfo(flow: Flow, state: FlowState): ProgressInfo {
   const currentIndex = foundIndex === -1 ? 0 : foundIndex
   const total = path.determinate ? path.stepIds.length : null
   const pct = total !== null ? (currentIndex + 1) / total : null
+  return { currentIndex, total, pct }
+}
+
+/** Local, span-scoped counterpart of `getProgressInfo` for a "subflow" (v2.4x): while
+ *  the current step is one of the steps a `subflow` step's own children were flattened
+ *  into (see schema.ts's `flattenSubflows`/`Flow.subflowSpans`), reports position/total
+ *  within just that span instead of the whole flow — the "different progress" a
+ *  subflow shows while you're inside it, reverting to `getProgressInfo`'s overall count
+ *  once you're past it. `null` when the current step doesn't belong to any span
+ *  (ordinary top-level flow position, or a flow that never used "subflow" at all). */
+export function getLocalProgressInfo(flow: Flow, state: FlowState): ProgressInfo | null {
+  const step = getCurrentStep(flow, state)
+  const span = flow.subflowSpans?.find((s) => s.stepIds.includes(step.id))
+  if (!span) return null
+  const path = resolveFlowPath(flow, state)
+  const localIds = path.stepIds.filter((id) => span.stepIds.includes(id))
+  const foundIndex = localIds.indexOf(step.id)
+  const currentIndex = foundIndex === -1 ? 0 : foundIndex
+  const total = path.determinate ? localIds.length : null
+  const pct = total !== null && total > 0 ? (currentIndex + 1) / total : null
   return { currentIndex, total, pct }
 }
 
@@ -306,7 +303,7 @@ export interface ProgressSegment {
 export function getSectionSegments(flow: Flow, state: FlowState): ProgressSegment[] | null {
   const path = resolveFlowPath(flow, state)
   if (!path.determinate) return null
-  const indexById = buildIndexById(flow.steps)
+  const indexById = buildIndexById(flow)
   const segments: ProgressSegment[] = []
   path.stepIds.forEach((id, i) => {
     const step = flow.steps[indexById.get(id)!]!

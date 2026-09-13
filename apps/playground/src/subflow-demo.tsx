@@ -1,11 +1,12 @@
 import { parseFlow, type Flow } from "@flowkit-io/core"
 
 /**
- * Demo for the "subflow" step (v2.4x): a step that behaves as a fully self-contained
- * mini flow — its children render one at a time, with their own internal next/prev
- * navigation and progress. Unlike `group` (which fuses every child onto one page), only
- * the current child is on screen; a nested "branch" child (invisible routing hop) is
- * jumped past exactly like a real top-level flow would.
+ * Demo for the "subflow" step (v2.4x): entering it feels exactly like being in a
+ * regular flow — same header/back/footer chrome, one step at a time — except the
+ * progress counter goes local (e.g. "1/5" of just this span) instead of the whole
+ * flow's. Its children's answers merge flat into the same single `answers` object as
+ * every other step (not nested under the subflow's own id, unlike `group`); the nested
+ * "branch" child is jumped past exactly like a real top-level flow's branch would.
  */
 export const subflowDemoFlow: Flow = parseFlow({
   id: "subflow-demo",

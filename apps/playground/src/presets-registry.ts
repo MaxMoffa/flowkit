@@ -83,6 +83,6 @@ export const presetLabels: Record<string, string> = {
   "step-image-demo": "Campo immagine (demo)",
   "flow-overlay-demo": "Flow in overlay: drawer/dialog (demo)",
   "other-option-demo": "Opzione «Altro» in radio/multi-select (demo)",
-  "section-demo": "Sezioni visive: banner + progress segmentata (demo)",
-  "subflow-demo": "Flow dentro un flow: subflow (demo)",
+  "section-demo": "Sezioni visive (demo)",
+  "subflow-demo": "Flow dentro un flow (demo)",
 }

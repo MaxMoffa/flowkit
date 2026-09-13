@@ -419,6 +419,33 @@ export interface Flow {
    * flow uses sections, identical to every flow authored before this field existed.
    */
   sections?: Section[]
+  /**
+   * Parser-computed (v2.4x "subflow" step) — never authored, never present on the raw
+   * input `parseFlow` accepts. A "subflow" step is flattened away by `parseFlow`
+   * (`flattenSubflows`): its own children are spliced directly into `steps` in its
+   * place, so its answers merge flat into the same single `answers` object every other
+   * top-level step uses (no nested aggregate, unlike `group`). This is the one
+   * breadcrumb that survives the flatten, letting `getLocalProgressInfo` (flow-path.ts)
+   * show a local, span-scoped progress count while the visitor is inside one, and
+   * FlowRunner treat "entering a subflow" as a normal step-by-step transition using its
+   * own header/back/footer — nothing to do with any custom rendering. Absent on a flow
+   * that never used "subflow".
+   */
+  subflowSpans?: SubflowSpan[]
+}
+
+/** One entry of `Flow.subflowSpans` — see there. */
+export interface SubflowSpan {
+  /** The originating "subflow" step's own id (never appears in `Flow.steps` itself
+   *  after flattening — this is the only place it survives). */
+  id: string
+  /** The subflow step's own `title`, if authored — for a consumer that wants to show
+   *  "you're inside X" while positioned within the span; @flowkit-io/react doesn't
+   *  render one itself. */
+  title?: ContentText
+  /** Flattened step ids that came from this subflow's own `steps`, in order — a nested
+   *  subflow's ids are NOT included here, only in their own separate span entry. */
+  stepIds: string[]
 }
 
 const flowShapeSchema = z.object({
@@ -583,11 +610,39 @@ export function resolveStepKeys(steps: Step[], content?: Record<string, string>)
   visit(steps)
 }
 
+/**
+ * Recursively replaces every "subflow" step with its own (already-recursively-parsed)
+ * children spliced directly in its place — a subflow-in-subflow flattens all the way
+ * down first, so its grandchildren end up in the OUTERMOST span, not a nested one.
+ * Recurses into any other step's own nested `.steps` too (e.g. `group`), so a subflow
+ * nested inside one still flattens — though its children then just become normal fused-
+ * onto-one-page group children (a subflow's own "separate progress" span only means
+ * anything for steps reachable as an actual, distinct flow position). `spans` collects
+ * one `SubflowSpan` per flattened subflow, in the order encountered, for `Flow.subflowSpans`.
+ */
+function flattenSubflows(steps: Step[], spans: SubflowSpan[]): Step[] {
+  return steps.flatMap((step) => {
+    if ((step.type as string) === "subflow") {
+      const subflow = step as unknown as { id: string; title?: ContentText; steps: Step[] }
+      const flatChildren = flattenSubflows(subflow.steps, spans)
+      spans.push({ id: subflow.id, title: subflow.title, stepIds: flatChildren.map((s) => s.id) })
+      return flatChildren
+    }
+    const nested = (step as unknown as { steps?: Step[] }).steps
+    if (Array.isArray(nested)) {
+      return [{ ...step, steps: flattenSubflows(nested, spans) } as unknown as Step]
+    }
+    return [step]
+  })
+}
+
 export function parseFlow(input: unknown): Flow {
   const shape = flowShapeSchema.parse(migrateFlowInput(input))
-  const steps = shape.steps.map(parseStep)
+  const parsedSteps = shape.steps.map(parseStep)
+  const subflowSpans: SubflowSpan[] = []
+  const steps = flattenSubflows(parsedSteps, subflowSpans)
   assertFlowStepOrder(steps)
   assertSectionIdsValid(steps, shape.sections)
   resolveStepKeys(steps, shape.content)
-  return { ...shape, steps }
+  return { ...shape, steps, ...(subflowSpans.length > 0 ? { subflowSpans } : {}) }
 }

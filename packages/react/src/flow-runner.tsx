@@ -39,6 +39,7 @@ import {
   getCurrentSectionId,
   getCurrentStep,
   getCurrentStepInfo,
+  getLocalProgressInfo,
   getPendingPayment,
   getProgressInfo,
   getSectionSegments,
@@ -300,7 +301,14 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
    *  land on a high index with a short history, and vice versa. */
   const backDisabled = !canGoBack(flow, state)
   const progressInfo = useMemo(() => getProgressInfo(flow, state), [flow, state])
-  const pct = progressInfo.pct !== null ? Math.round(progressInfo.pct * 100) : null
+  /** "subflow" (v2.4x): while the current step came from a subflow's flattened
+   *  children (see schema.ts's `flattenSubflows`/`Flow.subflowSpans`), the visitor sees
+   *  a local, span-scoped progress count instead of the whole flow's — the "different
+   *  progress" a subflow shows while you're inside it, same header/back/footer chrome
+   *  otherwise. `null` outside any span, falling back to the overall `progressInfo`. */
+  const localProgressInfo = useMemo(() => getLocalProgressInfo(flow, state), [flow, state])
+  const displayProgress = localProgressInfo ?? progressInfo
+  const pct = displayProgress.pct !== null ? Math.round(displayProgress.pct * 100) : null
   /** Section (v2.4x "section" primitive) the current step belongs to, if any — drives
    *  the persistent header banner below. Looked up by id rather than kept as the step's
    *  own field so the banner reference is stable (same object) across steps sharing a
@@ -355,8 +363,8 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   }, [flow, state, progressInfo.total])
   const progressProps = {
     pct,
-    currentIndex: progressInfo.currentIndex,
-    total: progressInfo.total,
+    currentIndex: displayProgress.currentIndex,
+    total: displayProgress.total,
     steps: progressSteps,
     segments: progressSegments,
   }
@@ -817,9 +825,9 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
               {layout.ProgressComponent && layout.progressPosition === "header" && (
                 <layout.ProgressComponent {...progressProps} />
               )}
-              {progressInfo.total !== null && (
+              {displayProgress.total !== null && (
                 <span className="fk-stepno">
-                  {progressInfo.currentIndex + 1}/{progressInfo.total}
+                  {displayProgress.currentIndex + 1}/{displayProgress.total}
                 </span>
               )}
             </div>

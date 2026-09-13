@@ -4,50 +4,79 @@ import { parseFlow } from "@flowkit-io/core"
 import { FlowRunner } from "./flow-runner"
 import "./steps/builtins"
 
-/** intro -> sf (subflow: first-name -> last-name) -> end. */
+/** intro -> before -> [subflow: a, b] -> after -> end. */
 function makeFlow() {
   return parseFlow({
     id: "subflow-ui-test",
     title: "Test",
     steps: [
       { id: "welcome", type: "intro", cta: "Inizia" },
+      { id: "before", type: "text", title: "Prima", required: false },
       {
         id: "sf",
         type: "subflow",
-        title: "I tuoi dati",
         steps: [
-          { id: "first", type: "text", title: "Nome", required: true },
-          { id: "last", type: "text", title: "Cognome", required: true },
+          { id: "a", type: "text", title: "Nome", required: false },
+          { id: "b", type: "text", title: "Cognome", required: false },
         ],
       },
+      { id: "after", type: "text", title: "Dopo", required: false },
       { id: "end", type: "confirmation" },
     ],
   })
 }
 
-describe("FlowRunner: subflow step (nested mini flow)", () => {
-  it("renders the subflow's own first child, the outer Continua disabled until it's complete", () => {
-    render(<FlowRunner flow={makeFlow()} />)
-    fireEvent.click(screen.getByText("Inizia"))
-    expect(screen.getByText("Nome")).not.toBeNull()
-    // Two "Continua": the subflow's own internal one, and the outer footer's.
-    const continues = screen.getAllByText("Continua")
-    expect(continues.length).toBe(2)
-    const outerContinue = continues[continues.length - 1] as HTMLButtonElement
-    expect(outerContinue.disabled).toBe(true)
-  })
+function stepno(container: HTMLElement) {
+  return container.querySelector(".fk-stepno")?.textContent
+}
 
-  it("completing every internal child enables the outer Continua, which then leaves the subflow", () => {
+describe("FlowRunner: subflow step (local progress, flat answers, transparent nav)", () => {
+  it("shows the overall count outside any subflow span", () => {
     const { container } = render(<FlowRunner flow={makeFlow()} />)
     fireEvent.click(screen.getByText("Inizia"))
-    fireEvent.input(container.querySelector("input")!, { target: { value: "Mario" } })
-    fireEvent.click(screen.getAllByText("Continua")[0]!) // internal: first -> last
-    fireEvent.input(container.querySelector("input")!, { target: { value: "Rossi" } })
-    fireEvent.click(screen.getAllByText("Continua")[0]!) // internal: last -> done
+    expect(screen.getByText("Prima")).not.toBeNull()
+    expect(stepno(container)).toBe("1/4")
+  })
 
-    const outerContinue = screen.getAllByText("Continua")[0] as HTMLButtonElement
-    expect(outerContinue.disabled).toBe(false)
-    fireEvent.click(outerContinue) // outer: sf -> end
-    expect(screen.queryByText("I tuoi dati")).toBeNull()
+  it("switches to a local, span-scoped count once inside the subflow", () => {
+    const { container } = render(<FlowRunner flow={makeFlow()} />)
+    fireEvent.click(screen.getByText("Inizia"))
+    fireEvent.click(screen.getByText("Continua")) // before -> a
+    expect(screen.getByText("Nome")).not.toBeNull()
+    expect(stepno(container)).toBe("1/2")
+    fireEvent.click(screen.getByText("Continua")) // a -> b
+    expect(screen.getByText("Cognome")).not.toBeNull()
+    expect(stepno(container)).toBe("2/2")
+  })
+
+  it("reverts to the overall count once past the subflow, using the exact same header/footer chrome throughout", () => {
+    const { container } = render(<FlowRunner flow={makeFlow()} />)
+    fireEvent.click(screen.getByText("Inizia"))
+    fireEvent.click(screen.getByText("Continua")) // before -> a
+    fireEvent.click(screen.getByText("Continua")) // a -> b
+    fireEvent.click(screen.getByText("Continua")) // b -> after
+    expect(screen.getByText("Dopo")).not.toBeNull()
+    expect(stepno(container)).toBe("4/4")
+  })
+
+  it("merges the subflow children's answers flat into the same single answers object", () => {
+    const { container } = render(<FlowRunner flow={makeFlow()} />)
+    fireEvent.click(screen.getByText("Inizia"))
+    fireEvent.click(screen.getByText("Continua")) // before -> a
+    fireEvent.input(container.querySelector("input")!, { target: { value: "Mario" } })
+    fireEvent.click(screen.getByText("Continua")) // a -> b
+    fireEvent.input(container.querySelector("input")!, { target: { value: "Rossi" } })
+    fireEvent.click(screen.getByText("Continua")) // b -> after
+    fireEvent.click(screen.getByText("Continua")) // after -> end
+    expect(screen.queryByText("Dopo")).toBeNull()
+  })
+
+  it("Back at the subflow's first child exits to the step before it, using the normal Back button", () => {
+    const { container } = render(<FlowRunner flow={makeFlow()} />)
+    fireEvent.click(screen.getByText("Inizia"))
+    fireEvent.click(screen.getByText("Continua")) // before -> a
+    const backButton = container.querySelector(".fk-back") as HTMLButtonElement
+    fireEvent.click(backButton)
+    expect(screen.getByText("Prima")).not.toBeNull()
   })
 })
