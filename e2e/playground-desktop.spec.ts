@@ -140,12 +140,17 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
     }
     expect(Math.abs(backAfter.width - continueAfter.width)).toBeLessThanOrEqual(2)
 
-    // Cart sits at the footer's own far left edge (its padding box) with a small
-    // margin off it (not flush against it), well to the left of Indietro — not
-    // merely "before" it within the centered reading column.
+    // Cart sits at the footer's own far left edge (its padding box), vertically
+    // centered so its own top/bottom margins match each other, and left reuses that
+    // exact same gap — all three margins (top, bottom, left) equal, not flush, well
+    // to the left of Indietro.
     const cartLeftGap = cartBox.x - footerBox.x
+    const cartTopGap = cartBox.y - footerBox.y
+    const cartBottomGap = footerBox.y + footerBox.height - (cartBox.y + cartBox.height)
     expect(cartLeftGap).toBeGreaterThan(0)
-    expect(cartLeftGap).toBeLessThan(20)
+    expect(cartLeftGap).toBeLessThan(30)
+    expect(Math.abs(cartLeftGap - cartTopGap)).toBeLessThanOrEqual(2)
+    expect(Math.abs(cartLeftGap - cartBottomGap)).toBeLessThanOrEqual(2)
     expect(cartBox.x).toBeLessThan(backAfter.x - 100)
   })
 

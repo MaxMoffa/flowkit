@@ -928,15 +928,14 @@
      `.fk-footer-primary-row`/`.fk-footer-row`'s sizing: Indietro and Continua go
      back to being exactly the two equal grid columns they'd be with no cart at all,
      same size and same centered position, cart present or not. Vertically centered
-     against the whole footer (`.fk-footer`'s own box, see its `position: relative`
-     below), which lines up with the row for every real layout today (no footer
-     progress bar or error message alongside a cart in any shipped flow) — a
-     theoretical combination of both wouldn't center perfectly against the row itself,
-     accepted rather than a dedicated per-row positioning wrapper for a case nothing
-     actually exercises. */
+     (`top: 50%` + translate), so its top/bottom margins inside the footer are equal
+     to each other by construction — `left` reuses that same computed gap (half of
+     `.fk-footer`'s own padding-top + padding-bottom, the two that sandwich the
+     trigger's fixed height) instead of an unrelated fixed token, so all three
+     margins — top, bottom, left — end up equal too, not just top and bottom. */
   .fk-footer-cart {
     position: absolute;
-    left: var(--fk-space-sm);
+    left: calc((var(--fk-space-md) + var(--fk-space-xl) + env(safe-area-inset-bottom, 0px)) / 2);
     top: 50%;
     transform: translateY(-50%);
   }

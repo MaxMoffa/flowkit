@@ -51,8 +51,10 @@
   despite identical `flex: 1`. Grid's `1fr` tracks don't have that quirk. The cart
   trigger itself is `position: absolute` against `.fk-footer` (the full-bleed bar,
   `position: relative` now) instead of living inside the row at all — sits at the
-  footer's own far left edge (a small `--fk-space-sm` margin off it, not flush),
-  completely out of flow, so it can't affect Indietro/Continua's box no matter what.
+  footer's own far left edge, vertically centered (equal top/bottom margins by
+  construction) with `left` reusing that exact same computed gap so all three
+  margins end up equal, not flush and not an arbitrary fixed inset — completely out
+  of flow, so it can't affect Indietro/Continua's box no matter what.
 - Fixed a regression the grid switch above introduced: with Indietro hidden (`intro`,
   or `flow.disableBack`), Continua alone used to auto-place into just the first `1fr`
   column (stuck at half width on the left) instead of filling the row the way a lone
