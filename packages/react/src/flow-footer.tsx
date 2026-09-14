@@ -4,6 +4,7 @@ import type { ProgressComponentProps } from "./progress-registry"
 import { FlowMarkdown } from "./markdown"
 import { SheetDialog } from "./steps/shared/sheet-dialog"
 import { CartSummaryList } from "./steps/shared/cart-summary-list"
+import { BackArrowIcon } from "./steps/shared/back-arrow-icon"
 
 interface FooterShellProps {
   order: number
@@ -133,7 +134,8 @@ export function StepFooter({
       <div className="fk-footer-row">
         {showBack && (
           <button type="button" className="fk-footer-back" onClick={onBack} disabled={backDisabled}>
-            ← {backLabel}
+            <BackArrowIcon />
+            {backLabel}
           </button>
         )}
         {cart ? (

@@ -69,6 +69,7 @@ import { useFlowRunnerLayout } from "./use-flow-runner-layout"
 import { haptic } from "./haptics"
 import type { FlowSubmitHandler, ShowErrorPayload } from "./types"
 import { taxBehaviorNote } from "./steps/shared/tax-note"
+import { BackArrowIcon } from "./steps/shared/back-arrow-icon"
 
 /** Step with "intro" role: optional standard fields, always present on built-in intro/confirmation, optional on custom steps with the same role. */
 type StepWithIntroFields = { cta?: string; ctaFootnote?: ContentText }
@@ -783,20 +784,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
                   disabled={backDisabled}
                   aria-label={resolveText(flow, "backAriaLabel")}
                 >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M19 12H5" />
-                    <path d="M12 19l-7-7 7-7" />
-                  </svg>
+                  <BackArrowIcon />
                 </button>
               )}
               {layout.ProgressComponent && layout.progressPosition === "header" && (

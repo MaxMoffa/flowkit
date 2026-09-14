@@ -856,6 +856,7 @@
   display: none;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   min-height: var(--fk-control-height);
   padding: 0 var(--fk-space-md);
   border: var(--fk-border-width) solid var(--fk-border);

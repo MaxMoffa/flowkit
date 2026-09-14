@@ -21,9 +21,11 @@
   still-unresolved conditional branch instead of going indeterminate — `getProgressInfo`
   moved to `@flowkit-io/core` 1.8.0's `resolveFlowPathOptimistic`, unchanged on
   `FlowRunner`'s side (it already just reads `total`/`pct` off the result).
-- The header back button's icon is now an inline SVG chevron-arrow instead of a `←`
-  text glyph — crisp at any size/zoom, not dependent on the platform's font for the
-  glyph.
+- **Back arrow icon unified everywhere.** The header's `.fk-back` (mobile) and the
+  footer's `.fk-footer-back` (desktop) used to show two different icons — an inline
+  SVG chevron on the former, a `←` text glyph on the latter. Both now render the same
+  shared `BackArrowIcon` (`steps/shared/back-arrow-icon.tsx`), a filled arrow (no
+  `←` glyph anywhere, crisp at any size/zoom regardless of the platform's font).
 - **Footer no longer prints a plain running-total line at all** (`.fk-footer-order-
   total`, the label/amount/tax-note row above Indietro/Continua) — the cart trigger's
   panel (`CartSummaryList`) already shows the same itemized total, so the footer line
