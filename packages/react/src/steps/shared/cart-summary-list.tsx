@@ -17,19 +17,24 @@ function LineIcon() {
 
 /**
  * Simple recap of the cart's order lines for the footer's cart panel (opened from
- * `catalog`/`product` steps mid-flow) — icon/label/quantity/line amount + total.
+ * `catalog`/`product` steps mid-flow) — thumb/label/quantity/line amount + total.
  * Deliberately dumber than `review.tsx`'s `OrderSummaryTable`: no tax section, since
  * tax is only computed once the flow's `address` step has been answered and this
  * panel can be opened well before that. Kept as its own component (rather than reusing
  * `OrderSummaryTable` with the tax bits hidden) to avoid any risk of regressing the
  * already-tested review step.
  *
+ * Layout is design-review variant "#2 — Con miniatura" (see DECISIONS.md): flat rows
+ * (no per-row card background/divider), thumb + stacked name/unit-price on the left,
+ * a quantity pill in the middle, line amount on the right; total is a plain row under
+ * a top border, not a full-bleed banner.
+ *
  * `"item"` lines (real catalog/product rows, real quantity — see `OrderSummaryLine`
  * in catalog-step.ts) get +/-/remove controls so the cart doubles as an editor, not
- * just a recap. `"fee"` lines (priced options on select-cards/multi-select/radio/chips,
- * or the payment step's flat surcharge) stay plain text — no quantity concept to edit
- * from here. One row per line (label, controls, amount, all inline) — picked from a
- * design review comparing several treatments, see DECISIONS.md.
+ * just a recap, and show the per-unit price under the name. `"fee"` lines (priced
+ * options on select-cards/multi-select/radio/chips, or the payment step's flat
+ * surcharge) stay plain — no quantity concept, no per-unit price (their amount IS
+ * the unit price).
  */
 export function CartSummaryList({
   summary,
@@ -69,14 +74,21 @@ export function CartSummaryList({
               <span className="fk-cart-summary-thumb" aria-hidden="true">
                 {line.image ? <StepImage image={line.image} size="cart-thumb" /> : <LineIcon />}
               </span>
-              <span className="fk-cart-summary-line-label">
-                <FlowMarkdown text={line.label} variant="inline" />
+              <span className="fk-cart-summary-main">
+                <span className="fk-cart-summary-name">
+                  <FlowMarkdown text={line.label} variant="inline" />
+                </span>
+                {line.kind === "item" && (
+                  <span className="fk-cart-summary-unit">
+                    {formatMoney(line.unitAmount, summary.currency, locale)} / cad.
+                  </span>
+                )}
               </span>
               {line.kind === "item" && (
-                <span className="fk-cart-summary-stepper">
+                <span className="fk-cart-summary-qty-pill">
                   <button
                     type="button"
-                    className="fk-cart-summary-step"
+                    className="fk-cart-summary-qty-btn"
                     aria-label={line.quantity <= 1 ? removeLabel : decreaseLabel}
                     onClick={() => onLineQuantityChange(line.stepId, line.value, line.quantity - 1)}
                   >
@@ -87,7 +99,7 @@ export function CartSummaryList({
                   </span>
                   <button
                     type="button"
-                    className="fk-cart-summary-step"
+                    className="fk-cart-summary-qty-btn"
                     aria-label={increaseLabel}
                     disabled={atCap}
                     onClick={() => onLineQuantityChange(line.stepId, line.value, line.quantity + 1)}
@@ -96,7 +108,7 @@ export function CartSummaryList({
                   </button>
                 </span>
               )}
-              <span className="fk-cart-summary-line-amount">
+              <span className="fk-cart-summary-price">
                 {formatMoney(line.amount, summary.currency, locale)}
               </span>
             </li>
@@ -104,7 +116,7 @@ export function CartSummaryList({
         })}
       </ul>
       <div className="fk-cart-summary-total">
-        <span>
+        <span className="fk-cart-summary-total-label">
           {totalLabel}
           {taxNote && <span className="fk-cart-summary-total-tax-note">{taxNote}</span>}
         </span>

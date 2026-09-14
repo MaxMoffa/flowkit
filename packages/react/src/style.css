@@ -2609,7 +2609,7 @@
   background: var(--fk-canvas);
   color: var(--fk-text);
   border-radius: var(--fk-radius-lg) var(--fk-radius-lg) 0 0;
-  padding: var(--fk-space-lg) var(--fk-space-md) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
+  padding: var(--fk-space-lg) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
   max-height: 85vh;
   overflow-y: auto;
   animation: fk-cart-sheet-up 0.22s ease-out;
@@ -2678,23 +2678,12 @@
     max-width: 440px;
     width: 100%;
     border-radius: var(--fk-radius-lg);
-    padding: var(--fk-space-lg) var(--fk-space-md) var(--fk-space-xl);
+    padding: var(--fk-space-xl);
     animation: fk-cart-sheet-in 0.18s ease-out;
   }
 
   .fk-cart-sheet-grabber {
     display: none;
-  }
-
-  /* `.fk-cart-sheet` is rounded on every corner at this width (unlike the mobile
-     bottom-sheet, square on the bottom) — the full-bleed total banner's own bottom
-     corners follow suit instead of staying square. Horizontal padding here matches
-     `.fk-cart-sheet`'s own `--fk-space-md` (same value as the base/mobile rule) —
-     it used to stay at the old `--fk-space-xl`, out of sync with the total banner's
-     bleed margin (calibrated to `--fk-space-md`), leaving a stray side gap on the
-     banner at every width from 768px up. */
-  .fk-cart-summary-total {
-    border-radius: 0 0 var(--fk-radius-lg) var(--fk-radius-lg);
   }
 }
 
@@ -2753,12 +2742,12 @@
   }
 }
 
-/* Footer cart panel: itemized recap (label/qty/unit/amount + total), no tax section —
-   see cart-summary-list.tsx for why this is a separate, simpler component than the
-   review step's own `.fk-order-summary`. Each line is its own card (soft-filled,
-   rounded) instead of a divider-separated list row — picked over a plain list from
-   a design review (see DECISIONS.md, "carrello: variante ibrida card + totale
-   banner"), reads as a set of small product cards rather than a table. */
+/* Footer cart panel: itemized recap (thumb/name+unit/qty/amount + total), no tax
+   section — see cart-summary-list.tsx for why this is a separate, simpler component
+   than the review step's own `.fk-order-summary`. Flat rows (no per-row card
+   background/border), spaced only by `gap` — design-review variant "#2 — Con
+   miniatura" (see DECISIONS.md), picked over the card/banner hybrid tried earlier
+   in this same session. */
 .fk-cart-summary-lines {
   list-style: none;
   margin: 0;
@@ -2771,11 +2760,8 @@
 .fk-cart-summary-line {
   display: flex;
   align-items: center;
-  gap: var(--fk-space-sm);
-  padding: var(--fk-space-sm);
-  background: var(--fk-soft);
-  border-radius: var(--fk-radius-md);
-  font-size: 14px;
+  gap: 10px;
+  font-size: 13px;
 }
 
 /* Per-line thumb: the real `item.image` (`StepImage` size="cart-thumb") when the
@@ -2815,98 +2801,103 @@
   height: 16px;
 }
 
-.fk-cart-summary-line-label {
+/* Name on top, per-unit price underneath (`"item"` lines only — a `"fee"` line's
+   amount already IS its unit price, a second line would just repeat it). */
+.fk-cart-summary-main {
   display: flex;
   flex: 1;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
-.fk-cart-summary-line-amount {
+.fk-cart-summary-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.fk-cart-summary-unit {
+  font-size: 11px;
+  color: var(--fk-text2);
+}
+
+.fk-cart-summary-price {
   flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
-/* Item-line quantity stepper, inline in the same row as the label and amount (one
-   compact row per card) — own namespace, doesn't reuse `.fk-catalog-step` (different
-   context/host). No separate remove button: decreasing past 1 removes the line
-   (`aria-label` swaps to `removeLabel` at qty 1) — a dedicated 🗑 button read as one
-   control too many on an already-compact row. */
-.fk-cart-summary-stepper {
+/* Item-line quantity stepper — own namespace, doesn't reuse `.fk-catalog-step`
+   (different context/host). No separate remove button: decreasing past 1 removes
+   the line (`aria-label` swaps to `removeLabel` at qty 1) — a dedicated 🗑 button
+   read as one control too many on an already-compact row. */
+.fk-cart-summary-qty-pill {
   display: flex;
   flex: none;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   border-radius: 999px;
-  padding: 2px;
+  padding: 2px 6px;
   background: var(--fk-soft);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
-.fk-cart-summary-step {
+.fk-cart-summary-qty-btn {
   font: inherit;
-  font-size: 14px;
+  font-size: 10px;
   line-height: 1;
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--fk-text);
+  color: var(--fk-text2);
   background: var(--fk-canvas);
   border: var(--fk-border-width) solid var(--fk-border);
   border-radius: 999px;
   cursor: pointer;
 }
 
-.fk-cart-summary-step:focus-visible {
+.fk-cart-summary-qty-btn:focus-visible {
   outline: 2px solid var(--fk-accent);
   outline-offset: 1px;
 }
 
-.fk-cart-summary-step:disabled {
+.fk-cart-summary-qty-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
 
-.fk-cart-summary-step:hover:not(:disabled) {
+.fk-cart-summary-qty-btn:hover:not(:disabled) {
   border-color: var(--fk-accent);
 }
 
 .fk-cart-summary-qty-value {
-  min-width: 18px;
+  min-width: 10px;
   text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 
-/* Full-bleed banner, not an inset rounded box: bleeds through `.fk-cart-sheet`'s own
-   padding (--fk-space-xl on every side that matters here, mobile and desktop alike)
-   out to the sheet's real edges, anchored at the very bottom — stays visually
-   anchored/legible even once the line list above scrolls, accent-tinted instead of
-   a border-top. Square bottom corners by default: the mobile bottom-sheet's own
-   bottom is square (`.fk-cart-sheet`'s border-radius only rounds the top), so a
-   rounded banner there would poke past it. Desktop's popover *is* rounded on every
-   corner (see its own `.fk-cart-sheet` override) — matched below. */
+/* Plain row under a top border, not a banner — the total sits inside the sheet's
+   own padding like every other row, no full-bleed/accent treatment. */
 .fk-cart-summary-total {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--fk-space-md);
-  margin: var(--fk-space-sm) calc(var(--fk-space-md) * -1)
-    calc((var(--fk-space-xl) + env(safe-area-inset-bottom, 0px)) * -1);
-  padding: var(--fk-space-md) var(--fk-space-md);
-  background: var(--fk-accent-soft);
-  font-size: 14px;
+  margin-top: var(--fk-space-xs);
+  padding-top: var(--fk-space-sm);
+  border-top: 1px solid var(--fk-border);
+  font-size: 12px;
   color: var(--fk-text2);
 }
 
 .fk-cart-summary-total-amount {
   font-size: 16px;
   font-weight: 800;
-  color: var(--fk-accent);
   font-variant-numeric: tabular-nums;
 }
 

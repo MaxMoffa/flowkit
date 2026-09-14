@@ -79,36 +79,19 @@
   same way `paymentDueAmount` already is) instead of staying an icon-only square —
   mobile/tablet keep the exact same fixed 52px square as before, just with the new
   icon.
-- **Cart panel line items are cards, the total is a banner.** `.fk-cart-summary-line`
-  (each order line in the cart panel) is now its own soft-filled, rounded card
-  instead of a plain divider-separated list row; `.fk-cart-summary-total` is an
-  accent-tinted banner (amount in the accent color) instead of a bordered row —
-  stays legible/anchored even once the line list above it scrolls. Picked from a
-  design review comparing several treatments.
-- **Cart panel line items are one compact row now**, not two — label, quantity
-  controls and amount all inline, instead of the amount/label row followed by a
-  separate stepper/remove row underneath.
-- **Cart panel line items match the design-review artifact more closely**: a
-  generic per-line icon (`OrderSummaryLine` carries no real product image, so this
-  is a placeholder, not a photo), the "2×" quantity prefix and unit-price subtitle
-  dropped (redundant with the quantity already shown in the stepper), the stepper
-  restyled as a true pill (soft-filled, fully rounded, small circular +/- buttons)
-  instead of a bordered box with flat buttons, and the total banner switched from
-  an inset rounded box to a full-bleed one (flush with the panel's real edges,
-  square bottom corners on the mobile bottom-sheet, rounded to match on desktop's
-  fully-rounded popover/dialog).
-- **Cart panel line icons are real now, not a placeholder.** `OrderSummaryLine`
-  (core) gained an optional `image` field, populated from the catalog/product
-  item's own `image` — the cart's thumb (`StepImage`, new `"cart-thumb"` size)
-  shows the exact same emoji/icon/photo the catalog list itself shows, falling
-  back to the generic package placeholder only for `"fee"` lines or items with no
-  `image` set. No separate 🗑 remove button anymore either — decreasing the
-  stepper's "−" below 1 already removed the line; the same button's `aria-label`
-  now swaps from "decrease" to "remove" at quantity 1 instead of a second control
-  next to it. The panel's own outer horizontal padding (`.fk-cart-sheet`) is
-  tighter (was `--fk-space-xl`, now `--fk-space-md`, every breakpoint including
-  the >=768px dialog/popover); the total banner's own horizontal padding follows
-  it (full-bleed to match), vertical padding unchanged.
+- **Cart panel line items redesigned** (several intermediate treatments tried and
+  discarded in the same design review — card-per-row, full-bleed accent banner
+  total — before settling here): flat rows (no per-row card background), a thumb
+  on the left (`StepImage`, new `"cart-thumb"` size, showing the exact same
+  emoji/icon/photo the catalog list itself shows — `OrderSummaryLine` core type
+  gained an optional `image` field for this, falling back to a generic package
+  placeholder for `"fee"` lines or items with no `image` set), name stacked over
+  its per-unit price (`"item"` lines only), a small quantity pill, and the line
+  amount on the right. No separate 🗑 remove button — decreasing the pill's "−"
+  below 1 already removed the line; the same button's `aria-label` swaps from
+  "decrease" to "remove" at quantity 1 instead of a second control next to it.
+  The total is a plain row under a top border inside the panel's own padding,
+  not a banner.
 - **Header gets a divider from the content below, but only while scrolled** —
   transparent at rest, `--fk-border` once the step's own content scrolls out from
   under it, back to transparent at the top again (and reset on every step change).
