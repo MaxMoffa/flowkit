@@ -756,7 +756,11 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: var(--fk-space-md) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
+  /* Top/bottom padding share the same base (--fk-space-xl) so the button row sits
+     centered in the bar; only the safe-area inset (home indicator room on iOS)
+     adds extra below, and is 0 everywhere else. Previously top used --fk-space-md
+     while bottom used --fk-space-xl, visibly pushing the row/cart pill upward. */
+  padding: var(--fk-space-xl) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
   border-top: 1px solid var(--fk-border);
   background: var(--fk-canvas);
   flex: none;
@@ -952,21 +956,19 @@
      `.fk-footer-primary-row`/`.fk-footer-row`'s sizing: Indietro and Continua go
      back to being exactly the two equal grid columns they'd be with no cart at all,
      same size and same centered position, cart present or not.
-     `top` is NOT `50%` of `.fk-footer`'s own box: `.fk-footer`'s padding is
-     deliberately asymmetric (`--fk-space-md` top, `--fk-space-xl` + safe-area
-     bottom — room for the home-indicator inset), so that 50% sits below
-     `.fk-footer-row`'s real vertical center, visibly misaligning the pill from
-     Indietro/Continua. Anchored instead to the row's own center: footer's
-     padding-top + half the shared control height (same trade-off already accepted
-     for `left` below — assumes the row is the footer's first child, i.e. no footer
-     progress bar/error line stacked above it alongside a cart, true for every flow
-     this panel appears in today). `left` reuses the horizontal analog of that same
-     gap (half of `.fk-footer`'s own padding-top + padding-bottom) so the trigger's
-     top/left margins still read as one consistent inset, not an unrelated token. */
+     `top` is NOT `50%` of `.fk-footer`'s own box: `.fk-footer`'s bottom padding
+     still adds the safe-area inset on top of the shared `--fk-space-xl` base (room
+     for the home-indicator on iOS), so that 50% would sit below `.fk-footer-row`'s
+     real vertical center on devices with that inset. Anchored instead to the row's
+     own center: footer's padding-top + half the shared control height (assumes the
+     row is the footer's first child, i.e. no footer progress bar/error line stacked
+     above it alongside a cart, true for every flow this panel appears in today).
+     `left` reuses that same padding-top token so the trigger's top/left margins
+     still read as one consistent inset, not an unrelated token. */
   .fk-footer-cart {
     position: absolute;
-    left: calc((var(--fk-space-md) + var(--fk-space-xl) + env(safe-area-inset-bottom, 0px)) / 2);
-    top: calc(var(--fk-space-md) + var(--fk-control-height) / 2);
+    left: var(--fk-space-xl);
+    top: calc(var(--fk-space-xl) + var(--fk-control-height) / 2);
     transform: translateY(-50%);
     /* Pill instead of the mobile square: icon + running total, not just the icon —
        width goes back to auto (fixed only for the icon-only mobile case) and the
@@ -2716,10 +2718,10 @@
     align-items: flex-start;
     padding: 0;
     padding-bottom: calc(
-      var(--fk-space-md) + var(--fk-control-height) + var(--fk-space-xl) + env(safe-area-inset-bottom, 0px) +
+      var(--fk-space-xl) + var(--fk-control-height) + var(--fk-space-xl) + env(safe-area-inset-bottom, 0px) +
         var(--fk-space-sm)
     );
-    padding-left: calc((var(--fk-space-md) + var(--fk-space-xl) + env(safe-area-inset-bottom, 0px)) / 2);
+    padding-left: var(--fk-space-xl);
   }
 
   .fk-cart-sheet-backdrop {
