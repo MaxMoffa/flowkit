@@ -28,9 +28,18 @@ function OrderSummaryTable({
 }) {
   const taxResult = tax.status === "done" ? tax.result : null
   const grandTotal = taxResult ? taxResult.totalWithTax : summary.total
+  const showTaxBlock = taxResult !== null || tax.status === "loading" || tax.status === "error"
 
   return (
     <div className="fk-order-summary">
+      <div className="fk-order-summary-hero">
+        <span className="fk-order-summary-hero-label">{totalLabel}</span>
+        <span className="fk-order-summary-hero-amount">
+          {formatMoney(grandTotal, summary.currency, locale)}
+        </span>
+      </div>
+      <div className="fk-order-summary-divider" />
+
       <ul className="fk-order-summary-lines">
         {summary.lines.map((line, index) => (
           <li key={`${line.stepId}-${line.value}-${index}`} className="fk-order-summary-line">
@@ -48,62 +57,59 @@ function OrderSummaryTable({
             </span>
           </li>
         ))}
-
-        {taxResult && (
-          <li className="fk-order-summary-line fk-order-summary-subtotal">
-            <span className="fk-order-summary-line-label">{resolveText(flow, "orderSubtotal")}</span>
-            <span className="fk-order-summary-line-amount">
-              {formatMoney(summary.total, summary.currency, locale)}
-            </span>
-          </li>
-        )}
-        {taxResult && tax.status === "done" && tax.addressSource === "estimated" && (
-          <li className="fk-order-summary-line fk-order-summary-tax-note">
-            <span className="fk-order-summary-line-label">
-              {resolveText(flow, "taxLabel")} · {resolveText(flow, "taxEstimated")}
-            </span>
-          </li>
-        )}
-        {taxResult &&
-          (taxResult.breakdown.length > 0
-            ? taxResult.breakdown.map((entry, index) => (
-                <li key={`tax-${index}`} className="fk-order-summary-line fk-order-summary-tax">
-                  <span className="fk-order-summary-line-label">{entry.label}</span>
-                  <span className="fk-order-summary-line-amount">
-                    {formatMoney(entry.amount, taxResult.currency, locale)}
-                  </span>
-                </li>
-              ))
-            : (
-                <li className="fk-order-summary-line fk-order-summary-tax">
-                  <span className="fk-order-summary-line-label">{resolveText(flow, "taxLabel")}</span>
-                  <span className="fk-order-summary-line-amount">
-                    {formatMoney(taxResult.taxAmount, taxResult.currency, locale)}
-                  </span>
-                </li>
-              ))}
-
-        {tax.status === "loading" && (
-          <li className="fk-order-summary-line fk-order-summary-tax">
-            <span className="fk-order-summary-line-label">{resolveText(flow, "taxCalculating")}</span>
-            <span className="fk-order-summary-line-amount">…</span>
-          </li>
-        )}
-        {tax.status === "error" && (
-          <li className="fk-order-summary-line fk-order-summary-tax">
-            <span className="fk-order-summary-line-label fk-order-summary-tax-error">
-              {resolveText(flow, "taxError")}
-            </span>
-          </li>
-        )}
       </ul>
 
-      <div className="fk-order-summary-total">
-        <span>{totalLabel}</span>
-        <span className="fk-order-summary-total-amount">
-          {formatMoney(grandTotal, summary.currency, locale)}
-        </span>
-      </div>
+      {showTaxBlock && (
+        <div className="fk-order-summary-tax-block">
+          {taxResult && (
+            <div className="fk-order-summary-line fk-order-summary-subtotal">
+              <span className="fk-order-summary-line-label">{resolveText(flow, "orderSubtotal")}</span>
+              <span className="fk-order-summary-line-amount">
+                {formatMoney(summary.total, summary.currency, locale)}
+              </span>
+            </div>
+          )}
+          {taxResult && tax.status === "done" && tax.addressSource === "estimated" && (
+            <div className="fk-order-summary-line fk-order-summary-tax-note">
+              <span className="fk-order-summary-line-label">
+                {resolveText(flow, "taxLabel")} · {resolveText(flow, "taxEstimated")}
+              </span>
+            </div>
+          )}
+          {taxResult &&
+            (taxResult.breakdown.length > 0
+              ? taxResult.breakdown.map((entry, index) => (
+                  <div key={`tax-${index}`} className="fk-order-summary-line fk-order-summary-tax">
+                    <span className="fk-order-summary-line-label">{entry.label}</span>
+                    <span className="fk-order-summary-line-amount">
+                      {formatMoney(entry.amount, taxResult.currency, locale)}
+                    </span>
+                  </div>
+                ))
+              : (
+                  <div className="fk-order-summary-line fk-order-summary-tax">
+                    <span className="fk-order-summary-line-label">{resolveText(flow, "taxLabel")}</span>
+                    <span className="fk-order-summary-line-amount">
+                      {formatMoney(taxResult.taxAmount, taxResult.currency, locale)}
+                    </span>
+                  </div>
+                ))}
+
+          {tax.status === "loading" && (
+            <div className="fk-order-summary-line fk-order-summary-tax">
+              <span className="fk-order-summary-line-label">{resolveText(flow, "taxCalculating")}</span>
+              <span className="fk-order-summary-line-amount">…</span>
+            </div>
+          )}
+          {tax.status === "error" && (
+            <div className="fk-order-summary-line fk-order-summary-tax">
+              <span className="fk-order-summary-line-label fk-order-summary-tax-error">
+                {resolveText(flow, "taxError")}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

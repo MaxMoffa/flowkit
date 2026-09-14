@@ -3579,18 +3579,59 @@
   color: var(--fk-text);
 }
 
-/* Review: itemized order recap (catalog + fees) */
+/* Review: itemized order recap (catalog + fees). Picked from a design review
+   comparing several treatments (see DECISIONS.md, "review: variante ibrida
+   totale-hero + righe fattura + blocco IVA"): the grand total opens the card as a
+   centered hero instead of closing it as a plain row — it's the number the visitor
+   actually needs to confirm, so it's the first thing read, not the last after
+   scanning every line. Item lines sit in their own rounded/bordered sub-card with
+   alternating row backgrounds ("stile fattura"); subtotal/tax move out of that list
+   entirely into a separate `--fk-surface` block — "what you bought" and "how the
+   total is computed" read as two distinct things instead of one long list. */
 .fk-order-summary {
   margin-bottom: var(--fk-space-md);
   border: 1px solid var(--fk-border);
   border-radius: var(--fk-radius-md);
-  overflow: hidden;
+  padding: var(--fk-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fk-space-md);
+}
+
+.fk-order-summary-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+
+.fk-order-summary-hero-label {
+  font-size: 12px;
+  color: var(--fk-text2);
+}
+
+.fk-order-summary-hero-amount {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--fk-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Full width of the card (not the padded content area): bleeds through
+   `.fk-order-summary`'s own padding back out to its real border. */
+.fk-order-summary-divider {
+  height: 1px;
+  background: var(--fk-border);
+  margin-inline: calc(var(--fk-space-lg) * -1);
 }
 
 .fk-order-summary-lines {
   list-style: none;
   margin: 0;
   padding: 0;
+  border: 1px solid var(--fk-border);
+  border-radius: var(--fk-radius-sm);
+  overflow: hidden;
 }
 
 .fk-order-summary-line {
@@ -3598,8 +3639,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--fk-space-md);
-  padding: var(--fk-space-sm) var(--fk-space-lg);
-  border-bottom: 1px solid var(--fk-border);
+  padding: var(--fk-space-sm);
   font-size: 14px;
 }
 
@@ -3626,22 +3666,30 @@
   font-variant-numeric: tabular-nums;
 }
 
-.fk-order-summary-total {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--fk-space-md);
-  padding: var(--fk-space-md) var(--fk-space-lg);
-  background: var(--fk-accent-soft);
-  font-size: 14px;
-  color: var(--fk-text2);
+/* Subtotal/tax rows: same `.fk-order-summary-line` layout, but grouped in their own
+   surface-tinted block instead of living in `.fk-order-summary-lines`, so they never
+   pick up its alternating-row background (that :nth-child rule is scoped as a direct
+   child of `.fk-order-summary-lines`, so it doesn't reach in here). */
+.fk-order-summary-tax-block {
+  background: var(--fk-surface);
+  border-radius: var(--fk-radius-sm);
+  padding: 2px var(--fk-space-md);
 }
 
-.fk-order-summary-total-amount {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--fk-text);
-  font-variant-numeric: tabular-nums;
+.fk-order-summary-tax-block .fk-order-summary-line {
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+/* Placed after `.fk-order-summary-tax-block .fk-order-summary-line` above: higher
+   specificity (a scoped child combinator + :nth-child) than that rule, so it has to
+   come later in source order to satisfy ascending-specificity — same requirement
+   documented elsewhere in this file for the footer's own desktop overrides. The two
+   selectors never actually match the same element (rows inside `.fk-order-summary-
+   lines` vs. rows inside `.fk-order-summary-tax-block` are mutually exclusive), so
+   reordering changes nothing rendered. */
+.fk-order-summary-lines > .fk-order-summary-line:nth-child(even) {
+  background: var(--fk-soft);
 }
 
 .fk-order-summary-subtotal,
@@ -3650,7 +3698,8 @@
 }
 
 .fk-order-summary-subtotal {
-  border-top: 1px solid var(--fk-border);
+  font-weight: 600;
+  color: var(--fk-text);
 }
 
 .fk-order-summary-tax-error {
@@ -3658,9 +3707,6 @@
 }
 
 .fk-order-summary-tax-note {
-  border-bottom: none;
-  padding-top: 0;
-  padding-bottom: 0;
   font-size: 12px;
   color: var(--fk-text2);
   font-style: italic;

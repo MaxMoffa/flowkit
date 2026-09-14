@@ -86,6 +86,17 @@
   controls and amount all inline, instead of the amount/label row followed by a
   separate stepper/remove row underneath. Quantity controls shrunk from 34px to
   26px to fit that single row while staying a reasonable tap target.
+- **Review step's order summary leads with the total.** `OrderSummaryTable`
+  (`review.tsx`) now opens with a large centered "hero" total instead of closing
+  with a plain row — the number the visitor actually needs to confirm is the first
+  thing read, not the last after scanning every line. Item lines sit in their own
+  rounded/bordered sub-card with alternating row backgrounds; subtotal/tax move out
+  of that list entirely into a separate `--fk-surface` block below it. `.fk-order-
+  summary-total`/`-total-amount` are retired in favor of `.fk-order-summary-hero`/
+  `-hero-label`/`-hero-amount`; `.fk-order-summary-subtotal`/`-tax`/`-tax-note`/
+  `-tax-error` keep their names, just render inside the new `.fk-order-summary-tax-
+  block` instead of `.fk-order-summary-lines`. Picked from the same design review
+  as the cart panel above.
 
 ## 1.7.0 — 2026-09-12
 
