@@ -81,8 +81,11 @@
   instead of a plain divider-separated list row; `.fk-cart-summary-total` is an
   accent-tinted banner (amount in the accent color) instead of a bordered row —
   stays legible/anchored even once the line list above it scrolls. Picked from a
-  design review comparing several treatments; `cart-summary-list.tsx`'s markup is
-  unchanged, purely a `style.css` update.
+  design review comparing several treatments.
+- **Cart panel line items are one compact row now**, not two — label, quantity
+  controls and amount all inline, instead of the amount/label row followed by a
+  separate stepper/remove row underneath. Quantity controls shrunk from 34px to
+  26px to fit that single row while staying a reasonable tap target.
 
 ## 1.7.0 — 2026-09-12
 

@@ -2740,23 +2740,17 @@
 
 .fk-cart-summary-line {
   display: flex;
-  flex-direction: column;
-  gap: var(--fk-space-xs);
+  align-items: center;
+  gap: var(--fk-space-sm);
   padding: var(--fk-space-sm);
   background: var(--fk-soft);
   border-radius: var(--fk-radius-md);
   font-size: 14px;
 }
 
-.fk-cart-summary-line-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--fk-space-md);
-}
-
 .fk-cart-summary-line-label {
   display: flex;
+  flex: 1;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 6px;
@@ -2778,15 +2772,14 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Item-line editing controls: +/-/remove, added below the label/amount row so a
-   quantity change never nudges the amount column horizontally. Sized ~36px per
-   control (touch target adequate on mobile), warm-paper accent, no heavy shadows —
-   own namespace, doesn't reuse `.fk-catalog-step` (different context/host). */
+/* Item-line editing controls: +/-/remove, inline in the same row as the label and
+   amount (one compact row per card, not a second row below it) — own namespace,
+   doesn't reuse `.fk-catalog-step` (different context/host). */
 .fk-cart-summary-controls {
   display: flex;
+  flex: none;
   align-items: center;
-  justify-content: flex-end;
-  gap: var(--fk-space-sm);
+  gap: 6px;
 }
 
 .fk-cart-summary-stepper {
@@ -2801,10 +2794,10 @@
 
 .fk-cart-summary-step {
   font: inherit;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
-  width: 34px;
-  height: 34px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2830,9 +2823,9 @@
 }
 
 .fk-cart-summary-qty-value {
-  min-width: 22px;
+  min-width: 18px;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -2841,14 +2834,14 @@
    convention for image-viewer delete controls) rather than a bold danger button. */
 .fk-cart-summary-remove {
   font: inherit;
-  /* Matches .fk-cart-summary-step's 18px: the 🗑 glyph carries a lot of built-in
+  /* Matches .fk-cart-summary-step's 16px: the 🗑 glyph carries a lot of built-in
      whitespace in most emoji fonts, so at the same font-size as the +/- steppers it
-     rendered visibly smaller/paler than them despite the identical 34px box — this
-     compensates so the three controls read as one set, not two sizes. */
-  font-size: 20px;
+     rendered visibly smaller/paler than them despite the identical box — this
+     compensates so the two controls read as one set, not two sizes. */
+  font-size: 17px;
   line-height: 1;
-  width: 34px;
-  height: 34px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;

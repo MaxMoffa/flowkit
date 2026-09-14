@@ -15,7 +15,8 @@ import { FlowMarkdown } from "../../markdown"
  * in catalog-step.ts) get +/-/remove controls so the cart doubles as an editor, not
  * just a recap. `"fee"` lines (priced options on select-cards/multi-select/radio/chips,
  * or the payment step's flat surcharge) stay plain text — no quantity concept to edit
- * from here.
+ * from here. One row per line (label, controls, amount, all inline) — picked from a
+ * design review comparing several treatments, see DECISIONS.md.
  */
 export function CartSummaryList({
   summary,
@@ -52,22 +53,17 @@ export function CartSummaryList({
           const atCap = cap !== undefined && line.quantity >= cap
           return (
             <li key={`${line.stepId}-${line.value}-${index}`} className="fk-cart-summary-line">
-              <div className="fk-cart-summary-line-top">
-                <span className="fk-cart-summary-line-label">
-                  {line.quantity > 1 && <span className="fk-cart-summary-qty">{line.quantity}×</span>}
-                  <FlowMarkdown text={line.label} variant="inline" />
-                  {line.kind === "item" && line.quantity > 1 && (
-                    <span className="fk-cart-summary-unit">
-                      {formatMoney(line.unitAmount, summary.currency, locale)} / cad.
-                    </span>
-                  )}
-                </span>
-                <span className="fk-cart-summary-line-amount">
-                  {formatMoney(line.amount, summary.currency, locale)}
-                </span>
-              </div>
+              <span className="fk-cart-summary-line-label">
+                {line.quantity > 1 && <span className="fk-cart-summary-qty">{line.quantity}×</span>}
+                <FlowMarkdown text={line.label} variant="inline" />
+                {line.kind === "item" && line.quantity > 1 && (
+                  <span className="fk-cart-summary-unit">
+                    {formatMoney(line.unitAmount, summary.currency, locale)} / cad.
+                  </span>
+                )}
+              </span>
               {line.kind === "item" && (
-                <div className="fk-cart-summary-controls">
+                <span className="fk-cart-summary-controls">
                   <span className="fk-cart-summary-stepper">
                     <button
                       type="button"
@@ -98,8 +94,11 @@ export function CartSummaryList({
                   >
                     <span aria-hidden="true">🗑</span>
                   </button>
-                </div>
+                </span>
               )}
+              <span className="fk-cart-summary-line-amount">
+                {formatMoney(line.amount, summary.currency, locale)}
+              </span>
             </li>
           )
         })}
