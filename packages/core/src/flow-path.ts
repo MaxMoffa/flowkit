@@ -206,7 +206,7 @@ export function resolveFlowPath(flow: Flow, state: FlowState): ResolvedPath {
 }
 
 /** Optimistic counterpart of `resolveFlowPath`, for progress *display* only (see
- *  `getProgressInfo`/`getLocalProgressInfo`/`getSectionSegments`): instead of stopping
+ *  `getProgressInfo`/`getLocalProgressInfo`): instead of stopping
  *  right before a branch that can't yet be resolved for real, guesses the shortest
  *  outcome it could still produce (`resolveBranchOptimisticTargetIndex`) and keeps
  *  walking from there, so `determinate` is always `true` and a total is always shown.
@@ -340,51 +340,6 @@ export function getLocalProgressInfo(flow: Flow, state: FlowState): ProgressInfo
   const total = path.determinate ? localIds.length : null
   const pct = total !== null && total > 0 ? (currentIndex + 1) / total : null
   return { currentIndex, total, pct }
-}
-
-export interface ProgressSegment {
-  /** `null` groups a run of consecutive path steps that don't join any section — a
-   *  segmented progress-bar renderer draws it as a plain (untinted) part of the bar. */
-  sectionId: string | null
-  /** Index within the resolved path (`ResolvedPath.stepIds`) this segment starts at. */
-  startIndex: number
-  length: number
-}
-
-/**
- * Branch-aware, per-`sectionId` grouping (v2.4x "section" primitive) of the resolved
- * path (see `resolveFlowPathOptimistic`) into consecutive runs of the same `sectionId`
- * — the same path `getProgressInfo` derives `total`/`currentIndex` from, just split
- * wherever the section changes. Effectively never `null` now that the underlying path
- * always guesses a shortest-outcome total instead of going indeterminate; kept nullable
- * for the degenerate case (mirrors `ResolvedPath.determinate`).
- *
- * A flow with no `sections` (or none of whose steps set `sectionId`) always resolves to
- * exactly one segment (`sectionId: null`) spanning the whole path — the same shape a
- * segmented progress-bar renderer gets for a flow that *does* use sections, so it never
- * needs to special-case "no sections" as a separate code path.
- */
-export function getSectionSegments(flow: Flow, state: FlowState): ProgressSegment[] | null {
-  const path = resolveFlowPathOptimistic(flow, state)
-  if (!path.determinate) return null
-  const indexById = buildIndexById(flow)
-  const segments: ProgressSegment[] = []
-  path.stepIds.forEach((id, i) => {
-    const step = flow.steps[indexById.get(id)!]!
-    const sectionId = (step as { sectionId?: string }).sectionId ?? null
-    const last = segments[segments.length - 1]
-    if (last && last.sectionId === sectionId) last.length += 1
-    else segments.push({ sectionId, startIndex: i, length: 1 })
-  })
-  return segments
-}
-
-/** The `sectionId` of the flow's current step (`baseStepFields.sectionId`), or `null`
- *  when unset. FlowRunner's section banner is keyed off this, not the step id, so it
- *  persists across consecutive steps in the same section instead of remounting. */
-export function getCurrentSectionId(flow: Flow, state: FlowState): string | null {
-  const step = getCurrentStep(flow, state)
-  return (step as { sectionId?: string }).sectionId ?? null
 }
 
 /** How a `CurrentStepInfo` event came about — see `getCurrentStepInfo`. `"branch-change"`

@@ -12,15 +12,6 @@ export interface ProgressComponentProps {
    *  A variant is free to show only part of it: the built-in "steps" stepper renders
    *  the descriptions of the current step only. */
   steps?: { title?: string; subtitle?: string }[]
-  /**
-   * Per-section runs of the resolved path (core's `getSectionSegments`), colors already
-   * resolved from `flow.sections` — `undefined` while `pct`/`total` are also null, or for
-   * variants that don't segment (dots/stepper ignore it). A flow with no sections still
-   * gets exactly one segment (`color: undefined`) spanning the whole bar, so "bar" never
-   * needs to special-case the no-sections case: `undefined` color falls back to the
-   * theme's accent, reproducing the plain single-color fill exactly.
-   */
-  segments?: { color: string | undefined; length: number; filledLength: number }[]
 }
 
 /**

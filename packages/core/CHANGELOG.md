@@ -11,7 +11,7 @@
   its own children are spliced directly into `steps` in its place, so **their answers
   merge flat into the same single `answers` object every other step uses** — not a
   nested `{ [childId]: value }` aggregate the way `group` works. Children can be
-  arbitrary step types, including nested `group`/`branch`/section-tagged steps, or
+  arbitrary step types, including nested `group`/`branch` steps, or
   another `subflow` (a nested one flattens fully before splicing, so its own children
   end up in the outermost span, not a nested one).
 - **Inline config only, by design.** `subflowStepSchema.steps` is a plain, already-
@@ -57,32 +57,6 @@
   step that would answer it (without answering it yet) still keeps the guess, instead of
   jumping the total the instant the user arrives there the way resolving it as a
   non-match would.
-
-## 1.7.0 — 2026-09-13
-
-### Added
-
-- **"section" primitive** — groups N steps that stay fully separate pages (their own
-  navigation/validation, unchanged) under one shared visual section: a persistent
-  banner (color/title/icon) and a segmented progress bar in `@flowkit-io/react`. Not
-  the same primitive as the `group` step, which fuses N steps into a single page — a
-  section is metadata only, and never changes how a step navigates or validates.
-- `baseStepFields.sectionId?: string` — any step (including a `group`'s nested
-  children) can join a `flow.sections` entry by id. Unset = no section, identical to
-  every flow authored before this field existed.
-- `Flow.sections?: Section[]` / `sectionSchema` — `{ id, title: ContentText, color?:
-  string, icon?: StepImage }`. `parseFlow` throws if a step's `sectionId` doesn't match
-  an entry here (`assertSectionIdsValid`), checked once instead of per-field.
-- `getSectionSegments(flow, state)` (flow-path.ts) — branch-aware, per-`sectionId`
-  grouping of the resolved path (see `resolveFlowPath`) into consecutive runs, for a
-  segmented progress-bar renderer. A flow with no sections always resolves to exactly
-  one `sectionId: null` segment spanning the whole path, so a renderer never needs to
-  special-case "no sections".
-- `getCurrentSectionId(flow, state)` (flow-path.ts) — the current step's `sectionId`,
-  or `null`.
-- No `CURRENT_FLOW_SCHEMA_VERSION` bump: `sectionId`/`sections` are both optional and
-  additive — an already-saved flow with neither keeps parsing exactly as before, the
-  same bar every other additive field in this file has been held to.
 
 ## 1.6.0 — 2026-09-12
 
