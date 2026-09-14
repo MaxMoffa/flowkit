@@ -140,10 +140,29 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
     }
     expect(Math.abs(backAfter.width - continueAfter.width)).toBeLessThanOrEqual(2)
 
-    // Cart sits at the footer's own far left edge (its padding box), well to the left
-    // of Indietro — not merely "before" it within the centered reading column.
-    expect(cartBox.x - footerBox.x).toBeLessThan(10)
+    // Cart sits at the footer's own far left edge (its padding box) with a small
+    // margin off it (not flush against it), well to the left of Indietro — not
+    // merely "before" it within the centered reading column.
+    const cartLeftGap = cartBox.x - footerBox.x
+    expect(cartLeftGap).toBeGreaterThan(0)
+    expect(cartLeftGap).toBeLessThan(20)
     expect(cartBox.x).toBeLessThan(backAfter.x - 100)
+  })
+
+  test("Continua alone (no Indietro) spans the full row width, centered", async ({ page }) => {
+    await page.goto("/fullscreen.html?preset=features-demo&theme=warm-paper&mode=light")
+    await page.getByRole("button", { name: "Desktop (100%)" }).click()
+
+    const row = page.locator(".fk-footer-row")
+    const cta = page.getByRole("button", { name: "Prova" })
+    const rowBox = (await row.boundingBox())!
+    const ctaBox = (await cta.boundingBox())!
+
+    // Full width of the row (not stuck at half via grid auto-placement into just the
+    // first of the two 1fr columns) and starting flush at the row's own left edge
+    // (i.e. centered as a whole within the row, not offset to one side).
+    expect(ctaBox.width).toBeCloseTo(rowBox.width, 0)
+    expect(ctaBox.x).toBeCloseTo(rowBox.x, 0)
   })
 
   test("clicking the footer back button navigates to the previous step", async ({ page }) => {

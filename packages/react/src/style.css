@@ -912,6 +912,15 @@
     grid-template-columns: 1fr 1fr;
   }
 
+  /* Indietro hidden (intro, or `flow.disableBack`): the row's single remaining child
+     — the bare Continua button, or its cart+Continua wrapper — spans both grid
+     columns instead of auto-placing into just the first one, so it's centered and
+     full-width like every other single-button footer instead of stuck at half width
+     on the left. */
+  .fk-footer-row > :only-child {
+    grid-column: 1 / -1;
+  }
+
   /* Cart trigger moves out to the footer's own far left edge, independent of
      Indietro/Continua entirely — `position: absolute` (against `.fk-footer`, the
      full-bleed bar, not `.fk-footer-row`'s own centered 640px box) takes it
@@ -927,7 +936,7 @@
      actually exercises. */
   .fk-footer-cart {
     position: absolute;
-    left: 0;
+    left: var(--fk-space-sm);
     top: 50%;
     transform: translateY(-50%);
   }
