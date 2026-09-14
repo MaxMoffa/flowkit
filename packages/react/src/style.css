@@ -889,6 +889,23 @@
     width: auto;
     padding: 0 32px;
   }
+
+  /* Below 1024px, `.fk-footer-primary-row` is a real flex container pairing the cart
+     trigger with Continua in their own row (see its own rule above) — needed there
+     since `.fk-footer-row` itself stacks into a column. At >=1024px `.fk-footer-row`
+     is already a row on its own, so the wrapper's box is dropped (`display: contents`)
+     and the trigger becomes a plain sibling of Indietro/Continua instead, moved to the
+     front with `order: -1` (it's last in DOM order — after Continua — so this is what
+     puts it on the left). Continua's own `flex: 1` override lives further down, next
+     to the `.fk-footer-primary-row .fk-btn-primary` base rule it needs to win against
+     (equal specificity — has to come later in source order to do that). */
+  .fk-footer-primary-row {
+    display: contents;
+  }
+
+  .fk-footer-cart {
+    order: -1;
+  }
 }
 
 /* Shared by the three full-width action buttons. Height stays per-class on purpose:
@@ -950,6 +967,19 @@
   flex: 1 1 auto;
   width: auto;
   min-width: 0;
+}
+
+/* >=1024px: the wrapper's box is gone (`display: contents`, see the .fk-footer-cart
+   `order: -1` block above), so Continua is a plain sibling of Indietro in
+   `.fk-footer-row` now — same bare `flex: 1` Indietro already has, so the two end up
+   exactly the same width regardless of label length, instead of Continua's width
+   being whatever's left after the cart trigger's fixed width came out of their
+   shared (pre-collapse) row. Same specificity as the rule above, so has to come
+   after it in source order to win. */
+@container fk-shell (min-width: 1024px) {
+  .fk-footer-primary-row .fk-btn-primary {
+    flex: 1;
+  }
 }
 
 .fk-btn-primary {

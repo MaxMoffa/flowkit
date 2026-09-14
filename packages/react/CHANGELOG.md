@@ -40,6 +40,13 @@
   to the primary button for mobile, one next to the now-removed total line for
   desktop, with CSS picking which showed); `ProgressComponentProps`/`StepFooterProps`
   callers unaffected, this was `flow-footer.tsx`-internal.
+- Indietro/Continua are exactly the same width on desktop (>=1024px) again, cart or
+  no cart: with a cart present they used to share a flex row with the trigger, whose
+  fixed width came out of Continua's share and not Indietro's, so the two ended up
+  visibly different sizes. The trigger now sits to the left of the pair instead
+  (`.fk-footer-cart { order: -1 }`, `.fk-footer-primary-row { display: contents }` to
+  drop its wrapper's own box) — same centered reading column as always, symmetric
+  buttons.
 
 ## 1.7.0 — 2026-09-12
 

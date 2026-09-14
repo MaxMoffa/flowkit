@@ -122,6 +122,16 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
     const rightGap = footerBox.x + footerBox.width - (rowBox.x + rowBox.width)
     expect(leftGap).toBeGreaterThan(100)
     expect(Math.abs(leftGap - rightGap)).toBeLessThan(5)
+
+    // Cart trigger sits to the left of Indietro (order: -1, see style.css), and
+    // Indietro/Continua end up exactly the same width — not squeezed asymmetrically
+    // by the trigger sharing their row.
+    const cartBox = (await frame.locator(".fk-footer-cart").boundingBox())!
+    const backBox = (await frame.locator(".fk-footer-back").boundingBox())!
+    const continueBox = (await frame.getByRole("button", { name: "Continua", exact: true }).boundingBox())!
+    expect(cartBox.x).toBeLessThan(backBox.x)
+    expect(backBox.x).toBeLessThan(continueBox.x)
+    expect(Math.abs(backBox.width - continueBox.width)).toBeLessThanOrEqual(2)
   })
 
   test("clicking the footer back button navigates to the previous step", async ({ page }) => {
