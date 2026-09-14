@@ -5,6 +5,7 @@ import { FlowMarkdown } from "./markdown"
 import { SheetDialog } from "./steps/shared/sheet-dialog"
 import { CartSummaryList } from "./steps/shared/cart-summary-list"
 import { BackArrowIcon } from "./steps/shared/back-arrow-icon"
+import { CartIcon } from "./steps/shared/cart-icon"
 
 interface FooterShellProps {
   order: number
@@ -23,22 +24,28 @@ function FooterShell({ order, rootRef, children }: FooterShellProps) {
   )
 }
 
-/** Cart trigger button: 🛒 with an optional item-count badge, next to the primary
- *  button (see `.fk-footer-primary-row`) — the only place the running total is shown
- *  at all (opens the itemized recap panel), the footer no longer prints a plain total
- *  line of its own. */
+/** Cart trigger button, next to the primary button (see `.fk-footer-primary-row`):
+ *  icon + item-count badge on mobile (unchanged, still a plain square), icon + the
+ *  running total as a pill on desktop (>=1024px) — `.fk-footer-cart-amount` is
+ *  always rendered, CSS alone decides whether it's visible at a given width, same
+ *  dual-render-one-DOM pattern as the header/footer back button. Opening the panel
+ *  is still the only way to see the itemized breakdown; the amount here is just the
+ *  running total, not a replacement for it. */
 function CartTriggerButton({
   count,
+  amount,
   ariaLabel,
   onClick,
 }: {
   count: number
+  amount: string
   ariaLabel: string
   onClick: () => void
 }) {
   return (
     <button type="button" className="fk-footer-cart" aria-label={ariaLabel} onClick={onClick}>
-      <span aria-hidden="true">🛒</span>
+      <CartIcon />
+      <span className="fk-footer-cart-amount">{amount}</span>
       {count > 0 && <span className="fk-footer-cart-badge">{count}</span>}
     </button>
   )
@@ -48,6 +55,9 @@ export interface FooterCartInfo {
   summary: OrderSummary
   /** Total quantity across item lines, shown as the trigger button's badge. */
   count: number
+  /** Formatted running total (e.g. "50,00 €") — shown next to the icon in the
+   *  trigger's desktop pill (see `.fk-footer-cart-amount`). */
+  amount: string
   locale: string
   totalLabel: string
   /** Accessible label for the trigger button and the panel's dialog title. */
@@ -146,7 +156,12 @@ export function StepFooter({
           // (border-box padding isn't part of the flex-basis:0% "free space" split),
           // throwing off their equal-width split on desktop.
           <div className="fk-footer-primary-row">
-            <CartTriggerButton count={cart.count} ariaLabel={cartAriaLabel} onClick={() => setCartOpen(true)} />
+            <CartTriggerButton
+              count={cart.count}
+              amount={cart.amount}
+              ariaLabel={cartAriaLabel}
+              onClick={() => setCartOpen(true)}
+            />
             <button
               type="button"
               className={`fk-btn-primary ${isSubmit ? "fk-btn-success" : ""}`}

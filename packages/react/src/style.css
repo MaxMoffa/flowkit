@@ -801,6 +801,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   width: var(--fk-control-height);
   min-height: var(--fk-control-height);
   padding: 0;
@@ -808,7 +809,6 @@
   border-radius: var(--fk-radius-md);
   background: var(--fk-canvas);
   color: var(--fk-text);
-  font-size: 19px;
   line-height: 1;
   cursor: pointer;
   box-sizing: border-box;
@@ -816,6 +816,16 @@
 
 .fk-footer-cart:hover {
   border-color: var(--fk-accent);
+}
+
+/* Running total, desktop-only pill (see the >=1024px override further down) — a
+   plain square icon button everywhere below that, unchanged from before. */
+.fk-footer-cart-amount {
+  display: none;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .fk-footer-cart-badge {
@@ -939,6 +949,16 @@
     left: calc((var(--fk-space-md) + var(--fk-space-xl) + env(safe-area-inset-bottom, 0px)) / 2);
     top: 50%;
     transform: translateY(-50%);
+    /* Pill instead of the mobile square: icon + running total, not just the icon —
+       width goes back to auto (fixed only for the icon-only mobile case) and the
+       radius fully rounds now that the box isn't a plain square. */
+    width: auto;
+    padding: 0 var(--fk-space-md);
+    border-radius: 999px;
+  }
+
+  .fk-footer-cart-amount {
+    display: inline;
   }
 }
 

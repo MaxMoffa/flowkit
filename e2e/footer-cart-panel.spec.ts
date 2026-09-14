@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test"
 
 /**
- * Minimal coverage for the footer's cart button/panel: the 🛒 trigger appears next to
+ * Minimal coverage for the footer's cart button/panel: the cart trigger appears next to
  * Continue exactly when the order goes non-empty, opening a drawer with the itemized
  * recap (the only place the running total shows — the footer itself no longer prints
  * a plain total line); closes via the ✕.

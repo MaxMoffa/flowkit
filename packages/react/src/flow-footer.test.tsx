@@ -49,6 +49,7 @@ const orderSummary: OrderSummary = {
 const cart: FooterCartInfo = {
   summary: orderSummary,
   count: 2,
+  amount: "50,00 €",
   locale: "it",
   totalLabel: "Totale ordine",
   openLabel: "Carrello",
@@ -150,6 +151,7 @@ function StatefulCartPanel() {
   const cartInfo: FooterCartInfo = {
     summary,
     count: quantity,
+    amount: `${(2500 * quantity) / 100},00 €`,
     locale: "it",
     totalLabel: "Totale ordine",
     openLabel: "Carrello",

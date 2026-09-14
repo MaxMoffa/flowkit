@@ -63,12 +63,19 @@
   flex item naturally would have. `.fk-footer-row > :only-child` now spans both
   columns, restoring the full-width, centered look for every single-button footer.
 - **Cart panel is a contextual popover on desktop (>=1024px)** instead of a centered
-  modal — anchored right above the 🛒 trigger, left-aligned with it, no backdrop
+  modal — anchored right above the cart trigger, left-aligned with it, no backdrop
   dimming (a shadow gives the depth cue instead). Mobile/tablet (<1024px) keep the
   exact same bottom-sheet/centered-dialog behavior as before. Implemented by portaling
   the cart's `SheetDialog` into `.fk-footer` itself instead of the nearest `.fk-theme`
   ancestor every other sheet (catalog/product item detail) uses — those two are
   untouched, `.fk-cart-sheet-*` was already its own independent CSS namespace.
+- **Cart trigger**: the 🛒 emoji is now an inline SVG outline icon (`steps/shared/
+  cart-icon.tsx`, same reasoning as the back-arrow unification above — consistent
+  across platforms/fonts). On desktop (>=1024px) the trigger also grows into a pill
+  showing the running total next to the icon (`FooterCartInfo.amount`, formatted the
+  same way `paymentDueAmount` already is) instead of staying an icon-only square —
+  mobile/tablet keep the exact same fixed 52px square as before, just with the new
+  icon.
 
 ## 1.7.0 — 2026-09-12
 

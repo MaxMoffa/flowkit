@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test"
 
 /**
  * On desktop (>=1024px) the cart panel is a contextual popover anchored above the
- * 🛒 trigger — not the centered modal dialog it is below that width (and still is on
+ * cart trigger — not the centered modal dialog it is below that width (and still is on
  * mobile/tablet, unaffected — see footer-cart-panel.spec.ts, which runs at the
  * default mobile viewport). No dark backdrop; still closes on outside click/Escape.
  */

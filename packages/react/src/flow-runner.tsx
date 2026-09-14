@@ -435,6 +435,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     return {
       summary: orderSummary,
       count,
+      amount: formatMoney(orderSummary.total, orderSummary.currency, flow.locale),
       locale: flow.locale,
       totalLabel: resolveText(flow, "catalogTotal"),
       openLabel: resolveText(flow, "cartOpen"),
