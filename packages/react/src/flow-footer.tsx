@@ -1,9 +1,8 @@
-import { useState, type ComponentType } from "react"
+import { useRef, useState, type ComponentType } from "react"
 import type { OrderSummary } from "@flowkit-io/core"
 import type { ProgressComponentProps } from "./progress-registry"
 import { FlowMarkdown } from "./markdown"
 import { SheetDialog } from "./steps/shared/sheet-dialog"
-import { useThemeRootRef } from "./steps/shared/use-theme-root-ref"
 import { CartSummaryList } from "./steps/shared/cart-summary-list"
 
 interface FooterShellProps {
@@ -112,7 +111,10 @@ export function StepFooter({
 }: StepFooterProps) {
   const { Component: ProgressComponent, show, ...progressProps } = progress
   const [cartOpen, setCartOpen] = useState(false)
-  const [rootRef, sheetContainer] = useThemeRootRef<HTMLDivElement>()
+  // Portal target for the cart panel (see its render below) — `.fk-footer` itself,
+  // not the usual nearest-`.fk-theme` lookup `useThemeRootRef` gives every other
+  // `SheetDialog` caller: the cart popover positions itself against this exact box.
+  const rootRef = useRef<HTMLDivElement>(null)
   // Count appended to the accessible name (not just shown visually in the badge) so a
   // screen reader announces "Carrello (2)" rather than just "Carrello".
   const cartAriaLabel = cart ? (cart.count > 0 ? `${cart.openLabel} (${cart.count})` : cart.openLabel) : ""
@@ -168,12 +170,22 @@ export function StepFooter({
           <FlowMarkdown text={footnote} variant="block" />
         </div>
       )}
-      {cartOpen && cart && sheetContainer && (
+      {cartOpen && cart && rootRef.current && (
+        // Portals into `.fk-footer` itself (not the usual `.fk-theme` root every
+        // other SheetDialog uses) — on desktop (>=1024px) the panel renders as a
+        // contextual popover anchored above the cart trigger instead of a centered
+        // modal (see style.css's `.fk-cart-sheet-root`/`.fk-cart-sheet` desktop
+        // overrides), which needs `.fk-footer`'s own box (it's `position: relative`
+        // there) as the positioning context. Below 1024px this is still the exact
+        // same full-page bottom sheet as before — `.fk-cart-sheet-root` stays
+        // `position: fixed; inset: 0`, unaffected by which element it's portaled
+        // into (its containing block is `.fk-root`'s `container-type` ancestor
+        // either way, see DECISIONS.md).
         <SheetDialog
           namespace="fk-cart-sheet"
           ariaLabel={cart.openLabel}
           closeLabel={cart.closeLabel}
-          container={sheetContainer}
+          container={rootRef.current}
           onClose={() => setCartOpen(false)}
         >
           <h3 className="fk-cart-sheet-title">{cart.openLabel}</h3>

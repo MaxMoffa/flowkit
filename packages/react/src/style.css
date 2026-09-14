@@ -2616,16 +2616,17 @@
   }
 }
 
-/* Real viewport media query, not @container fk-shell: SheetDialog portals this into
-   the nearest `.fk-theme` ancestor (useThemeRootRef), which sits *above* `.fk-root`
-   (the `fk-shell` container, see its comment) in the DOM — so the portaled sheet has
-   no `fk-shell` ancestor at all and an `@container fk-shell` query on it would simply
-   never match, at any width. That's also correct for what this panel actually is:
-   `position: fixed; inset: 0` here resolves against the real page viewport (nothing
-   between `.fk-cart-sheet-root` and the document establishes a containing block for
-   fixed descendants), i.e. it's a true page-level modal like `FlowOverlay`'s own
-   drawer/dialog switch — which uses the same real-viewport `matchMedia` for the same
-   reason (see DECISIONS.md, `.fk-overlay-sheet--dialog`). */
+/* Real viewport media query, not @container fk-shell: unlike the other two sheets
+   (catalog/product item detail), the cart panel portals into `.fk-footer` itself,
+   not the nearest `.fk-theme` — see flow-footer.tsx — so it *does* sit inside the
+   `fk-shell` container and a `@container` query on it would work; kept as `@media`
+   here anyway since `.fk-cart-sheet-root`'s `position: fixed; inset: 0` is meant to
+   resolve against the real page viewport for the full-page bottom-sheet/centered-
+   dialog tablet treatment below — same reasoning as `FlowOverlay`'s own drawer/
+   dialog switch (see DECISIONS.md, `.fk-overlay-sheet--dialog`). In practice this
+   still ends up confined to `.fk-root`'s own box either way: `.fk-root`'s
+   `container-type` (see its own comment) makes it the containing block for every
+   `position: fixed` descendant regardless of which element portals into it. */
 @media (min-width: 768px) {
   .fk-cart-sheet-root {
     justify-content: center;
@@ -2650,6 +2651,54 @@
   from {
     opacity: 0;
     transform: scale(0.96);
+  }
+}
+
+/* Real desktop (>=1024px, matching every other footer-desktop change in this file):
+   the cart panel stops being a centered modal and becomes a small contextual
+   popover anchored right above the 🛒 trigger instead — `.fk-cart-sheet-root` stays
+   `position: fixed; inset: 0` (still the click-outside-to-close catcher, full page/
+   `.fk-root` coverage, see the comment above), just re-aligned to put its child in
+   the bottom-left instead of dead center, with a left inset matching the trigger's
+   own (`.fk-footer-cart`'s `left`, see its rule) so the two line up. The bottom
+   inset is an estimate of the footer's own height (padding-top + one row + padding-
+   bottom) rather than something CSS can read exactly — correct for every flow this
+   panel actually appears in today (no footer progress bar or error message stacked
+   above the row alongside a cart), the same trade-off already accepted for the
+   trigger's own vertical centering. No backdrop dimming (a contextual popover reads
+   oddly under a darkened page) — a shadow on the panel gives the depth cue instead. */
+@container fk-shell (min-width: 1024px) {
+  .fk-cart-sheet-root {
+    /* `.fk-cart-sheet-root` is `flex-direction: column` (unchanged from the mobile
+       base rule) — `justify-content` is the *vertical* axis here, `align-items` the
+       horizontal one, not the other way around. */
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding: 0;
+    padding-bottom: calc(
+      var(--fk-space-md) + var(--fk-control-height) + var(--fk-space-xl) + env(safe-area-inset-bottom, 0px) +
+        var(--fk-space-sm)
+    );
+    padding-left: calc((var(--fk-space-md) + var(--fk-space-xl) + env(safe-area-inset-bottom, 0px)) / 2);
+  }
+
+  .fk-cart-sheet-backdrop {
+    background: none;
+  }
+
+  .fk-cart-sheet {
+    max-width: 340px;
+    width: max-content;
+    min-width: 280px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+    animation: fk-cart-sheet-popover-in 0.15s ease-out;
+  }
+}
+
+@keyframes fk-cart-sheet-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
 }
 

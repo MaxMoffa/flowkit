@@ -60,6 +60,13 @@
   column (stuck at half width on the left) instead of filling the row the way a lone
   flex item naturally would have. `.fk-footer-row > :only-child` now spans both
   columns, restoring the full-width, centered look for every single-button footer.
+- **Cart panel is a contextual popover on desktop (>=1024px)** instead of a centered
+  modal — anchored right above the 🛒 trigger, left-aligned with it, no backdrop
+  dimming (a shadow gives the depth cue instead). Mobile/tablet (<1024px) keep the
+  exact same bottom-sheet/centered-dialog behavior as before. Implemented by portaling
+  the cart's `SheetDialog` into `.fk-footer` itself instead of the nearest `.fk-theme`
+  ancestor every other sheet (catalog/product item detail) uses — those two are
+  untouched, `.fk-cart-sheet-*` was already its own independent CSS namespace.
 
 ## 1.7.0 — 2026-09-12
 
