@@ -21,6 +21,9 @@
   still-unresolved conditional branch instead of going indeterminate — `getProgressInfo`
   moved to `@flowkit-io/core` 1.8.0's `resolveFlowPathOptimistic`, unchanged on
   `FlowRunner`'s side (it already just reads `total`/`pct` off the result).
+- The header back button's icon is now an inline SVG chevron-arrow instead of a `←`
+  text glyph — crisp at any size/zoom, not dependent on the platform's font for the
+  glyph.
 
 ## 1.8.0 — 2026-09-13
 
