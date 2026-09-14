@@ -38,6 +38,21 @@
 - No `CURRENT_FLOW_SCHEMA_VERSION` bump: `subflowSpans` is parser-computed and never
   appears on input a consumer would have authored/stored — nothing about an
   already-saved flow's own shape changed.
+- **`resolveFlowPathOptimistic(flow, state)`** — progress-*display* counterpart of
+  `resolveFlowPath`: when a "branch" step ahead can't yet be resolved for real (its
+  condition depends on a field the user hasn't reached/answered yet), instead of
+  stopping short (`determinate: false`), it guesses the shortest outcome that branch
+  could still produce — among every rule's `goTo`, the `fallback`, and the natural next
+  step, whichever skips furthest ahead — and keeps walking from there. Always
+  `determinate: true`. The guess can only grow the reported total as the user actually
+  answers the fields each branch depends on, never shrink it, since "shortest so far" is
+  a lower bound. `getProgressInfo`, `getLocalProgressInfo`, and `getSectionSegments` all
+  switched to it, so a flow with an upcoming conditional branch now shows a real (if
+  provisional) "N/M" and a segmented/stepped progress bar instead of going
+  indeterminate. `isStepReachable` and `setAnswerAndInvalidateDownstream` — the two
+  consumers that gate real navigation/answer-pruning, not just what's displayed — stay
+  on the strict `resolveFlowPath`: a wrong guess here only ever costs a smoother-looking
+  number, never a correctness bug, and those two can't afford that trade.
 
 ## 1.7.0 — 2026-09-13
 

@@ -76,6 +76,27 @@ function buildIndexById(flow: Flow): Map<string, number> {
   return new Map(flow.steps.map((s, i) => [s.id, i] as const))
 }
 
+/** Optimistic counterpart of `resolveBranchTargetIndex` for a branch that can't yet be
+ *  resolved for real (see `resolveFlowPathOptimistic`): picks whichever candidate target
+ *  — every rule's `goTo`, the `fallback`, and the natural next step — skips furthest
+ *  ahead, i.e. the shortest of the outcomes the branch could still produce. Ignores each
+ *  rule's `when` entirely (unlike `resolveBranchTargetIndex`): they're exactly the
+ *  conditions that can't be evaluated yet. Always returns a valid index (`pos + 1` is
+ *  always a candidate), so this never dead-ends the way a config typo can make
+ *  `resolveBranchTargetIndex` degrade toward `fallback`/next. */
+function resolveBranchOptimisticTargetIndex(branch: BranchStep, pos: number, indexById: Map<string, number>): number {
+  const candidates = [pos + 1]
+  for (const rule of branch.rules) {
+    const index = indexById.get(rule.goTo)
+    if (index !== undefined) candidates.push(index)
+  }
+  if (branch.fallback !== undefined) {
+    const index = indexById.get(branch.fallback)
+    if (index !== undefined) candidates.push(index)
+  }
+  return Math.max(...candidates)
+}
+
 /** Resolves the step the state is currently on, when it's one FlowRunner must jump past
  *  without ever rendering, to the id of the step to actually land on: for a "branch"
  *  (role: "logic") step, the first matching rule's `goTo`, else `fallback`, else the
@@ -181,6 +202,28 @@ export interface ResolvedPath {
  * actually does, not be more conservative than it.
  */
 export function resolveFlowPath(flow: Flow, state: FlowState): ResolvedPath {
+  return walkFlowPath(flow, state, false)
+}
+
+/** Optimistic counterpart of `resolveFlowPath`, for progress *display* only (see
+ *  `getProgressInfo`/`getLocalProgressInfo`/`getSectionSegments`): instead of stopping
+ *  right before a branch that can't yet be resolved for real, guesses the shortest
+ *  outcome it could still produce (`resolveBranchOptimisticTargetIndex`) and keeps
+ *  walking from there, so `determinate` is always `true` and a total is always shown.
+ *  The guess can only grow the reported total as the user answers the steps each branch
+ *  actually depends on — never shrink it — since "shortest so far" is a lower bound; a
+ *  branch whose dependency is already known (answered, or at/before `state.index`) is
+ *  still resolved for real, exactly like `resolveFlowPath`, not guessed.
+ *
+ *  Never use this for reachability or pruning (`isStepReachable`,
+ *  `setAnswerAndInvalidateDownstream` stay on the strict `resolveFlowPath`): a wrong
+ *  guess here only ever costs a smoother-looking number, never a correctness bug — those
+ *  two need to know what's *actually* reachable, not what's optimistically likely. */
+export function resolveFlowPathOptimistic(flow: Flow, state: FlowState): ResolvedPath {
+  return walkFlowPath(flow, state, true)
+}
+
+function walkFlowPath(flow: Flow, state: FlowState, optimistic: boolean): ResolvedPath {
   const indexByKey = new Map<string, number>()
   const indexById = buildIndexById(flow)
   flow.steps.forEach((s, i) => {
@@ -198,7 +241,7 @@ export function resolveFlowPath(flow: Flow, state: FlowState): ResolvedPath {
   let pos = 0
 
   while (pos < flow.steps.length) {
-    if (seenPositions.has(pos)) return { stepIds, determinate: false }
+    if (seenPositions.has(pos)) return { stepIds, determinate: optimistic }
     seenPositions.add(pos)
 
     const current = flow.steps[pos]!
@@ -213,7 +256,12 @@ export function resolveFlowPath(flow: Flow, state: FlowState): ResolvedPath {
         const depIndex = indexByKey.get(key)
         return depIndex !== undefined && depIndex > state.index && !(key in state.answers)
       })
-      if (unresolvable) return { stepIds, determinate: false }
+
+      if (unresolvable) {
+        if (!optimistic) return { stepIds, determinate: false }
+        pos = resolveBranchOptimisticTargetIndex(branch, pos, indexById)
+        continue
+      }
 
       pos = resolveBranchTargetIndex(flow, branch, pos, state.answers, indexById)
       continue
@@ -247,10 +295,11 @@ export interface ProgressInfo {
 }
 
 /** Branch-aware replacement for `progress`: derives the current step's position and
- *  the flow's total step count from the actually reachable path (see resolveFlowPath),
- *  not from `flow.steps.length`. */
+ *  the flow's total step count from the actually reachable path (see
+ *  `resolveFlowPathOptimistic` — an unresolved branch ahead gets its shortest possible
+ *  outcome guessed rather than blanking `total`), not from `flow.steps.length`. */
 export function getProgressInfo(flow: Flow, state: FlowState): ProgressInfo {
-  const path = resolveFlowPath(flow, state)
+  const path = resolveFlowPathOptimistic(flow, state)
   const step = getCurrentStep(flow, state)
   const foundIndex = path.stepIds.indexOf(step.id)
   const currentIndex = foundIndex === -1 ? 0 : foundIndex
@@ -270,7 +319,7 @@ export function getLocalProgressInfo(flow: Flow, state: FlowState): ProgressInfo
   const step = getCurrentStep(flow, state)
   const span = flow.subflowSpans?.find((s) => s.stepIds.includes(step.id))
   if (!span) return null
-  const path = resolveFlowPath(flow, state)
+  const path = resolveFlowPathOptimistic(flow, state)
   const localIds = path.stepIds.filter((id) => span.stepIds.includes(id))
   const foundIndex = localIds.indexOf(step.id)
   const currentIndex = foundIndex === -1 ? 0 : foundIndex
@@ -290,10 +339,11 @@ export interface ProgressSegment {
 
 /**
  * Branch-aware, per-`sectionId` grouping (v2.4x "section" primitive) of the resolved
- * path (see `resolveFlowPath`) into consecutive runs of the same `sectionId` — the same
- * path `getProgressInfo` derives `total`/`currentIndex` from, just split wherever the
- * section changes. `null` while the path isn't fully determined yet (mirrors
- * `ResolvedPath.determinate`).
+ * path (see `resolveFlowPathOptimistic`) into consecutive runs of the same `sectionId`
+ * — the same path `getProgressInfo` derives `total`/`currentIndex` from, just split
+ * wherever the section changes. Effectively never `null` now that the underlying path
+ * always guesses a shortest-outcome total instead of going indeterminate; kept nullable
+ * for the degenerate case (mirrors `ResolvedPath.determinate`).
  *
  * A flow with no `sections` (or none of whose steps set `sectionId`) always resolves to
  * exactly one segment (`sectionId: null`) spanning the whole path — the same shape a
@@ -301,7 +351,7 @@ export interface ProgressSegment {
  * needs to special-case "no sections" as a separate code path.
  */
 export function getSectionSegments(flow: Flow, state: FlowState): ProgressSegment[] | null {
-  const path = resolveFlowPath(flow, state)
+  const path = resolveFlowPathOptimistic(flow, state)
   if (!path.determinate) return null
   const indexById = buildIndexById(flow)
   const segments: ProgressSegment[] = []
@@ -342,11 +392,13 @@ export interface PreviousStepSummary {
 }
 
 /** Payload describing the step a `FlowRunner` integration is (or just became) showing.
- *  `index`/`total` refer to the resolved path (see `resolveFlowPath`/`getProgressInfo`):
- *  the steps actually reachable given the answers collected so far, not the full flow
- *  schema — `total` is `null` while that path can't yet be fully determined (an
- *  unresolved branch further ahead). A "logic" (branch) step never produces one of
- *  these: callers resolve it and only report the visible step it lands on. */
+ *  `index`/`total` refer to the resolved path (see `getProgressInfo`/
+ *  `resolveFlowPathOptimistic`): the steps actually reachable given the answers
+ *  collected so far, not the full flow schema — `total` guesses the shortest outcome an
+ *  unresolved branch further ahead could still produce, rather than going `null`; it can
+ *  only grow, never shrink, as those branches get answered for real. A "logic" (branch)
+ *  step never produces one of these: callers resolve it and only report the visible step
+ *  it lands on. */
 export interface CurrentStepInfo {
   id: string
   type: string

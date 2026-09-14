@@ -15,6 +15,13 @@
   `SubflowStepView` is a `BranchStepView`-style `null`-render stub, present only so
   registry-consistency checks have a component to find).
 
+### Changed
+
+- Progress bar/stepper/counter now show an optimistic (shortest-case) "N/M" ahead of a
+  still-unresolved conditional branch instead of going indeterminate — `getProgressInfo`
+  moved to `@flowkit-io/core` 1.8.0's `resolveFlowPathOptimistic`, unchanged on
+  `FlowRunner`'s side (it already just reads `total`/`pct` off the result).
+
 ## 1.8.0 — 2026-09-13
 
 ### Added
