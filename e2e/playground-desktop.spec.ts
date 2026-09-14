@@ -87,11 +87,12 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
 
   /**
    * The footer never prints a plain running-total line anymore (the cart panel is the
-   * only place that shows it) — so a non-empty cart must not change the Indietro/
-   * Continua row's layout at all: it stays in the same centered 640px reading column,
-   * cart trigger included, exactly like the no-cart case.
+   * only place that shows it), and the cart trigger is `position: absolute` against
+   * `.fk-footer` itself (see style.css) — so a non-empty cart must not move or resize
+   * Indietro/Continua at all: their box has to be pixel-identical to the no-cart case,
+   * with the trigger appearing at the footer's own far left edge, independent of them.
    */
-  test("cart present: back/continue (+ cart trigger) stay in the centered reading column, no total line", async ({
+  test("cart present: back/continue stay pixel-identical to the no-cart case, cart trigger at the footer's far left", async ({
     page,
   }) => {
     await page.goto("/fullscreen.html?preset=catalog-demo&theme=warm-paper&mode=light")
@@ -99,39 +100,50 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
     await page.getByRole("button", { name: "Inizia" }).click()
     await expect(page.getByRole("heading", { name: "Scegli i prodotti" })).toBeVisible()
 
+    const frame = page.locator(".pg-fullscreen-frame")
+    const footer = frame.locator(".fk-footer")
+    const backBtn = frame.locator(".fk-footer-back")
+    const continueBtn = frame.getByRole("button", { name: "Continua", exact: true })
+
+    // Baseline, cart still empty: no trigger, back/continue at their natural position.
+    await expect(frame.locator(".fk-footer-cart")).toHaveCount(0)
+    const backBefore = (await backBtn.boundingBox())!
+    const continueBefore = (await continueBtn.boundingBox())!
+
     await page
       .locator(".fk-catalog-item", { hasText: "T-shirt FlowKit" })
       .getByRole("button", { name: "Aggiungi" })
       .click()
 
-    const frame = page.locator(".pg-fullscreen-frame")
-    const footer = frame.locator(".fk-footer")
-    const row = frame.locator(".fk-footer-row")
     await expect(frame.locator(".fk-footer-order-total")).toHaveCount(0)
-    await expect(frame.locator(".fk-footer-cart")).toBeVisible()
+    const cart = frame.locator(".fk-footer-cart")
+    await expect(cart).toBeVisible()
 
     const footerBox = (await footer.boundingBox())!
-    const rowBox = (await row.boundingBox())!
+    const backAfter = (await backBtn.boundingBox())!
+    const continueAfter = (await continueBtn.boundingBox())!
+    const cartBox = (await cart.boundingBox())!
 
     // Sanity check this viewport is actually wide enough for the bug this guards
-    // against (row spreading to the real edges instead of staying centered) to show.
+    // against (row spreading/resizing instead of staying put) to show.
     expect(footerBox.width).toBeGreaterThan(900)
 
-    // Centered as a column, not flush to the real (much wider) footer edges.
-    const leftGap = rowBox.x - footerBox.x
-    const rightGap = footerBox.x + footerBox.width - (rowBox.x + rowBox.width)
-    expect(leftGap).toBeGreaterThan(100)
-    expect(Math.abs(leftGap - rightGap)).toBeLessThan(5)
+    // Pixel-identical box for both buttons, cart present or not.
+    for (const [before, after] of [
+      [backBefore, backAfter],
+      [continueBefore, continueAfter],
+    ] as const) {
+      expect(after.x).toBeCloseTo(before.x, 0)
+      expect(after.y).toBeCloseTo(before.y, 0)
+      expect(after.width).toBeCloseTo(before.width, 0)
+      expect(after.height).toBeCloseTo(before.height, 0)
+    }
+    expect(Math.abs(backAfter.width - continueAfter.width)).toBeLessThanOrEqual(2)
 
-    // Cart trigger sits to the left of Indietro (order: -1, see style.css), and
-    // Indietro/Continua end up exactly the same width — not squeezed asymmetrically
-    // by the trigger sharing their row.
-    const cartBox = (await frame.locator(".fk-footer-cart").boundingBox())!
-    const backBox = (await frame.locator(".fk-footer-back").boundingBox())!
-    const continueBox = (await frame.getByRole("button", { name: "Continua", exact: true }).boundingBox())!
-    expect(cartBox.x).toBeLessThan(backBox.x)
-    expect(backBox.x).toBeLessThan(continueBox.x)
-    expect(Math.abs(backBox.width - continueBox.width)).toBeLessThanOrEqual(2)
+    // Cart sits at the footer's own far left edge (its padding box), well to the left
+    // of Indietro — not merely "before" it within the centered reading column.
+    expect(cartBox.x - footerBox.x).toBeLessThan(10)
+    expect(cartBox.x).toBeLessThan(backAfter.x - 100)
   })
 
   test("clicking the footer back button navigates to the previous step", async ({ page }) => {

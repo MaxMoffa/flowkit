@@ -883,28 +883,53 @@
 }
 
 @container fk-shell (min-width: 1024px) {
+  /* Positioning context for the cart trigger's `position: absolute` below — anchors
+     it to the footer's own full-bleed padding box, not `.fk-footer-row`'s narrower
+     centered column. */
+  .fk-footer {
+    position: relative;
+  }
+
   .fk-footer-back {
     display: inline-flex;
-    flex: 1;
     width: auto;
     padding: 0 32px;
   }
 
-  /* Below 1024px, `.fk-footer-primary-row` is a real flex container pairing the cart
-     trigger with Continua in their own row (see its own rule above) — needed there
-     since `.fk-footer-row` itself stacks into a column. At >=1024px `.fk-footer-row`
-     is already a row on its own, so the wrapper's box is dropped (`display: contents`)
-     and the trigger becomes a plain sibling of Indietro/Continua instead, moved to the
-     front with `order: -1` (it's last in DOM order — after Continua — so this is what
-     puts it on the left). Continua's own `flex: 1` override lives further down, next
-     to the `.fk-footer-primary-row .fk-btn-primary` base rule it needs to win against
-     (equal specificity — has to come later in source order to do that). */
-  .fk-footer-primary-row {
-    display: contents;
+  /* Grid, not flex, for the two columns: with `flex-basis: 0%` (the usual "equal
+     columns" pattern), a flex item's own border-box padding is reserved *before*
+     flex-grow splits the remaining space evenly — `.fk-footer-back` carries its
+     padding directly on itself, but `.fk-footer-primary-row` (the cart+Continua
+     wrapper) doesn't, its child (`.fk-btn-primary`) does, one level too deep to
+     count toward the wrapper's own reserved floor. That mismatch silently broke the
+     "equal width" invariant: Indietro ended up wider than Continua by roughly
+     Indietro's own padding. `1fr 1fr` grid tracks don't have this quirk — track
+     size comes purely from the container's own division of space, blind to either
+     item's internal box model, so the two columns are provably identical regardless
+     of what's nested inside them. */
+  .fk-footer-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
+  /* Cart trigger moves out to the footer's own far left edge, independent of
+     Indietro/Continua entirely — `position: absolute` (against `.fk-footer`, the
+     full-bleed bar, not `.fk-footer-row`'s own centered 640px box) takes it
+     completely out of flow, so it no longer occupies any space inside
+     `.fk-footer-primary-row`/`.fk-footer-row`'s sizing: Indietro and Continua go
+     back to being exactly the two equal grid columns they'd be with no cart at all,
+     same size and same centered position, cart present or not. Vertically centered
+     against the whole footer (`.fk-footer`'s own box, see its `position: relative`
+     below), which lines up with the row for every real layout today (no footer
+     progress bar or error message alongside a cart in any shipped flow) — a
+     theoretical combination of both wouldn't center perfectly against the row itself,
+     accepted rather than a dedicated per-row positioning wrapper for a case nothing
+     actually exercises. */
   .fk-footer-cart {
-    order: -1;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 
@@ -962,24 +987,14 @@
 /* Inside `.fk-footer-primary-row` (see above), the primary button shares that row
    with the cart trigger instead of filling it alone — placed after the base
    `.fk-btn-primary` width/min-width rules above so ascending-specificity source
-   order still holds despite this selector's higher specificity. */
+   order still holds despite this selector's higher specificity. At >=1024px the cart
+   trigger is `position: absolute` (out of flow, see its own rule), so this ends up
+   the *only* in-flow child of `.fk-footer-primary-row` there — `flex: 1 1 auto`
+   fills 100% of it either way, same width as Indietro's own `flex: 1` next to it. */
 .fk-footer-primary-row .fk-btn-primary {
   flex: 1 1 auto;
   width: auto;
   min-width: 0;
-}
-
-/* >=1024px: the wrapper's box is gone (`display: contents`, see the .fk-footer-cart
-   `order: -1` block above), so Continua is a plain sibling of Indietro in
-   `.fk-footer-row` now — same bare `flex: 1` Indietro already has, so the two end up
-   exactly the same width regardless of label length, instead of Continua's width
-   being whatever's left after the cart trigger's fixed width came out of their
-   shared (pre-collapse) row. Same specificity as the rule above, so has to come
-   after it in source order to win. */
-@container fk-shell (min-width: 1024px) {
-  .fk-footer-primary-row .fk-btn-primary {
-    flex: 1;
-  }
 }
 
 .fk-btn-primary {

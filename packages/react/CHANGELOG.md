@@ -40,13 +40,19 @@
   to the primary button for mobile, one next to the now-removed total line for
   desktop, with CSS picking which showed); `ProgressComponentProps`/`StepFooterProps`
   callers unaffected, this was `flow-footer.tsx`-internal.
-- Indietro/Continua are exactly the same width on desktop (>=1024px) again, cart or
-  no cart: with a cart present they used to share a flex row with the trigger, whose
-  fixed width came out of Continua's share and not Indietro's, so the two ended up
-  visibly different sizes. The trigger now sits to the left of the pair instead
-  (`.fk-footer-cart { order: -1 }`, `.fk-footer-primary-row { display: contents }` to
-  drop its wrapper's own box) — same centered reading column as always, symmetric
-  buttons.
+- **Indietro/Continua are pixel-identical on desktop (>=1024px) now, cart present or
+  not** — same position, same size, verified against the no-cart case directly (not
+  just symmetric with each other). `.fk-footer-row` switched from flex to
+  `display: grid; grid-template-columns: 1fr 1fr`: a flex `flex-basis: 0%` "equal
+  columns" split isn't actually blind to each item's own box model — an item's own
+  border-box padding is reserved before flex-grow splits the rest, so Indietro
+  (padding directly on itself) and the cart+Continua wrapper (no padding of its own —
+  its child does) ended up with different floors and thus different final widths
+  despite identical `flex: 1`. Grid's `1fr` tracks don't have that quirk. The cart
+  trigger itself is `position: absolute` against `.fk-footer` (the full-bleed bar,
+  `position: relative` now) instead of living inside the row at all — sits at the
+  footer's own far left edge, completely out of flow, so it can't affect Indietro/
+  Continua's box no matter what.
 
 ## 1.7.0 — 2026-09-12
 
