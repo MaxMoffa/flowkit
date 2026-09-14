@@ -2666,6 +2666,13 @@
   .fk-cart-sheet-grabber {
     display: none;
   }
+
+  /* `.fk-cart-sheet` is rounded on every corner at this width (unlike the mobile
+     bottom-sheet, square on the bottom) — the full-bleed total banner's own bottom
+     corners follow suit instead of staying square. */
+  .fk-cart-summary-total {
+    border-radius: 0 0 var(--fk-radius-lg) var(--fk-radius-lg);
+  }
 }
 
 @keyframes fk-cart-sheet-in {
@@ -2748,6 +2755,21 @@
   font-size: 14px;
 }
 
+/* Generic per-line icon (see `LineIcon` in cart-summary-list.tsx — no real product
+   thumbnail, `OrderSummaryLine` carries no image). Small square badge, same visual
+   slot a real photo would occupy if this ever gets one. */
+.fk-cart-summary-thumb {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--fk-radius-sm);
+  background: var(--fk-surface);
+  color: var(--fk-text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .fk-cart-summary-line-label {
   display: flex;
   flex: 1;
@@ -2755,16 +2777,6 @@
   align-items: baseline;
   gap: 6px;
   min-width: 0;
-}
-
-.fk-cart-summary-qty {
-  font-weight: 600;
-  color: var(--fk-text2);
-}
-
-.fk-cart-summary-unit {
-  font-size: 12px;
-  color: var(--fk-text2);
 }
 
 .fk-cart-summary-line-amount {
@@ -2785,26 +2797,25 @@
 .fk-cart-summary-stepper {
   display: flex;
   align-items: center;
-  gap: 2px;
-  border: var(--fk-border-width) solid var(--fk-border);
-  border-radius: var(--fk-radius-sm);
+  gap: 4px;
+  border-radius: 999px;
   padding: 2px;
-  background: var(--fk-canvas);
+  background: var(--fk-soft);
 }
 
 .fk-cart-summary-step {
   font: inherit;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--fk-text);
-  background: transparent;
-  border: 0;
-  border-radius: var(--fk-radius-sm);
+  background: var(--fk-canvas);
+  border: var(--fk-border-width) solid var(--fk-border);
+  border-radius: 999px;
   cursor: pointer;
 }
 
@@ -2819,7 +2830,7 @@
 }
 
 .fk-cart-summary-step:hover:not(:disabled) {
-  background: var(--fk-surface);
+  border-color: var(--fk-accent);
 }
 
 .fk-cart-summary-qty-value {
@@ -2831,24 +2842,25 @@
 }
 
 /* Minimal, non-alarming trash icon (deliberately not red/invasive — see project
-   convention for image-viewer delete controls) rather than a bold danger button. */
+   convention for image-viewer delete controls) rather than a bold danger button.
+   Same circular treatment as `.fk-cart-summary-step` for a cohesive control set. */
 .fk-cart-summary-remove {
   font: inherit;
-  /* Matches .fk-cart-summary-step's 16px: the 🗑 glyph carries a lot of built-in
+  /* Matches .fk-cart-summary-step's 14px: the 🗑 glyph carries a lot of built-in
      whitespace in most emoji fonts, so at the same font-size as the +/- steppers it
      rendered visibly smaller/paler than them despite the identical box — this
      compensates so the two controls read as one set, not two sizes. */
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--fk-text2);
-  background: transparent;
+  background: var(--fk-canvas);
   border: var(--fk-border-width) solid var(--fk-border);
-  border-radius: var(--fk-radius-sm);
+  border-radius: 999px;
   cursor: pointer;
 }
 
@@ -2862,25 +2874,30 @@
   outline-offset: 1px;
 }
 
-/* Banner, not a plain divided row: the total stays visually anchored/legible even
-   once the line list above scrolls — accent-tinted instead of a border-top, same
-   design review as the card lines above. */
+/* Full-bleed banner, not an inset rounded box: bleeds through `.fk-cart-sheet`'s own
+   padding (--fk-space-xl on every side that matters here, mobile and desktop alike)
+   out to the sheet's real edges, anchored at the very bottom — stays visually
+   anchored/legible even once the line list above scrolls, accent-tinted instead of
+   a border-top. Square bottom corners by default: the mobile bottom-sheet's own
+   bottom is square (`.fk-cart-sheet`'s border-radius only rounds the top), so a
+   rounded banner there would poke past it. Desktop's popover *is* rounded on every
+   corner (see its own `.fk-cart-sheet` override) — matched below. */
 .fk-cart-summary-total {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--fk-space-md);
-  margin-top: var(--fk-space-sm);
-  padding: var(--fk-space-md);
+  margin: var(--fk-space-sm) calc(var(--fk-space-xl) * -1)
+    calc((var(--fk-space-xl) + env(safe-area-inset-bottom, 0px)) * -1);
+  padding: var(--fk-space-md) var(--fk-space-xl);
   background: var(--fk-accent-soft);
-  border-radius: var(--fk-radius-md);
   font-size: 14px;
   color: var(--fk-text2);
 }
 
 .fk-cart-summary-total-amount {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   color: var(--fk-accent);
   font-variant-numeric: tabular-nums;
 }

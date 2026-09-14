@@ -84,8 +84,16 @@
   design review comparing several treatments.
 - **Cart panel line items are one compact row now**, not two — label, quantity
   controls and amount all inline, instead of the amount/label row followed by a
-  separate stepper/remove row underneath. Quantity controls shrunk from 34px to
-  26px to fit that single row while staying a reasonable tap target.
+  separate stepper/remove row underneath.
+- **Cart panel line items match the design-review artifact more closely**: a
+  generic per-line icon (`OrderSummaryLine` carries no real product image, so this
+  is a placeholder, not a photo), the "2×" quantity prefix and unit-price subtitle
+  dropped (redundant with the quantity already shown in the stepper), the stepper
+  restyled as a true pill (soft-filled, fully rounded, small circular +/- buttons)
+  instead of a bordered box with flat buttons, and the total banner switched from
+  an inset rounded box to a full-bleed one (flush with the panel's real edges,
+  square bottom corners on the mobile bottom-sheet, rounded to match on desktop's
+  fully-rounded popover/dialog).
 - **Review step's order summary leads with the total.** `OrderSummaryTable`
   (`review.tsx`) now opens with a large centered "hero" total instead of closing
   with a plain row — the number the visitor actually needs to confirm is the first

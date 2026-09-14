@@ -2,9 +2,22 @@ import { formatMoney } from "@flowkit-io/core"
 import type { OrderSummary } from "@flowkit-io/core"
 import { FlowMarkdown } from "../../markdown"
 
+/** Generic per-line icon — `OrderSummaryLine` carries no per-item image (`buildOrderSummary`
+ *  is deliberately structural/source-agnostic across catalog/product/select-cards/etc.), so
+ *  this is a plain "package" placeholder rather than a real product thumbnail. */
+function LineIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 8l-9-5-9 5 9 5 9-5z" />
+      <path d="M3 8v8l9 5 9-5V8" />
+      <path d="M12 13v8" />
+    </svg>
+  )
+}
+
 /**
  * Simple recap of the cart's order lines for the footer's cart panel (opened from
- * `catalog`/`product` steps mid-flow) — label/quantity/unit price/line amount + total.
+ * `catalog`/`product` steps mid-flow) — icon/label/quantity/line amount + total.
  * Deliberately dumber than `review.tsx`'s `OrderSummaryTable`: no tax section, since
  * tax is only computed once the flow's `address` step has been answered and this
  * panel can be opened well before that. Kept as its own component (rather than reusing
@@ -53,14 +66,11 @@ export function CartSummaryList({
           const atCap = cap !== undefined && line.quantity >= cap
           return (
             <li key={`${line.stepId}-${line.value}-${index}`} className="fk-cart-summary-line">
+              <span className="fk-cart-summary-thumb" aria-hidden="true">
+                <LineIcon />
+              </span>
               <span className="fk-cart-summary-line-label">
-                {line.quantity > 1 && <span className="fk-cart-summary-qty">{line.quantity}×</span>}
                 <FlowMarkdown text={line.label} variant="inline" />
-                {line.kind === "item" && line.quantity > 1 && (
-                  <span className="fk-cart-summary-unit">
-                    {formatMoney(line.unitAmount, summary.currency, locale)} / cad.
-                  </span>
-                )}
               </span>
               {line.kind === "item" && (
                 <span className="fk-cart-summary-controls">

@@ -100,7 +100,7 @@ describe("StepFooter: cart panel", () => {
     const sheet = container.ownerDocument.querySelector(".fk-cart-sheet")
     expect(sheet).not.toBeNull()
     expect(sheet!.textContent).toContain("T-shirt")
-    expect(sheet!.textContent).toContain("2×")
+    expect(sheet!.querySelector(".fk-cart-summary-qty-value")?.textContent).toBe("2")
     expect(sheet!.textContent).toContain("50,00")
 
     fireEvent.click(container.ownerDocument.querySelector(".fk-cart-sheet-close")!)
