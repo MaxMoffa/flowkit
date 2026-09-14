@@ -951,16 +951,22 @@
      completely out of flow, so it no longer occupies any space inside
      `.fk-footer-primary-row`/`.fk-footer-row`'s sizing: Indietro and Continua go
      back to being exactly the two equal grid columns they'd be with no cart at all,
-     same size and same centered position, cart present or not. Vertically centered
-     (`top: 50%` + translate), so its top/bottom margins inside the footer are equal
-     to each other by construction — `left` reuses that same computed gap (half of
-     `.fk-footer`'s own padding-top + padding-bottom, the two that sandwich the
-     trigger's fixed height) instead of an unrelated fixed token, so all three
-     margins — top, bottom, left — end up equal too, not just top and bottom. */
+     same size and same centered position, cart present or not.
+     `top` is NOT `50%` of `.fk-footer`'s own box: `.fk-footer`'s padding is
+     deliberately asymmetric (`--fk-space-md` top, `--fk-space-xl` + safe-area
+     bottom — room for the home-indicator inset), so that 50% sits below
+     `.fk-footer-row`'s real vertical center, visibly misaligning the pill from
+     Indietro/Continua. Anchored instead to the row's own center: footer's
+     padding-top + half the shared control height (same trade-off already accepted
+     for `left` below — assumes the row is the footer's first child, i.e. no footer
+     progress bar/error line stacked above it alongside a cart, true for every flow
+     this panel appears in today). `left` reuses the horizontal analog of that same
+     gap (half of `.fk-footer`'s own padding-top + padding-bottom) so the trigger's
+     top/left margins still read as one consistent inset, not an unrelated token. */
   .fk-footer-cart {
     position: absolute;
     left: calc((var(--fk-space-md) + var(--fk-space-xl) + env(safe-area-inset-bottom, 0px)) / 2);
-    top: 50%;
+    top: calc(var(--fk-space-md) + var(--fk-control-height) / 2);
     transform: translateY(-50%);
     /* Pill instead of the mobile square: icon + running total, not just the icon —
        width goes back to auto (fixed only for the icon-only mobile case) and the
@@ -2603,7 +2609,7 @@
   background: var(--fk-canvas);
   color: var(--fk-text);
   border-radius: var(--fk-radius-lg) var(--fk-radius-lg) 0 0;
-  padding: var(--fk-space-lg) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
+  padding: var(--fk-space-lg) var(--fk-space-md) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
   max-height: 85vh;
   overflow-y: auto;
   animation: fk-cart-sheet-up 0.22s ease-out;
@@ -2672,7 +2678,7 @@
     max-width: 440px;
     width: 100%;
     border-radius: var(--fk-radius-lg);
-    padding: var(--fk-space-xl);
+    padding: var(--fk-space-lg) var(--fk-space-md) var(--fk-space-xl);
     animation: fk-cart-sheet-in 0.18s ease-out;
   }
 
@@ -2682,7 +2688,11 @@
 
   /* `.fk-cart-sheet` is rounded on every corner at this width (unlike the mobile
      bottom-sheet, square on the bottom) — the full-bleed total banner's own bottom
-     corners follow suit instead of staying square. */
+     corners follow suit instead of staying square. Horizontal padding here matches
+     `.fk-cart-sheet`'s own `--fk-space-md` (same value as the base/mobile rule) —
+     it used to stay at the old `--fk-space-xl`, out of sync with the total banner's
+     bleed margin (calibrated to `--fk-space-md`), leaving a stray side gap on the
+     banner at every width from 768px up. */
   .fk-cart-summary-total {
     border-radius: 0 0 var(--fk-radius-lg) var(--fk-radius-lg);
   }
@@ -2768,9 +2778,9 @@
   font-size: 14px;
 }
 
-/* Generic per-line icon (see `LineIcon` in cart-summary-list.tsx — no real product
-   thumbnail, `OrderSummaryLine` carries no image). Small square badge, same visual
-   slot a real photo would occupy if this ever gets one. */
+/* Per-line thumb: the real `item.image` (`StepImage` size="cart-thumb") when the
+   catalog/product item carries one, else `LineIcon`'s generic package placeholder
+   (every `"fee"` line, and any item with no `image` set). */
 .fk-cart-summary-thumb {
   flex: none;
   width: 30px;
@@ -2781,6 +2791,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.fk-cart-summary-thumb-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.fk-cart-summary-thumb-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fk-cart-summary-thumb-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .fk-cart-summary-line-label {
@@ -2797,18 +2829,14 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Item-line editing controls: +/-/remove, inline in the same row as the label and
-   amount (one compact row per card, not a second row below it) — own namespace,
-   doesn't reuse `.fk-catalog-step` (different context/host). */
-.fk-cart-summary-controls {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 6px;
-}
-
+/* Item-line quantity stepper, inline in the same row as the label and amount (one
+   compact row per card) — own namespace, doesn't reuse `.fk-catalog-step` (different
+   context/host). No separate remove button: decreasing past 1 removes the line
+   (`aria-label` swaps to `removeLabel` at qty 1) — a dedicated 🗑 button read as one
+   control too many on an already-compact row. */
 .fk-cart-summary-stepper {
   display: flex;
+  flex: none;
   align-items: center;
   gap: 4px;
   border-radius: 999px;
@@ -2854,39 +2882,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Minimal, non-alarming trash icon (deliberately not red/invasive — see project
-   convention for image-viewer delete controls) rather than a bold danger button.
-   Same circular treatment as `.fk-cart-summary-step` for a cohesive control set. */
-.fk-cart-summary-remove {
-  font: inherit;
-  /* Matches .fk-cart-summary-step's 14px: the 🗑 glyph carries a lot of built-in
-     whitespace in most emoji fonts, so at the same font-size as the +/- steppers it
-     rendered visibly smaller/paler than them despite the identical box — this
-     compensates so the two controls read as one set, not two sizes. */
-  font-size: 15px;
-  line-height: 1;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--fk-text2);
-  background: var(--fk-canvas);
-  border: var(--fk-border-width) solid var(--fk-border);
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.fk-cart-summary-remove:hover {
-  color: var(--fk-danger);
-  border-color: var(--fk-danger);
-}
-
-.fk-cart-summary-remove:focus-visible {
-  outline: 2px solid var(--fk-accent);
-  outline-offset: 1px;
-}
-
 /* Full-bleed banner, not an inset rounded box: bleeds through `.fk-cart-sheet`'s own
    padding (--fk-space-xl on every side that matters here, mobile and desktop alike)
    out to the sheet's real edges, anchored at the very bottom — stays visually
@@ -2900,9 +2895,9 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--fk-space-md);
-  margin: var(--fk-space-sm) calc(var(--fk-space-xl) * -1)
+  margin: var(--fk-space-sm) calc(var(--fk-space-md) * -1)
     calc((var(--fk-space-xl) + env(safe-area-inset-bottom, 0px)) * -1);
-  padding: var(--fk-space-md) var(--fk-space-xl);
+  padding: var(--fk-space-md) var(--fk-space-md);
   background: var(--fk-accent-soft);
   font-size: 14px;
   color: var(--fk-text2);

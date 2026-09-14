@@ -53,10 +53,13 @@
   despite identical `flex: 1`. Grid's `1fr` tracks don't have that quirk. The cart
   trigger itself is `position: absolute` against `.fk-footer` (the full-bleed bar,
   `position: relative` now) instead of living inside the row at all — sits at the
-  footer's own far left edge, vertically centered (equal top/bottom margins by
-  construction) with `left` reusing that exact same computed gap so all three
-  margins end up equal, not flush and not an arbitrary fixed inset — completely out
-  of flow, so it can't affect Indietro/Continua's box no matter what.
+  footer's own far left edge, not flush and not an arbitrary fixed inset —
+  completely out of flow, so it can't affect Indietro/Continua's box no matter
+  what. Vertically centered on the Indietro/Continua row itself (`top` = footer's
+  own padding-top + half the shared control height), not on `.fk-footer`'s own
+  outer box — that box's padding is deliberately asymmetric (room for the
+  safe-area inset at the bottom), so centering on it visibly pulled the pill a few
+  px below the row it sits beside.
 - Fixed a regression the grid switch above introduced: with Indietro hidden (`intro`,
   or `flow.disableBack`), Continua alone used to auto-place into just the first `1fr`
   column (stuck at half width on the left) instead of filling the row the way a lone
@@ -94,6 +97,18 @@
   an inset rounded box to a full-bleed one (flush with the panel's real edges,
   square bottom corners on the mobile bottom-sheet, rounded to match on desktop's
   fully-rounded popover/dialog).
+- **Cart panel line icons are real now, not a placeholder.** `OrderSummaryLine`
+  (core) gained an optional `image` field, populated from the catalog/product
+  item's own `image` — the cart's thumb (`StepImage`, new `"cart-thumb"` size)
+  shows the exact same emoji/icon/photo the catalog list itself shows, falling
+  back to the generic package placeholder only for `"fee"` lines or items with no
+  `image` set. No separate 🗑 remove button anymore either — decreasing the
+  stepper's "−" below 1 already removed the line; the same button's `aria-label`
+  now swaps from "decrease" to "remove" at quantity 1 instead of a second control
+  next to it. The panel's own outer horizontal padding (`.fk-cart-sheet`) is
+  tighter (was `--fk-space-xl`, now `--fk-space-md`, every breakpoint including
+  the >=768px dialog/popover); the total banner's own horizontal padding follows
+  it (full-bleed to match), vertical padding unchanged.
 - **Header gets a divider from the content below, but only while scrolled** —
   transparent at rest, `--fk-border` once the step's own content scrolls out from
   under it, back to transparent at the top again (and reset on every step change).

@@ -1,10 +1,10 @@
 import { formatMoney } from "@flowkit-io/core"
 import type { OrderSummary } from "@flowkit-io/core"
 import { FlowMarkdown } from "../../markdown"
+import { StepImage } from "./step-image"
 
-/** Generic per-line icon — `OrderSummaryLine` carries no per-item image (`buildOrderSummary`
- *  is deliberately structural/source-agnostic across catalog/product/select-cards/etc.), so
- *  this is a plain "package" placeholder rather than a real product thumbnail. */
+/** Fallback per-line icon for lines with no `image` (every `"fee"` line, and any
+ *  catalog/product item that didn't set one) — plain "package" placeholder. */
 function LineIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -67,42 +67,32 @@ export function CartSummaryList({
           return (
             <li key={`${line.stepId}-${line.value}-${index}`} className="fk-cart-summary-line">
               <span className="fk-cart-summary-thumb" aria-hidden="true">
-                <LineIcon />
+                {line.image ? <StepImage image={line.image} size="cart-thumb" /> : <LineIcon />}
               </span>
               <span className="fk-cart-summary-line-label">
                 <FlowMarkdown text={line.label} variant="inline" />
               </span>
               {line.kind === "item" && (
-                <span className="fk-cart-summary-controls">
-                  <span className="fk-cart-summary-stepper">
-                    <button
-                      type="button"
-                      className="fk-cart-summary-step"
-                      aria-label={decreaseLabel}
-                      onClick={() => onLineQuantityChange(line.stepId, line.value, line.quantity - 1)}
-                    >
-                      −
-                    </button>
-                    <span className="fk-cart-summary-qty-value" aria-live="polite">
-                      {line.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      className="fk-cart-summary-step"
-                      aria-label={increaseLabel}
-                      disabled={atCap}
-                      onClick={() => onLineQuantityChange(line.stepId, line.value, line.quantity + 1)}
-                    >
-                      +
-                    </button>
+                <span className="fk-cart-summary-stepper">
+                  <button
+                    type="button"
+                    className="fk-cart-summary-step"
+                    aria-label={line.quantity <= 1 ? removeLabel : decreaseLabel}
+                    onClick={() => onLineQuantityChange(line.stepId, line.value, line.quantity - 1)}
+                  >
+                    −
+                  </button>
+                  <span className="fk-cart-summary-qty-value" aria-live="polite">
+                    {line.quantity}
                   </span>
                   <button
                     type="button"
-                    className="fk-cart-summary-remove"
-                    aria-label={removeLabel}
-                    onClick={() => onLineQuantityChange(line.stepId, line.value, 0)}
+                    className="fk-cart-summary-step"
+                    aria-label={increaseLabel}
+                    disabled={atCap}
+                    onClick={() => onLineQuantityChange(line.stepId, line.value, line.quantity + 1)}
                   >
-                    <span aria-hidden="true">🗑</span>
+                    +
                   </button>
                 </span>
               )}

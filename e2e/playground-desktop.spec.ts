@@ -140,17 +140,17 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
     }
     expect(Math.abs(backAfter.width - continueAfter.width)).toBeLessThanOrEqual(2)
 
-    // Cart sits at the footer's own far left edge (its padding box), vertically
-    // centered so its own top/bottom margins match each other, and left reuses that
-    // exact same gap — all three margins (top, bottom, left) equal, not flush, well
-    // to the left of Indietro.
+    // Cart sits at the footer's own far left edge (its padding box), not flush, well
+    // to the left of Indietro, and vertically centered on the SAME row as
+    // Indietro/Continua — not on `.fk-footer`'s own outer box, whose padding is
+    // deliberately asymmetric (top vs bottom, room for the safe-area inset), which
+    // used to pull the pill a few px below the row it sits beside.
     const cartLeftGap = cartBox.x - footerBox.x
-    const cartTopGap = cartBox.y - footerBox.y
-    const cartBottomGap = footerBox.y + footerBox.height - (cartBox.y + cartBox.height)
+    const cartCenterY = cartBox.y + cartBox.height / 2
+    const continueCenterY = continueAfter.y + continueAfter.height / 2
     expect(cartLeftGap).toBeGreaterThan(0)
     expect(cartLeftGap).toBeLessThan(30)
-    expect(Math.abs(cartLeftGap - cartTopGap)).toBeLessThanOrEqual(2)
-    expect(Math.abs(cartLeftGap - cartBottomGap)).toBeLessThanOrEqual(2)
+    expect(Math.abs(cartCenterY - continueCenterY)).toBeLessThanOrEqual(2)
     expect(cartBox.x).toBeLessThan(backAfter.x - 100)
   })
 

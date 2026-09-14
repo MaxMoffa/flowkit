@@ -1,5 +1,5 @@
 import { z } from "zod"
-import type { Flow, ContentText } from "./schema"
+import type { Flow, ContentText, StepImage } from "./schema"
 import type { Answers } from "./flow-state"
 import { answerKey } from "./flow-state"
 import { registerStepType, type ValidationIssue } from "./registry"
@@ -183,6 +183,9 @@ export interface OrderSummaryLine {
   kind: "item" | "fee"
   /** Stripe tax code for the line, when the catalog item carries one. */
   taxCode?: string
+  /** Same badge/thumbnail as the `catalog`/`product` item it came from (`item.image`)
+   *  — absent for `"fee"` lines and for items with no `image` set. */
+  image?: StepImage
 }
 
 export interface OrderSummary {
@@ -243,6 +246,7 @@ export function buildOrderSummary(flow: Flow, answers: Answers): OrderSummary | 
           amount: item.price * line.quantity,
           kind: "item",
           taxCode: item.taxCode,
+          image: item.image,
         })
       }
       continue

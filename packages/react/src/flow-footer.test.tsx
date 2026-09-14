@@ -198,19 +198,12 @@ describe("StepFooter: cart panel +/-/remove controls", () => {
     fireEvent.click(container.querySelector(".fk-footer-cart")!)
     const sheet = container.ownerDocument.querySelector(".fk-cart-sheet")!
 
+    // 2 -> 1: still "Riduci la quantità". 1 -> 0: the same "−" button's aria-label
+    // has swapped to "Rimuovi" (no separate remove button — see cart-summary-list.tsx).
     fireEvent.click(sheet.querySelector('[aria-label="Riduci la quantità"]')!)
-    fireEvent.click(sheet.querySelector('[aria-label="Riduci la quantità"]')!)
-    expect(sheet.textContent).not.toContain("T-shirt")
-    expect(sheet.querySelector(".fk-cart-summary-line")).toBeNull()
-  })
-
-  it("removes the line via the dedicated remove button, regardless of quantity", () => {
-    const { container } = render(<StatefulCartPanel />)
-    fireEvent.click(container.querySelector(".fk-footer-cart")!)
-    const sheet = container.ownerDocument.querySelector(".fk-cart-sheet")!
-
     fireEvent.click(sheet.querySelector('[aria-label="Rimuovi"]')!)
     expect(sheet.textContent).not.toContain("T-shirt")
+    expect(sheet.querySelector(".fk-cart-summary-line")).toBeNull()
   })
 
   it("disables the increase button once the line hits its per-item cap", () => {
