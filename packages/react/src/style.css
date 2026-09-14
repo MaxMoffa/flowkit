@@ -2725,24 +2725,27 @@
 
 /* Footer cart panel: itemized recap (label/qty/unit/amount + total), no tax section —
    see cart-summary-list.tsx for why this is a separate, simpler component than the
-   review step's own `.fk-order-summary`. */
+   review step's own `.fk-order-summary`. Each line is its own card (soft-filled,
+   rounded) instead of a divider-separated list row — picked over a plain list from
+   a design review (see DECISIONS.md, "carrello: variante ibrida card + totale
+   banner"), reads as a set of small product cards rather than a table. */
 .fk-cart-summary-lines {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fk-space-sm);
 }
 
 .fk-cart-summary-line {
   display: flex;
   flex-direction: column;
   gap: var(--fk-space-xs);
-  padding: var(--fk-space-sm) 0;
-  border-bottom: 1px solid var(--fk-border);
+  padding: var(--fk-space-sm);
+  background: var(--fk-soft);
+  border-radius: var(--fk-radius-md);
   font-size: 14px;
-}
-
-.fk-cart-summary-line:last-child {
-  border-bottom: none;
 }
 
 .fk-cart-summary-line-top {
@@ -2866,14 +2869,18 @@
   outline-offset: 1px;
 }
 
+/* Banner, not a plain divided row: the total stays visually anchored/legible even
+   once the line list above scrolls — accent-tinted instead of a border-top, same
+   design review as the card lines above. */
 .fk-cart-summary-total {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--fk-space-md);
   margin-top: var(--fk-space-sm);
-  padding-top: var(--fk-space-md);
-  border-top: var(--fk-border-width) solid var(--fk-border);
+  padding: var(--fk-space-md);
+  background: var(--fk-accent-soft);
+  border-radius: var(--fk-radius-md);
   font-size: 14px;
   color: var(--fk-text2);
 }
@@ -2881,7 +2888,7 @@
 .fk-cart-summary-total-amount {
   font-size: 18px;
   font-weight: 700;
-  color: var(--fk-text);
+  color: var(--fk-accent);
   font-variant-numeric: tabular-nums;
 }
 

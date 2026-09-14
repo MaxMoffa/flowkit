@@ -76,6 +76,13 @@
   same way `paymentDueAmount` already is) instead of staying an icon-only square —
   mobile/tablet keep the exact same fixed 52px square as before, just with the new
   icon.
+- **Cart panel line items are cards, the total is a banner.** `.fk-cart-summary-line`
+  (each order line in the cart panel) is now its own soft-filled, rounded card
+  instead of a plain divider-separated list row; `.fk-cart-summary-total` is an
+  accent-tinted banner (amount in the accent color) instead of a bordered row —
+  stays legible/anchored even once the line list above it scrolls. Picked from a
+  design review comparing several treatments; `cart-summary-list.tsx`'s markup is
+  unchanged, purely a `style.css` update.
 
 ## 1.7.0 — 2026-09-12
 
