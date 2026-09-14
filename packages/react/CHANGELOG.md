@@ -94,6 +94,12 @@
   an inset rounded box to a full-bleed one (flush with the panel's real edges,
   square bottom corners on the mobile bottom-sheet, rounded to match on desktop's
   fully-rounded popover/dialog).
+- **Header gets a divider from the content below, but only while scrolled** —
+  transparent at rest, `--fk-border` once the step's own content scrolls out from
+  under it, back to transparent at the top again (and reset on every step change).
+  Same "content passing under the bar" cue the footer's permanent top border
+  already gives, applied conditionally here since the header sits flush against
+  the hero/step title with nothing to separate from at rest.
 - **Review step's order summary leads with the total.** `OrderSummaryTable`
   (`review.tsx`) now opens with a large centered "hero" total instead of closing
   with a plain row — the number the visitor actually needs to confirm is the first

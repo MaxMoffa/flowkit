@@ -185,6 +185,19 @@
   padding: var(--fk-space-sm) var(--fk-space-xl) 4px;
   min-height: var(--fk-control-height-sm);
   flex: none;
+  /* Transparent, not absent: keeps the same 1px box height whether or not the
+     divider is showing, so it toggling on scroll (see `.fk-header-scrolled`,
+     flow-runner.tsx) never nudges the header's own height by a pixel. */
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+/* Divider from the content below only once it's actually scrolled (not at rest at
+   the top) — same "content passing under the bar" cue as `.fk-footer`'s own
+   permanent top border, but conditional here since the header sits flush against
+   the hero/step title with nothing to separate from at rest. */
+.fk-header-scrolled {
+  border-bottom-color: var(--fk-border);
 }
 
 .fk-back {

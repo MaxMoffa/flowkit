@@ -282,6 +282,12 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     onRetry?: () => void | Promise<void>
   } | null>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
+  /** Header gets a divider from the content below only once it's actually scrolled
+   *  (not at rest at the top) — same "content passing under the bar" cue as
+   *  `.fk-footer`'s own permanent top border, but conditional here since the header
+   *  sits flush against the hero/step title with nothing to separate from at rest. */
+  const [scrolled, setScrolled] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const step = getCurrentStep(flow, state)
   const StepView = getStepComponent(step.type)
   if (!StepView) {
@@ -452,6 +458,11 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   useEffect(() => {
     setAttempt(0)
     setSubmitError(null)
+    // A fresh step starts scrolled to the top — `.fk-scroll` isn't remounted between
+    // steps, so its `scrollTop` (and the header divider it drives) would otherwise
+    // carry over from wherever the previous step was left scrolled.
+    if (scrollRef.current) scrollRef.current.scrollTop = 0
+    setScrolled(false)
   }, [step.id])
 
   /** After a failed advance attempt, move focus to the first field the attempt itself
@@ -775,7 +786,10 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
           />
         )}
         {showHeader && (
-          <div className="fk-header" style={{ order: layout.headerOrder }}>
+          <div
+            className={`fk-header${scrolled ? " fk-header-scrolled" : ""}`}
+            style={{ order: layout.headerOrder }}
+          >
             <div className="fk-header-inner">
               {!flow.disableBack && (
                 <button
@@ -801,7 +815,9 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
         )}
         <div className="fk-body" style={{ order: 2 }}>
           <div
+            ref={scrollRef}
             className={`fk-scroll${showHeader ? "" : " fk-scroll-noheader"}${isMapStep ? " fk-scroll-location" : ""}`}
+            onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}
           >
             <div className="fk-scroll-inner" style={layout.scrollInnerStyle}>
               <div
