@@ -25,6 +25,15 @@
   text glyph — crisp at any size/zoom, not dependent on the platform's font for the
   glyph.
 
+### Fixed
+
+- Footer, desktop (>=1024px), cart + `ctaFootnote` together: the footnote (a step's
+  small print under the primary button) used to get squeezed onto the same row as the
+  running order total/back/primary buttons instead of staying on its own row
+  underneath, because `.fk-footer-inner` becomes a `flex-direction: row` container
+  once a cart is present and the footnote is a plain sibling of that row with no
+  forced width of its own. Also now left-aligned on desktop instead of centered.
+
 ## 1.7.0 — 2026-09-12
 
 ### Added

@@ -34,6 +34,8 @@ const presetLoaders: Record<string, () => Promise<Flow>> = {
   "flow-overlay-demo": () => import("./flow-overlay-demo").then((m) => m.flowOverlayDemoFlow),
   "other-option-demo": () => import("./other-option-demo").then((m) => m.otherOptionDemoFlow),
   "subflow-demo": () => import("./subflow-demo").then((m) => m.subflowDemoFlow),
+  "footer-cart-footnote-demo": () =>
+    import("./footer-cart-footnote-demo").then((m) => m.footerCartFootnoteDemoFlow),
 }
 
 export const presetKeys: string[] = Object.keys(presetLoaders)
@@ -83,4 +85,5 @@ export const presetLabels: Record<string, string> = {
   "flow-overlay-demo": "Flow in overlay: drawer/dialog (demo)",
   "other-option-demo": "Opzione «Altro» in radio/multi-select (demo)",
   "subflow-demo": "Flow dentro un flow (demo)",
+  "footer-cart-footnote-demo": "Footer: carrello + footnote (demo)",
 }

@@ -20,6 +20,7 @@ function readParams() {
   const themeKey = params.get("theme")
   const modeParam = params.get("mode")
   const chromeParam = params.get("chrome")
+  const initialAnswersRaw = params.get("initialAnswers")
   return {
     presetKey: presetKey && presetKeys.includes(presetKey) ? presetKey : "odori",
     stepPreviewType,
@@ -29,6 +30,18 @@ function readParams() {
     // A regular preset fullscreen preview keeps the toolbar by default. Either can be
     // forced with ?chrome=0|1.
     showChrome: chromeParam !== null ? chromeParam !== "0" : !stepPreviewType,
+    // Debug-only, mirrors app.tsx's identical `?initialAnswers=` — lets an e2e test seed
+    // answers (e.g. a resumed cart) on a step that needs the fullscreen route's real
+    // (>=1024px-capable) container width, which app.tsx's fixed-width phone mock never
+    // reaches. Not part of the public API.
+    initialAnswers: ((): Answers | undefined => {
+      if (!initialAnswersRaw) return undefined
+      try {
+        return JSON.parse(initialAnswersRaw) as Answers
+      } catch {
+        return undefined
+      }
+    })(),
   }
 }
 
@@ -63,7 +76,8 @@ function useFullscreenFlow(presetKey: string, stepPreviewType: string | null): F
 }
 
 export function FullscreenPreview() {
-  const [{ presetKey, stepPreviewType, themeKey, mode, showChrome }] = useState(readParams)
+  const [{ presetKey, stepPreviewType, themeKey, mode, showChrome, initialAnswers: debugInitialAnswers }] =
+    useState(readParams)
   const [simWidth, setSimWidth] = useState<SimWidth>(stepPreviewType ? 390 : null)
 
   const theme = themes[themeKey]!
@@ -126,6 +140,7 @@ export function FullscreenPreview() {
             theme={theme}
             mode={mode}
             initialStep={stepPreviewType ? "preview" : undefined}
+            initialAnswers={debugInitialAnswers}
             onSubmit={onSubmit}
             onStepChange={(step) => {
               // Debug hook, read by e2e/flow-runner-step-change.spec.ts — not part of

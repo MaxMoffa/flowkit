@@ -890,10 +890,22 @@
      made sense for the no-cart case. */
   .fk-footer-inner:has(.fk-footer-order-total) {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--fk-space-xl);
     max-width: none;
+  }
+
+  /* `.fk-footer-note` (ctaFootnote) is a plain sibling of `.fk-footer-order-total`/
+     `.fk-footer-row` in `.fk-footer-inner` — once that becomes a row above (cart
+     present), it would otherwise squeeze in as a third item on the same line instead
+     of staying on its own row underneath. `flex-basis: 100%` on a wrapped flex item
+     always starts a fresh line regardless of the room left on the previous one, which
+     is exactly "own row, forced to the bottom" here since it's last in DOM order. */
+  .fk-footer-inner:has(.fk-footer-order-total) .fk-footer-note {
+    flex: 1 0 100%;
+    text-align: left;
   }
 
   .fk-footer-inner:has(.fk-footer-order-total) .fk-footer-order-total {
