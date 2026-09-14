@@ -7,7 +7,7 @@ import { openPreset } from "./helpers/open-preset"
  * flow.steps.length — see core's resolveFlowPath/getProgressInfo.
  */
 test.describe("branch-aware progress bar", () => {
-  test("counter shows the optimistic (fallback) total before answering, then updates live on choice, then reflects the shortened path after the branch skips a step", async ({
+  test("counter shows the optimistic (shortest-case) total before answering, then stays put on choice, then reflects the shortened path after the branch skips a step", async ({
     page,
   }) => {
     await openPreset(page, { preset: "branch-demo" })
@@ -15,12 +15,12 @@ test.describe("branch-aware progress bar", () => {
     const stepno = page.locator(".fk-stepno")
     const continueBtn = page.getByRole("button", { name: "Continua", exact: true })
 
-    // "has-pet" -> "pet-name" -> "review": 3 middle steps is the fallback/optimistic
-    // guess before the branching question is answered.
-    await expect(stepno).toHaveText("1/3")
+    // "has-pet" -> "review" (skipping "pet-name"): 2 is the shortest outcome the branch
+    // could still produce, so that's the guess shown before it's answered — even while
+    // sitting right on "has-pet", the step that will decide it.
+    await expect(stepno).toHaveText("1/2")
 
-    // Picking "No" resolves the branch live, before even clicking Continua: the total
-    // drops to 2 (pet-name gets skipped) without any navigation happening yet.
+    // Picking "No" resolves the branch for real, matching the guess: total stays 2.
     await page.getByRole("radio", { name: "No" }).check()
     await expect(stepno).toHaveText("1/2")
 

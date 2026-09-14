@@ -212,8 +212,12 @@ export function resolveFlowPath(flow: Flow, state: FlowState): ResolvedPath {
  *  walking from there, so `determinate` is always `true` and a total is always shown.
  *  The guess can only grow the reported total as the user answers the steps each branch
  *  actually depends on — never shrink it — since "shortest so far" is a lower bound; a
- *  branch whose dependency is already known (answered, or at/before `state.index`) is
- *  still resolved for real, exactly like `resolveFlowPath`, not guessed.
+ *  branch whose dependency already has an answer is resolved for real, exactly like
+ *  `resolveFlowPath`, not guessed. Unlike `resolveFlowPath`, "already has an answer" is
+ *  the *only* thing that stops the guessing — not also "at or before `state.index`":
+ *  landing on the very step that would answer the dependency, without having answered
+ *  it yet, keeps the guess in place instead of resolving it as a non-match, so the
+ *  total doesn't jump the instant the user arrives there.
  *
  *  Never use this for reachability or pruning (`isStepReachable`,
  *  `setAnswerAndInvalidateDownstream` stay on the strict `resolveFlowPath`): a wrong
@@ -252,7 +256,17 @@ function walkFlowPath(flow: Flow, state: FlowState, optimistic: boolean): Resolv
       const dependencyKeys = new Set<string>()
       for (const rule of branch.rules) collectConditionKeys(rule.when, dependencyKeys)
 
+      // Optimistic mode keeps guessing as long as a dependency simply hasn't been
+      // answered yet — including while the user is sitting right on the step that
+      // would answer it. The strict check below (depIndex > state.index) treats
+      // "reached" as good enough and resolves for real using the missing key as a
+      // non-match; for a guess-based display that flips the total from the short
+      // guess to whatever that non-match happens to resolve to (often the *longer*
+      // path) the instant the user lands on that step, before they've actually
+      // answered anything — a total that jumps for no real reason, which is exactly
+      // what the optimistic total promises never to do (see resolveFlowPathOptimistic).
       const unresolvable = Array.from(dependencyKeys).some((key) => {
+        if (optimistic) return !(key in state.answers)
         const depIndex = indexByKey.get(key)
         return depIndex !== undefined && depIndex > state.index && !(key in state.answers)
       })

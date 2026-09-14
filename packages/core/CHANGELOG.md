@@ -53,6 +53,10 @@
   consumers that gate real navigation/answer-pruning, not just what's displayed — stay
   on the strict `resolveFlowPath`: a wrong guess here only ever costs a smoother-looking
   number, never a correctness bug, and those two can't afford that trade.
+  Guessing only ever stops once a dependency has an actual answer — landing on the very
+  step that would answer it (without answering it yet) still keeps the guess, instead of
+  jumping the total the instant the user arrives there the way resolving it as a
+  non-match would.
 
 ## 1.7.0 — 2026-09-13
 
