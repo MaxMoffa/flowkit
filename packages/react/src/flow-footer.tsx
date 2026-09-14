@@ -23,24 +23,21 @@ function FooterShell({ order, rootRef, children }: FooterShellProps) {
   )
 }
 
-/** Cart trigger button: 🛒 with an optional item-count badge. Rendered twice by
- *  `StepFooter` — once inside `.fk-footer-row` (mobile, next to the primary button)
- *  and once inside `.fk-footer-order-total` (desktop, next to the total) — CSS alone
- *  decides which is visible at a given width (same dual-render pattern as the header
- *  vs. footer "back" button). */
+/** Cart trigger button: 🛒 with an optional item-count badge, next to the primary
+ *  button (see `.fk-footer-primary-row`) — the only place the running total is shown
+ *  at all (opens the itemized recap panel), the footer no longer prints a plain total
+ *  line of its own. */
 function CartTriggerButton({
-  className,
   count,
   ariaLabel,
   onClick,
 }: {
-  className: string
   count: number
   ariaLabel: string
   onClick: () => void
 }) {
   return (
-    <button type="button" className={`fk-footer-cart ${className}`} aria-label={ariaLabel} onClick={onClick}>
+    <button type="button" className="fk-footer-cart" aria-label={ariaLabel} onClick={onClick}>
       <span aria-hidden="true">🛒</span>
       {count > 0 && <span className="fk-footer-cart-badge">{count}</span>}
     </button>
@@ -89,14 +86,10 @@ interface StepFooterProps {
   /** Small print under the primary button (intro step's `ctaFootnote` — e.g. a
    *  platform disclaimer). Restricted markdown, so a link is allowed. */
   footnote?: string | null
-  /** Running order total (catalog items + priced options), shown as a plain line just
-   *  above the button row on every step once the order is non-empty. Both strings are
-   *  already localized. */
-  orderTotal?: { label: string; amount: string; taxNote?: string } | null
-  /** Cart recap panel data — present under the exact same condition as `orderTotal`
-   *  (non-empty cart). When set, a 🛒 trigger button appears next to the primary
-   *  button on mobile and next to the total on desktop, opening a drawer/dialog with
-   *  the itemized recap (`CartSummaryList`). */
+  /** Cart recap panel data — present once the order is non-empty. When set, a 🛒
+   *  trigger button appears next to the primary button, opening a drawer/dialog with
+   *  the itemized recap (`CartSummaryList`) — the only place the running total shows,
+   *  the footer itself no longer prints a plain total line. */
   cart?: FooterCartInfo | null
   progress: { Component: ComponentType<ProgressComponentProps> | null; show: boolean } & ProgressComponentProps
 }
@@ -114,7 +107,6 @@ export function StepFooter({
   onPrimary,
   error,
   footnote,
-  orderTotal,
   cart,
   progress,
 }: StepFooterProps) {
@@ -136,21 +128,6 @@ export function StepFooter({
           {error}
         </p>
       )}
-      {orderTotal && (
-        <div className="fk-footer-order-total">
-          {cart && (
-            <CartTriggerButton
-              className="fk-footer-cart-total"
-              count={cart.count}
-              ariaLabel={cartAriaLabel}
-              onClick={() => setCartOpen(true)}
-            />
-          )}
-          <span>{orderTotal.label}</span>
-          <span className="fk-footer-order-total-amount">{orderTotal.amount}</span>
-          {orderTotal.taxNote && <span className="fk-footer-order-total-tax-note">{orderTotal.taxNote}</span>}
-        </div>
-      )}
       <div className="fk-footer-row">
         {showBack && (
           <button type="button" className="fk-footer-back" onClick={onBack} disabled={backDisabled}>
@@ -165,12 +142,7 @@ export function StepFooter({
           // (border-box padding isn't part of the flex-basis:0% "free space" split),
           // throwing off their equal-width split on desktop.
           <div className="fk-footer-primary-row">
-            <CartTriggerButton
-              className="fk-footer-cart-row"
-              count={cart.count}
-              ariaLabel={cartAriaLabel}
-              onClick={() => setCartOpen(true)}
-            />
+            <CartTriggerButton count={cart.count} ariaLabel={cartAriaLabel} onClick={() => setCartOpen(true)} />
             <button
               type="button"
               className={`fk-btn-primary ${isSubmit ? "fk-btn-success" : ""}`}

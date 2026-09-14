@@ -24,15 +24,22 @@
 - The header back button's icon is now an inline SVG chevron-arrow instead of a `←`
   text glyph — crisp at any size/zoom, not dependent on the platform's font for the
   glyph.
-
-### Fixed
-
-- Footer, desktop (>=1024px), cart + `ctaFootnote` together: the footnote (a step's
-  small print under the primary button) used to get squeezed onto the same row as the
-  running order total/back/primary buttons instead of staying on its own row
-  underneath, because `.fk-footer-inner` becomes a `flex-direction: row` container
-  once a cart is present and the footnote is a plain sibling of that row with no
-  forced width of its own. Also now left-aligned on desktop instead of centered.
+- **Footer no longer prints a plain running-total line at all** (`.fk-footer-order-
+  total`, the label/amount/tax-note row above Indietro/Continua) — the cart trigger's
+  panel (`CartSummaryList`) already shows the same itemized total, so the footer line
+  was a redundant second place for the same number. A non-empty cart now only ever
+  adds the 🛒 trigger next to the primary button (mobile and desktop alike); it no
+  longer changes the Indietro/Continua row's layout in any way, which was also what
+  caused a real desktop (>=1024px) bug: with the total line present, `.fk-footer-inner`
+  switched to a full-bleed `flex-direction: row` (total pinned left, buttons pinned
+  right, `ctaFootnote` squeezed onto that same line) instead of staying in the same
+  centered reading column every other step uses. `intro` also no longer shows the cart
+  at all (trigger or total), matching `review`, which already didn't — a resumed
+  cart's total next to the hero CTA read as visual noise more than useful context.
+- `CartTriggerButton` is a single render site now (previously duplicated — one next
+  to the primary button for mobile, one next to the now-removed total line for
+  desktop, with CSS picking which showed); `ProgressComponentProps`/`StepFooterProps`
+  callers unaffected, this was `flow-footer.tsx`-internal.
 
 ## 1.7.0 — 2026-09-12
 

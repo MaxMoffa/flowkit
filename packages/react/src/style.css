@@ -781,38 +781,10 @@
   text-decoration: underline;
 }
 
-/* Running order total: plain line above the button row, no card / no fill. Label on
-   the left, amount (+ tax note, when present) grouped together on the right — NOT
-   `justify-content: space-between` on all three children, which would spread the
-   amount into the middle between the label and the tax note instead of keeping it
-   next to it. `margin-left: auto` on the amount absorbs the space before it; `gap`
-   still applies its normal small spacing between the amount and the tax note. */
-.fk-footer-order-total {
-  display: flex;
-  align-items: baseline;
-  gap: var(--fk-space-md);
-  font-size: 14px;
-  color: var(--fk-text2);
-}
-
-.fk-footer-order-total-amount {
-  margin-left: auto;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--fk-text);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Discreet "+ IVA" / "IVA inclusa" hint next to the footer's running total — see
-   packages/react/src/steps/shared/tax-note.ts. */
-.fk-footer-order-total-tax-note {
-  font-size: 11px;
-  color: var(--fk-text2);
-}
-
-/* Wraps the primary button (and, on mobile, the cart trigger beside it) so the two
-   can sit in their own row regardless of whether `.fk-footer-row` itself is a column
-   (mobile) or a row (desktop, >=1024px below) — see .fk-footer-cart. */
+/* Wraps the primary button and the cart trigger beside it (see .fk-footer-cart) so
+   the two sit in their own row regardless of whether `.fk-footer-row` itself is a
+   column (mobile) or a row (desktop, >=1024px) — see the >=1024px block near the top
+   of this file. */
 .fk-footer-primary-row {
   display: flex;
   gap: var(--fk-space-sm);
@@ -820,9 +792,9 @@
   min-width: 0;
 }
 
-/* Cart trigger: small square icon button, rendered next to the primary button on
-   mobile (`.fk-footer-cart-row`) and next to the running total on desktop
-   (`.fk-footer-cart-total`) — only one of the two is visible at a given width. */
+/* Cart trigger: small square icon button next to the primary button, opening the
+   itemized recap panel — the only place the running total is shown; the footer
+   itself doesn't print a plain total line. */
 .fk-footer-cart {
   position: relative;
   flex: none;
@@ -863,68 +835,6 @@
   justify-content: center;
   font-variant-numeric: tabular-nums;
   box-sizing: border-box;
-}
-
-.fk-footer-cart-total {
-  display: none;
-}
-
-@container fk-shell (min-width: 1024px) {
-  .fk-footer-cart-row {
-    display: none;
-  }
-
-  .fk-footer-cart-total {
-    display: inline-flex;
-  }
-
-  /* Cart non-empty (order total shown): total block moves beside the button row
-     instead of stacking above it — label/amount (+ cart trigger) on the left,
-     Indietro/Continua on the right, same line. Scoped with :has() so steps without
-     a cart keep the default column footer untouched.
-     `max-width: none` (higher specificity than the plain `.fk-footer-inner` rule
-     near the top of this file, which caps it at `--fk-content-max-width`/640px)
-     lets this row use the footer's real full-bleed width instead of being squeezed
-     into the 640px reading column — the footer bar itself is already full-bleed
-     (same reasoning as the header, see above), the reading-column cap only ever
-     made sense for the no-cart case. */
-  .fk-footer-inner:has(.fk-footer-order-total) {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--fk-space-xl);
-    max-width: none;
-  }
-
-  /* `.fk-footer-note` (ctaFootnote) is a plain sibling of `.fk-footer-order-total`/
-     `.fk-footer-row` in `.fk-footer-inner` — once that becomes a row above (cart
-     present), it would otherwise squeeze in as a third item on the same line instead
-     of staying on its own row underneath. `flex-basis: 100%` on a wrapped flex item
-     always starts a fresh line regardless of the room left on the previous one, which
-     is exactly "own row, forced to the bottom" here since it's last in DOM order. */
-  .fk-footer-inner:has(.fk-footer-order-total) .fk-footer-note {
-    flex: 1 0 100%;
-    text-align: left;
-  }
-
-  .fk-footer-inner:has(.fk-footer-order-total) .fk-footer-order-total {
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: flex-start;
-    gap: var(--fk-space-sm);
-  }
-
-  /* Bounded (not flex:1 1 auto growing to fill the now much wider row): with the
-     `max-width: none` above, letting the buttons grow to fill the leftover space
-     would turn "Indietro"/"Continua" into two oversized buttons spanning most of
-     the bar. Capped so `justify-content: space-between` on the parent instead
-     leaves the freed-up width as real empty space between the total and the
-     buttons, while the buttons keep sitting flush against the real right edge. */
-  .fk-footer-inner:has(.fk-footer-order-total) .fk-footer-row {
-    flex: 0 1 420px;
-    min-width: 0;
-  }
 }
 
 /* Scoped to max-width (not a bare, unconditional rule): this file declares the

@@ -1,13 +1,11 @@
 import { parseFlow, type Flow } from "@flowkit-io/core"
 
 /**
- * Minimal repro for the footer layout bug (desktop, cart + `ctaFootnote` together).
- * The `review` step deliberately never shows the running total (it has its own
- * itemized recap — see flow-runner.tsx's `orderSummary`), so the only place the two
- * genuinely coexist is `intro` with a resumed cart (e.g. an abandoned checkout) —
- * the e2e spec seeds that via the fullscreen preview's `?initialAnswers=`. `review`
- * still carries its own `ctaFootnote` here too, for manual testing/parity with the
- * original bug report.
+ * Exercises the footer's cart trigger next to a `ctaFootnote` (intro and review both
+ * carry one). Neither `intro` nor `review` ever shows the cart (trigger or total) —
+ * see flow-runner.tsx's `orderSummary`, gated off on both roles — so the two never
+ * actually coexist visually; the e2e spec seeds a resumed cart via the fullscreen
+ * preview's `?initialAnswers=` to assert exactly that (no cart, footnote unaffected).
  */
 export const footerCartFootnoteDemoFlow: Flow = parseFlow({
   id: "footer-cart-footnote-demo",

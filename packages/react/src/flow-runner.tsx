@@ -346,36 +346,24 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
   }
   const visitedStepIds = useMemo(() => new Set([...state.history, step.id]), [state.history, step.id])
 
-  /** Running order total in the footer: shown on every step once the cart is non-empty,
-   *  so the amount stays in view from item selection through payment. The final review
-   *  step is the exception — it renders its own itemized recap with the (tax-inclusive)
-   *  total, so a second figure in the footer would just be confusing. */
-  /** Same `buildOrderSummary` call backs both the plain `orderTotal` line (every
-   *  step's footer) and the fuller `cart` recap (the footer's cart button/panel,
-   *  see flow-footer.tsx) — computed once here instead of twice. */
+  /** Cart trigger/panel: shown once the cart is non-empty, from item selection through
+   *  payment — the panel is the only place the running total appears now (no plain
+   *  total line in the footer anymore). Exempted on `intro` (a resumed cart's total
+   *  next to the hero CTA read as visual noise, and caused a desktop layout bug — see
+   *  DECISIONS.md) and `review` (its own itemized recap already shows the total). */
   const orderSummary = useMemo(() => {
-    if (isReviewType) return null
+    if (isReviewType || isIntro) return null
     const summary = buildOrderSummary(flow, state.answers)
     return summary && summary.total > 0 ? summary : null
-  }, [flow, state.answers, isReviewType])
+  }, [flow, state.answers, isReviewType, isIntro])
 
   /** Same discreet "+ IVA" / "IVA inclusa" hint the `catalog`/`product` steps show
-   *  next to each price (see `steps/shared/tax-note.ts`), reused here for the
-   *  footer's running total and cart panel so the same flow reads consistently
-   *  wherever a price appears. */
+   *  next to each price (see `steps/shared/tax-note.ts`), reused here for the cart
+   *  panel so the same flow reads consistently wherever a price appears. */
   const taxNote = useMemo(() => {
     const paymentStep = flow.steps.find((s) => s.type === "payment-stripe") as PaymentStripeStep | undefined
     return taxBehaviorNote(flow, paymentStep)
   }, [flow])
-
-  const orderTotal = useMemo(() => {
-    if (!orderSummary) return null
-    return {
-      label: resolveText(flow, "catalogTotal"),
-      amount: formatMoney(orderSummary.total, orderSummary.currency, flow.locale),
-      taxNote,
-    }
-  }, [flow, orderSummary, taxNote])
 
   /** Amount the review step's submit button will charge, formatted for the "Paga
    *  {amount}" label below — `null` when the flow has no payment step, or the
@@ -865,7 +853,6 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
             onPrimary={handleNext}
             error={submitError}
             footnote={ctaFootnote}
-            orderTotal={orderTotal}
             cart={cart}
             progress={{
               Component: layout.ProgressComponent,

@@ -86,15 +86,12 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
   })
 
   /**
-   * Regression for the footer-squeeze bug: with a cart total present, the
-   * [🛒+total] / [Indietro/Continua] group used to stay centered inside the same
-   * 640px reading column as the step content, leaving large empty margins on both
-   * sides of the footer bar instead of using them. `.fk-footer-inner:has(.fk-footer-
-   * order-total)` now drops the reading-column cap so the group sits near the real
-   * left/right edges of the footer instead. See style.css `@container fk-shell
-   * (min-width: 1024px)`.
+   * The footer never prints a plain running-total line anymore (the cart panel is the
+   * only place that shows it) — so a non-empty cart must not change the Indietro/
+   * Continua row's layout at all: it stays in the same centered 640px reading column,
+   * cart trigger included, exactly like the no-cart case.
    */
-  test("cart total + buttons use the real footer width instead of a centered 640px column", async ({
+  test("cart present: back/continue (+ cart trigger) stay in the centered reading column, no total line", async ({
     page,
   }) => {
     await page.goto("/fullscreen.html?preset=catalog-demo&theme=warm-paper&mode=light")
@@ -109,31 +106,22 @@ test.describe("desktop flow navigation (fullscreen preview, true full width)", (
 
     const frame = page.locator(".pg-fullscreen-frame")
     const footer = frame.locator(".fk-footer")
-    const cartGroup = frame.locator(".fk-footer-order-total")
     const row = frame.locator(".fk-footer-row")
-    await expect(cartGroup).toBeVisible()
+    await expect(frame.locator(".fk-footer-order-total")).toHaveCount(0)
+    await expect(frame.locator(".fk-footer-cart")).toBeVisible()
 
     const footerBox = (await footer.boundingBox())!
-    const cartGroupBox = (await cartGroup.boundingBox())!
     const rowBox = (await row.boundingBox())!
 
-    // Sanity check this viewport is actually wide enough for the bug to matter.
+    // Sanity check this viewport is actually wide enough for the bug this guards
+    // against (row spreading to the real edges instead of staying centered) to show.
     expect(footerBox.width).toBeGreaterThan(900)
 
-    // Cart+total group sits close to the footer's real left edge — nowhere near the
-    // middle, which is where a still-centered 640px column would put it.
-    const leftGap = cartGroupBox.x - footerBox.x
-    expect(leftGap).toBeLessThan(60)
-    expect(leftGap).toBeLessThan(footerBox.width / 4)
-
-    // Indietro/Continua sit close to the footer's real right edge...
+    // Centered as a column, not flush to the real (much wider) footer edges.
+    const leftGap = rowBox.x - footerBox.x
     const rightGap = footerBox.x + footerBox.width - (rowBox.x + rowBox.width)
-    expect(rightGap).toBeLessThan(60)
-
-    // ...without ballooning to fill all the freed-up space themselves: real empty
-    // space remains between the total and the buttons.
-    const middleGap = rowBox.x - (cartGroupBox.x + cartGroupBox.width)
-    expect(middleGap).toBeGreaterThan(100)
+    expect(leftGap).toBeGreaterThan(100)
+    expect(Math.abs(leftGap - rightGap)).toBeLessThan(5)
   })
 
   test("clicking the footer back button navigates to the previous step", async ({ page }) => {

@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test"
 
 /**
- * Minimal coverage for the footer's cart button/panel (this task's #3): the 🛒
- * trigger appears next to Continue exactly when the running order total shows up
- * (catalog-demo's default mobile-width viewport, see playwright.config.ts), opening
- * a drawer with the itemized recap; closes via the ✕.
+ * Minimal coverage for the footer's cart button/panel: the 🛒 trigger appears next to
+ * Continue exactly when the order goes non-empty, opening a drawer with the itemized
+ * recap (the only place the running total shows — the footer itself no longer prints
+ * a plain total line); closes via the ✕.
  */
 test("catalog step: cart button opens a panel with the selected items, closes via ✕", async ({ page }) => {
   await page.goto("/")
@@ -21,10 +21,7 @@ test("catalog step: cart button opens a panel with the selected items, closes vi
     .getByRole("button", { name: "Aggiungi" })
     .click()
 
-  // Two render sites exist (mobile row + desktop total block, see flow-footer.tsx);
-  // only one is visible at a given viewport width — `:visible` picks whichever CSS
-  // shows here instead of hardcoding which of the two that is.
-  const cartButton = page.locator(".fk-footer-cart:visible")
+  const cartButton = page.locator(".fk-footer-cart")
   await expect(cartButton).toHaveCount(1)
 
   await cartButton.click()
@@ -55,7 +52,7 @@ test("catalog step: cart panel +/-/remove controls write back to the source step
     .getByRole("button", { name: "Aggiungi" })
     .click()
 
-  const cartButton = page.locator(".fk-footer-cart:visible")
+  const cartButton = page.locator(".fk-footer-cart")
   await cartButton.click()
   const panel = page.locator(".fk-cart-sheet")
   const panelLine = panel.locator(".fk-cart-summary-line", { hasText: "T-shirt FlowKit" })

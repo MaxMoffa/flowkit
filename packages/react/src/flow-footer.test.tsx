@@ -84,24 +84,15 @@ describe("StepFooter: cart panel", () => {
     expect(container.querySelector(".fk-footer-cart")).toBeNull()
   })
 
-  it("shows a cart trigger with the item-count badge exactly when orderTotal/cart are set", () => {
-    const { container } = renderStepFooter({
-      orderTotal: { label: "Totale ordine", amount: "50,00 €" },
-      cart,
-    })
-    const triggers = container.querySelectorAll(".fk-footer-cart")
-    // Two render sites (mobile row + desktop total block); CSS decides which shows.
-    expect(triggers).toHaveLength(2)
-    triggers.forEach((trigger) => {
-      expect(trigger.querySelector(".fk-footer-cart-badge")?.textContent).toBe("2")
-    })
+  it("shows a cart trigger with the item-count badge exactly when cart is set", () => {
+    const { container } = renderStepFooter({ cart })
+    const trigger = container.querySelector(".fk-footer-cart")
+    expect(trigger).not.toBeNull()
+    expect(trigger!.querySelector(".fk-footer-cart-badge")?.textContent).toBe("2")
   })
 
   it("opens the cart panel from the trigger and shows the itemized recap, then closes it", () => {
-    const { container } = renderStepFooter({
-      orderTotal: { label: "Totale ordine", amount: "50,00 €" },
-      cart,
-    })
+    const { container } = renderStepFooter({ cart })
     expect(container.ownerDocument.querySelector(".fk-cart-sheet")).toBeNull()
 
     fireEvent.click(container.querySelector(".fk-footer-cart")!)
@@ -115,12 +106,8 @@ describe("StepFooter: cart panel", () => {
     expect(container.ownerDocument.querySelector(".fk-cart-sheet")).toBeNull()
   })
 
-  it("shows the tax-behavior note next to the running total and the cart panel's total when set", () => {
-    const { container } = renderStepFooter({
-      orderTotal: { label: "Totale ordine", amount: "50,00 €", taxNote: "+ IVA" },
-      cart: { ...cart, taxNote: "+ IVA" },
-    })
-    expect(container.querySelector(".fk-footer-order-total-tax-note")?.textContent).toBe("+ IVA")
+  it("shows the tax-behavior note in the cart panel's total when set", () => {
+    const { container } = renderStepFooter({ cart: { ...cart, taxNote: "+ IVA" } })
 
     fireEvent.click(container.querySelector(".fk-footer-cart")!)
     const sheet = container.ownerDocument.querySelector(".fk-cart-sheet")!
@@ -128,11 +115,7 @@ describe("StepFooter: cart panel", () => {
   })
 
   it("shows no tax-behavior note when the flow has no real tax integration (taxNote unset)", () => {
-    const { container } = renderStepFooter({
-      orderTotal: { label: "Totale ordine", amount: "50,00 €" },
-      cart,
-    })
-    expect(container.querySelector(".fk-footer-order-total-tax-note")).toBeNull()
+    const { container } = renderStepFooter({ cart })
 
     fireEvent.click(container.querySelector(".fk-footer-cart")!)
     const sheet = container.ownerDocument.querySelector(".fk-cart-sheet")!
@@ -189,7 +172,6 @@ function StatefulCartPanel() {
       isSubmit={false}
       onPrimary={vi.fn()}
       progress={{ Component: null, show: false, pct: 0, currentIndex: 0, total: null }}
-      orderTotal={{ label: "Totale ordine", amount: `${(2500 * quantity) / 100},00 €` }}
       cart={cartInfo}
     />
   )

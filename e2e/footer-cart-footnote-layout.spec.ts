@@ -1,23 +1,19 @@
 import { test, expect } from "@playwright/test"
 
 /**
- * Desktop-only layout bug: with the cart non-empty (running order total shown),
- * `.fk-footer-inner` becomes a `flex-direction: row` container (see style.css,
- * `@container fk-shell (min-width: 1024px)`) so the total and the back/primary row
- * sit side by side. `.fk-footer-note` (a step's `ctaFootnote`) is a plain sibling of
- * both — without a forced full-width flex-basis it would squeeze in as a third item
- * on that same line instead of staying on its own row underneath, and inherits the
- * (otherwise fine) `text-align: center` meant for the no-cart, single-column case.
- *
- * Repro needs a step with both a non-empty cart *and* a `ctaFootnote` — `review`
- * deliberately never shows the running total (it has its own itemized recap), so the
- * only real-world way to get both is `intro` with a resumed cart (e.g. an abandoned
- * checkout), seeded here via the fullscreen preview's debug-only `?initialAnswers=`.
+ * `intro` and `review` never show the cart (trigger or total) even with a non-empty
+ * cart — see flow-runner.tsx's `orderSummary`, gated off on both roles: `review` has
+ * its own itemized recap, `intro`'s hero CTA shouldn't carry a resumed cart's total
+ * as extra chrome. Regression coverage for both: this combination used to cause the
+ * footer to squeeze `ctaFootnote` onto the total's row on desktop (see git history) —
+ * now moot since neither step ever shows a cart element in the first place, but worth
+ * asserting explicitly so a future change to that gating doesn't silently reintroduce
+ * a `ctaFootnote` + cart-trigger combination nobody has designed for.
  */
-test.describe("footer: cart + ctaFootnote on desktop", () => {
+test.describe("footer: cart stays hidden on intro/review even with a resumed cart", () => {
   test.use({ viewport: { width: 1280, height: 900 } })
 
-  test("footnote stays on its own row, left-aligned, below the total/buttons row", async ({ page }) => {
+  test("intro: no cart trigger/total, footnote renders normally", async ({ page }) => {
     const initialAnswers = JSON.stringify({ cart: { items: [{ value: "sticker", quantity: 1 }], total: 500 } })
     await page.goto(
       `/fullscreen.html?preset=footer-cart-footnote-demo&theme=warm-paper&mode=light` +
@@ -26,23 +22,34 @@ test.describe("footer: cart + ctaFootnote on desktop", () => {
     await page.getByRole("button", { name: "Desktop (100%)" }).click()
 
     await expect(page.getByRole("heading", { name: "Footer: carrello + footnote" })).toBeVisible()
+    await expect(page.locator(".fk-footer-order-total")).toHaveCount(0)
+    await expect(page.locator(".fk-footer-cart")).toHaveCount(0)
 
-    const orderTotal = page.locator(".fk-footer-order-total")
-    const footerRow = page.locator(".fk-footer-row")
     const footnote = page.locator(".fk-footer-note")
-    await expect(orderTotal).toBeVisible()
     await expect(footnote).toBeVisible()
+    await expect(footnote).toContainText("carrello lasciato in sospeso")
+  })
 
-    expect(await footnote.evaluate((el) => getComputedStyle(el).textAlign)).toBe("left")
+  test("review: cart from the catalog step doesn't show in the footer, footnote renders normally", async ({
+    page,
+  }) => {
+    await page.goto("/fullscreen.html?preset=footer-cart-footnote-demo&theme=warm-paper&mode=light")
+    await page.getByRole("button", { name: "Desktop (100%)" }).click()
+    await page.getByRole("button", { name: "Prova" }).click()
 
-    const totalBox = (await orderTotal.boundingBox())!
-    const rowBox = (await footerRow.boundingBox())!
-    const noteBox = (await footnote.boundingBox())!
-    // Below both the total and the back/primary row, not squeezed onto their line.
-    expect(noteBox.y).toBeGreaterThanOrEqual(totalBox.y + totalBox.height - 1)
-    expect(noteBox.y).toBeGreaterThanOrEqual(rowBox.y + rowBox.height - 1)
-    // Left-aligned: starts near the footer's left edge, not centered in it.
-    const innerBox = (await page.locator(".fk-footer-inner").boundingBox())!
-    expect(noteBox.x).toBeLessThan(innerBox.x + 40)
+    await expect(page.getByRole("heading", { name: "Scegli un prodotto" })).toBeVisible()
+    await page.getByRole("button", { name: "Aggiungi" }).click()
+    // Cart shows here (not intro/review): non-empty order, catalog itself isn't gated.
+    await expect(page.locator(".fk-footer-cart")).toBeVisible()
+
+    await page.getByRole("button", { name: "Continua", exact: true }).click()
+
+    await expect(page.getByRole("heading", { name: "Rivedi le risposte" })).toBeVisible()
+    await expect(page.locator(".fk-footer-order-total")).toHaveCount(0)
+    await expect(page.locator(".fk-footer-cart")).toHaveCount(0)
+
+    const footnote = page.locator(".fk-footer-note")
+    await expect(footnote).toBeVisible()
+    await expect(footnote).toContainText("termini di servizio")
   })
 })
