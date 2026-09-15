@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import type { PointerEvent as ReactPointerEvent } from "react"
 import type { UploadedItem } from "@flowkit-io/core"
+import { CloseIcon } from "./close-icon"
+import { TrashIcon } from "./trash-icon"
 
 export interface MediaViewerProps {
   items: UploadedItem[]
@@ -163,10 +165,10 @@ export function MediaViewer({ items, index, onIndexChange, onClose, onRemove }: 
             aria-label="Elimina"
             onClick={() => setConfirmingDelete(true)}
           >
-            🗑️
+            <TrashIcon />
           </button>
           <button type="button" className="fk-media-viewer-close" aria-label="Chiudi" onClick={onClose}>
-            ✕
+            <CloseIcon />
           </button>
         </div>
       </div>

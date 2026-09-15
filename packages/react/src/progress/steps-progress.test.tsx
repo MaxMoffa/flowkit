@@ -66,7 +66,7 @@ describe("StepsProgress", () => {
     const { container } = render(<StepsProgress pct={66} currentIndex={1} total={3} steps={steps} />)
     const items = container.querySelectorAll(".fk-progress-step")
     expect(items[0]!.className).toContain("fk-progress-step--completed")
-    expect(items[0]!.querySelector(".fk-progress-step-circle")?.textContent).toBe("✓")
+    expect(items[0]!.querySelector(".fk-progress-step-circle svg")).not.toBeNull()
     expect(items[0]!.querySelector(".fk-progress-step-line")?.className).toContain(
       "fk-progress-step-line--filled",
     )
@@ -114,11 +114,11 @@ describe("StepsProgress", () => {
     const { container } = render(
       <StepsProgress pct={50} currentIndex={5} total={12} steps={makeSteps(12)} />,
     )
-    const circles = [...container.querySelectorAll(".fk-progress-step-circle")].map(
-      (c) => c.textContent,
+    const circles = [...container.querySelectorAll(".fk-progress-step-circle")].map((c) =>
+      c.querySelector("svg") ? "check" : c.textContent,
     )
     // first, current ±1, last — everything else collapsed.
-    expect(circles).toEqual(["✓", "✓", "6", "7", "12"])
+    expect(circles).toEqual(["check", "check", "6", "7", "12"])
     expect(container.querySelectorAll(".fk-progress-step-ellipsis")).toHaveLength(2)
     expect(container.querySelectorAll(".fk-progress-step")).toHaveLength(7)
   })

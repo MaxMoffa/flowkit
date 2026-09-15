@@ -5,6 +5,10 @@ import type { StepComponentProps } from "../types"
 import { useFileUpload } from "./shared/use-file-upload"
 import { useMediaCaptureAvailability } from "./shared/use-media-capture-availability"
 import { MediaViewer } from "./shared/media-viewer"
+import { CameraIcon } from "./shared/camera-icon"
+import { CloseIcon } from "./shared/close-icon"
+import { GalleryIcon } from "./shared/gallery-icon"
+import { VideoCameraIcon } from "./shared/video-camera-icon"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
 import { useFieldValidation } from "./shared/use-field-validation"
@@ -37,7 +41,8 @@ export function MediaStepView({ step, value, onChange, flow, answers, meta, vali
     imageFormats: step.imageFormats,
     videoFormats: step.videoFormats,
   })
-  const captureLabel = acceptImages && acceptVideos ? "📷 Scatta foto/video" : acceptVideos ? "🎥 Registra video" : "📷 Scatta foto"
+  const captureIcon = acceptVideos && !acceptImages ? <VideoCameraIcon /> : <CameraIcon />
+  const captureText = acceptImages && acceptVideos ? "Scatta foto/video" : acceptVideos ? "Registra video" : "Scatta foto"
   const title = step.title !== undefined ? resolveContentText(flow, step.title) : undefined
   const subtitle = step.subtitle !== undefined ? resolveContentText(flow, step.subtitle) : undefined
 
@@ -50,7 +55,8 @@ export function MediaStepView({ step, value, onChange, flow, answers, meta, vali
         <div className="fk-media-actions">
           {showCaptureButton && (
             <label className="fk-media-action-btn">
-              {captureLabel}
+              {captureIcon}
+              {captureText}
               <input
                 type="file"
                 accept={accept}
@@ -61,7 +67,8 @@ export function MediaStepView({ step, value, onChange, flow, answers, meta, vali
             </label>
           )}
           <label className="fk-media-action-btn">
-            🖼️ {step.placeholder ?? "Scegli dalla libreria"}
+            <GalleryIcon />
+            {step.placeholder ?? "Scegli dalla libreria"}
             <input
               type="file"
               accept={accept}
@@ -92,7 +99,7 @@ export function MediaStepView({ step, value, onChange, flow, answers, meta, vali
                   removeItem(item.id)
                 }}
               >
-                ✕
+                <CloseIcon />
               </button>
             </div>
           ))}

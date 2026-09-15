@@ -5,6 +5,7 @@ import type { StepComponentProps } from "../types"
 import { loadExternalScript } from "./shared/external-script"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
+import { CheckIcon } from "./shared/check-icon"
 
 const PROVIDER_SCRIPT_SRC: Record<VerificationProvider, string> = {
   turnstile: "https://challenges.cloudflare.com/turnstile/v0/api.js",
@@ -120,7 +121,7 @@ export function VerificationStepView({ step, value, onChange, flow }: StepCompon
       {subtitle && <p className="fk-subtitle"><FlowMarkdown text={subtitle} variant="block" /></p>}
       {verified ? (
         <div className="fk-loc-row">
-          <div className="fk-loc-ic">✅</div>
+          <div className="fk-loc-ic"><CheckIcon /></div>
           <div className="fk-loc-title">{resolveText(flow, "verificationCompleted")}</div>
         </div>
       ) : (

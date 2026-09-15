@@ -5,6 +5,8 @@ import type { StepComponentProps } from "../types"
 import { useFileUpload } from "./shared/use-file-upload"
 import { useCameraStream } from "./shared/use-camera-stream"
 import { MediaViewer } from "./shared/media-viewer"
+import { CameraIcon } from "./shared/camera-icon"
+import { CloseIcon } from "./shared/close-icon"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
 import { useFieldValidation } from "./shared/use-field-validation"
@@ -104,7 +106,7 @@ export function PhotoStepView({ step, value, onChange, flow, answers, meta, vali
           </div>
           {status === "streaming" && (
             <button type="button" className="fk-photo-shutter" onClick={handleShutter}>
-              📷 {captureLabel}
+              <CameraIcon /> {captureLabel}
             </button>
           )}
           <canvas ref={canvasRef} hidden />
@@ -114,7 +116,8 @@ export function PhotoStepView({ step, value, onChange, flow, answers, meta, vali
       {canAddMore && cameraFailed && (
         <div className="fk-media-actions">
           <label className="fk-media-action-btn">
-            📷 {captureLabel}
+            <CameraIcon />
+            {captureLabel}
             <input
               type="file"
               accept={accept}
@@ -149,7 +152,7 @@ export function PhotoStepView({ step, value, onChange, flow, answers, meta, vali
                   removeItem(item.id)
                 }}
               >
-                ✕
+                <CloseIcon />
               </button>
             </div>
           ))}

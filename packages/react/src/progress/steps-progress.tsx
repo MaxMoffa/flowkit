@@ -1,4 +1,5 @@
 import type { ProgressComponentProps } from "../progress-registry"
+import { ProgressCheckIcon } from "./progress-check-icon"
 
 const INDETERMINATE_DOT_COUNT = 3
 
@@ -157,7 +158,7 @@ export function StepsProgress({ currentIndex, total, steps }: ProgressComponentP
             >
               <div className="fk-progress-step-track">
                 <span className="fk-progress-step-circle" aria-hidden="true">
-                  {item.state === "completed" ? "✓" : item.index + 1}
+                  {item.state === "completed" ? <ProgressCheckIcon /> : item.index + 1}
                 </span>
                 {line}
               </div>

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
+import { CloseIcon } from "./close-icon"
 
 /**
  * Shared bottom-sheet/dialog shell: bottom drawer under 768px, centered dialog from
@@ -54,7 +55,7 @@ export function SheetDialog({
       >
         <div className={`${namespace}-grabber`} aria-hidden="true" onClick={onClose} />
         <button type="button" className={`${namespace}-close`} aria-label={closeLabel} onClick={onClose}>
-          ✕
+          <CloseIcon />
         </button>
         <div className={`${namespace}-body`}>{children}</div>
       </div>

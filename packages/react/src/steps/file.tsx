@@ -7,14 +7,24 @@ import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
 import { useFieldValidation } from "./shared/use-field-validation"
 import { FieldError } from "./shared/field-error"
+import { AttachIcon } from "./shared/attach-icon"
+import { CloseIcon } from "./shared/close-icon"
+import {
+  FileArchiveIcon,
+  FileGenericIcon,
+  FileImageIcon,
+  FilePdfIcon,
+  FileSpreadsheetIcon,
+  FileWordIcon,
+} from "./shared/file-type-icons"
 
-function fileIcon(mimeType: string): string {
-  if (mimeType.startsWith("image/")) return "🖼️"
-  if (mimeType === "application/pdf") return "📕"
-  if (mimeType.includes("word") || mimeType === "text/plain" || mimeType.includes("rtf")) return "📄"
-  if (mimeType.includes("sheet") || mimeType === "text/csv" || mimeType.includes("excel")) return "📊"
-  if (mimeType.includes("zip") || mimeType.includes("compressed") || mimeType.includes("rar")) return "🗜️"
-  return "📎"
+function fileIcon(mimeType: string) {
+  if (mimeType.startsWith("image/")) return <FileImageIcon />
+  if (mimeType === "application/pdf") return <FilePdfIcon />
+  if (mimeType.includes("word") || mimeType === "text/plain" || mimeType.includes("rtf")) return <FileWordIcon />
+  if (mimeType.includes("sheet") || mimeType === "text/csv" || mimeType.includes("excel")) return <FileSpreadsheetIcon />
+  if (mimeType.includes("zip") || mimeType.includes("compressed") || mimeType.includes("rar")) return <FileArchiveIcon />
+  return <FileGenericIcon />
 }
 
 function formatSize(bytes: number): string {
@@ -51,7 +61,8 @@ export function FileStepView({ step, value, onChange, flow, answers, meta, valid
 
       {canAddMore && (
         <label className="fk-media-action-btn">
-          📎 {step.placeholder ?? resolveText(flow, "fileAddPlaceholder")}
+          <AttachIcon />
+          {step.placeholder ?? resolveText(flow, "fileAddPlaceholder")}
           <input
             type="file"
             accept={accept || undefined}
@@ -78,7 +89,7 @@ export function FileStepView({ step, value, onChange, flow, answers, meta, valid
                   remove(item.id)
                 }}
               >
-                ✕
+                <CloseIcon />
               </button>
             </div>
           ))}
@@ -93,7 +104,7 @@ export function FileStepView({ step, value, onChange, flow, answers, meta, valid
             aria-label="Chiudi"
             onClick={() => setPreviewId(null)}
           >
-            ✕
+            <CloseIcon />
           </button>
           <div className="fk-file-preview">
             <span className="fk-file-preview-icon">{fileIcon(previewItem.mimeType)}</span>

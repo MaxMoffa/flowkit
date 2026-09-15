@@ -14,6 +14,7 @@ import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { Spinner } from "./shared/spinner"
 import { StepTitle } from "./shared/step-title"
+import { PaymentCardIcon } from "./shared/payment-card-icon"
 
 /** `value` is untyped at this boundary — accept it only if it carries the shape this
  *  step writes, so a stale/foreign value never reads as a collected method. */
@@ -169,7 +170,7 @@ function PaymentMethodPicker({ step, collected, onChange }: PickerProps) {
     return (
       <div className="fk-payment-summary">
         <div className="fk-loc-row">
-          <div className="fk-loc-ic">💳</div>
+          <div className="fk-loc-ic"><PaymentCardIcon /></div>
           <div className="fk-loc-title">{summaryLabel(collected.summary)}</div>
         </div>
         <button type="button" className="fk-payment-change fk-link" onClick={() => setEditing(true)}>
@@ -251,7 +252,7 @@ export function PaymentStripeStepView({
       ) : skipWidget ? (
         <div className="fk-payment-summary">
           <div className="fk-loc-row">
-            <div className="fk-loc-ic">💳</div>
+            <div className="fk-loc-ic"><PaymentCardIcon /></div>
             <div className="fk-loc-title">{summaryLabel(PREVIEW_SELECTED_VALUE.summary)}</div>
           </div>
           <button

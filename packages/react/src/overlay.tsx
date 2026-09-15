@@ -15,6 +15,7 @@ import type {
 import { createPortal } from "react-dom"
 import type { AnswerValue } from "@flowkit-io/core"
 import { FlowRunner, type FlowRunnerHandle, type FlowRunnerProps } from "./flow-runner"
+import { CloseIcon } from "./steps/shared/close-icon"
 import { ThemeProvider } from "./theme-provider"
 
 export type FlowOverlayPresentation = "drawer" | "dialog" | "fullscreen" | "auto"
@@ -191,7 +192,7 @@ function FlowOverlayContent({
       aria-label="Chiudi"
       onClick={() => onOpenChange(false)}
     >
-      ✕
+      <CloseIcon />
     </button>
   ) : null
 

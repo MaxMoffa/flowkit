@@ -4,6 +4,8 @@ import { resolveContentText } from "@flowkit-io/core"
 import type { StepComponentProps } from "../types"
 import { FlowMarkdown } from "../markdown"
 import { StepTitle } from "./shared/step-title"
+import { CloseIcon } from "./shared/close-icon"
+import { TrashIcon } from "./shared/trash-icon"
 
 interface Point {
   x: number
@@ -208,7 +210,7 @@ export function SignatureStepView({ step, value, onChange, flow }: StepComponent
       )}
       {step.showClear && (
         <button type="button" className="fk-btn-neutral" onClick={handleClear} disabled={!currentValue}>
-          🗑️ Cancella
+          <TrashIcon /> Cancella
         </button>
       )}
       <button
@@ -226,7 +228,7 @@ export function SignatureStepView({ step, value, onChange, flow }: StepComponent
     <div className={`fk-step fk-step-signature${fullscreen ? " fk-step-signature--full" : ""}`}>
       {fullscreen && (
         <button type="button" className="fk-back fk-signature-close" aria-label="Chiudi" onClick={() => setFullscreen(false)}>
-          ✕
+          <CloseIcon />
         </button>
       )}
       {!fullscreen && <StepTitle image={step.image} title={title} />}

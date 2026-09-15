@@ -7,6 +7,8 @@ import { StepTitle } from "./shared/step-title"
 import { useFieldValidation } from "./shared/use-field-validation"
 import { FieldError } from "./shared/field-error"
 import { useBarcodeScanner } from "./shared/use-barcode-scanner"
+import { CheckIcon } from "./shared/check-icon"
+import { RefreshIcon } from "./shared/refresh-icon"
 
 /**
  * "barcode-scan" step: live camera scan of a barcode/QR code (see
@@ -79,11 +81,11 @@ export function BarcodeScanStepView({ step, value, onChange, flow, answers, meta
 
       {cameraResult ? (
         <div className="fk-barcode-result">
-          <div className="fk-barcode-result-icon" aria-hidden="true">✅</div>
+          <div className="fk-barcode-result-icon" aria-hidden="true"><CheckIcon /></div>
           <div className="fk-barcode-result-code">{cameraResult.code}</div>
           {cameraResult.format && <div className="fk-barcode-result-format">{cameraResult.format}</div>}
           <button type="button" className="fk-barcode-rescan" onClick={() => onChange(null)}>
-            🔄 {resolveText(flow, "barcodeRescan")}
+            <RefreshIcon /> {resolveText(flow, "barcodeRescan")}
           </button>
         </div>
       ) : (
