@@ -1,5 +1,14 @@
 # @flowkit-io/presets
 
+## 1.0.1 — 2026-09-15
+
+### Fixed
+
+- **"odori" preset**: removed the static `detectedLabel`/`detectedSubLabel` placeholder
+  text ("Via Roma, 24" / "Battipaglia (SA) · ±15 m") on the location step — it printed
+  regardless of the place actually picked (GPS or manual), instead of the real
+  server-resolved address. The location step now shows only the real selected address.
+
 ## 1.0.0 — 2026-09-01
 
 ### Changed

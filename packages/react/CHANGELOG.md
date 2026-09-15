@@ -1,5 +1,44 @@
 # @flowkit-io/react
 
+## 1.10.0 — 2026-09-15
+
+### Added
+
+- **Outline icon set for hardcoded chrome emoji.** Every fixed UI-chrome emoji (not
+  content configured by a flow author) is now a hand-drawn `currentColor` SVG matching
+  `CartIcon`'s style: location-result pin, close/dismiss, delete/trash, photo/video
+  capture, gallery picker, attach-file, a six-icon file-type set (image/pdf/word/
+  spreadsheet/zip/generic), rescan/retry, success check, payment-method card, and the
+  progress stepper's completed checkmark. New GPS-trigger icon (`GpsIcon`) on the
+  location step's "Usa la mia posizione" button, replacing its 📍.
+- **Indeterminate spinners on every "…" loading label**, reusing the existing `Spinner`
+  ring: the GPS button, address search/reverse-geocode, email-send/link-generate/
+  load-more confirmation buttons, and the remote-options loading line.
+- Location step: a **clear (×) button** on the selected-place panel.
+
+### Changed
+
+- **Selected-place panel moved below the map**, growing out of its bottom edge as one
+  continuous card (flattened seam, matching corners) instead of sitting between the GPS
+  button and the map. The reverse-geocode loading state now shows inside that same
+  panel (in place of the address line) rather than as a separate line above the map.
+- Cart footer trigger: the count badge is hidden, back to a single plain icon.
+
+### Fixed
+
+- **Map corner clipping**: `.fk-map-canvas`'s `border-radius` didn't clip the
+  maplibre-gl/leaflet WebGL canvas at all in some browsers (the map square off past the
+  rounded card corners once tiles loaded) — fixed by combining `clip-path` with a radius
+  set directly on the underlying `<canvas>` element, and restoring `overflow: hidden`
+  (dropped for `clip-path` at first, then found to let the map's flyTo zoom arc grow the
+  page's own scrollable area — both are needed, one for paint, one for layout).
+- **GPS marker drifting from the basemap under it**: the location engine called `flyTo`
+  before `setMarker`, so the marker's first placement could lock onto a mid-transition
+  camera projection instead of the at-rest one a plain map click always gets. `setMarker`
+  now runs before `flyTo`.
+- maplibre-gl engine now re-`resize()`s on container size changes, matching the leaflet
+  engine's existing `invalidateSize()` behavior.
+
 ## 1.9.0 — 2026-09-13
 
 ### Added
