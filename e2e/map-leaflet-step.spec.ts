@@ -12,5 +12,5 @@ test("location-leaflet step: renders map and sets a value on click", async ({ pa
   await expect(mapCanvas).toBeVisible()
   await mapCanvas.click()
 
-  await expect(page.locator(".fk-loc-row .fk-loc-title")).toBeVisible()
+  await expect(page.locator(".fk-map-result .fk-loc-title")).toBeVisible()
 })

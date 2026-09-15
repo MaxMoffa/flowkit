@@ -7,7 +7,7 @@ test("map step: point selection via click", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Scegli un punto sulla mappa" })).toBeVisible()
   await page.getByRole("region", { name: "Map" }).click()
 
-  await expect(page.locator(".fk-loc-row .fk-loc-title")).toBeVisible()
+  await expect(page.locator(".fk-map-result .fk-loc-title")).toBeVisible()
   await expect(page.getByRole("button", { name: "Continua", exact: true })).toBeEnabled()
 })
 
@@ -17,7 +17,7 @@ test("map step: preset-points selection via marker click", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Oppure scegli tra i punti suggeriti" })).toBeVisible()
   await page.getByRole("button", { name: "Map marker" }).first().click()
 
-  await expect(page.locator(".fk-loc-row .fk-loc-title")).toHaveText("45.46420, 9.19000")
+  await expect(page.locator(".fk-map-result .fk-loc-title")).toHaveText("45.46420, 9.19000")
 })
 
 test("map step: address search returns real geocoding results", async ({ page }) => {
@@ -90,7 +90,7 @@ test("map step: reverse geocoding populates a human label after a map click", as
   await expect(page.getByRole("heading", { name: "Scegli un punto sulla mappa" })).toBeVisible()
   await page.getByRole("region", { name: "Map" }).click()
 
-  await expect(page.locator(".fk-loc-row .fk-loc-title")).toHaveText("Via Roma, Battipaglia (SA)", {
+  await expect(page.locator(".fk-map-result .fk-loc-title")).toHaveText("Via Roma, Battipaglia (SA)", {
     timeout: 3_000,
   })
 })
@@ -105,8 +105,8 @@ test("map step: reverse geocoding failure falls back to raw coordinates", async 
   await expect(page.getByRole("heading", { name: "Scegli un punto sulla mappa" })).toBeVisible()
   await page.getByRole("region", { name: "Map" }).click()
 
-  await expect(page.locator(".fk-loc-row .fk-loc-title")).toBeVisible()
+  await expect(page.locator(".fk-map-result .fk-loc-title")).toBeVisible()
   await page.waitForTimeout(700) // oltre il debounce di 500ms, per assicurarsi che non cambi
-  const text = await page.locator(".fk-loc-row .fk-loc-title").textContent()
+  const text = await page.locator(".fk-map-result .fk-loc-title").textContent()
   expect(text).toMatch(/^-?\d+\.\d+, -?\d+\.\d+$/)
 })
