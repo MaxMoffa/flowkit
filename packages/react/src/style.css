@@ -846,6 +846,9 @@
 }
 
 .fk-footer-cart-badge {
+  /* Hidden per request: keep the cart trigger to a single plain icon (no overlapping
+     count badge) instead of icon + badge occupying two visual rows. */
+  display: none;
   position: absolute;
   top: -6px;
   right: -6px;
@@ -857,7 +860,6 @@
   color: #fff;
   font-size: 11px;
   font-weight: 700;
-  display: flex;
   align-items: center;
   justify-content: center;
   font-variant-numeric: tabular-nums;
@@ -1188,19 +1190,105 @@
 }
 
 /* Location + map (maplibre-gl) */
+/* Wraps the map canvas plus, once a place is picked, the result panel that grows out of
+   its bottom edge (see .fk-map-result) — the margin/box-sizing that used to live on
+   .fk-map-canvas move here since the canvas itself no longer owns the card's outer edge
+   in the stacked/columns layouts (fullContainer doesn't use this wrapper at all). */
+.fk-map-card {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--fk-space-lg);
+  flex: none;
+  box-sizing: border-box;
+}
+
 .fk-map-canvas {
   position: relative;
   height: 220px;
   border-radius: var(--fk-radius-lg);
-  overflow: hidden;
   border: 1px solid var(--fk-border);
-  margin-bottom: var(--fk-space-lg);
-  flex: none;
   background: var(--fk-soft);
   /* Without this, the 2-column grid's height:100% (below) computes the CONTENT height as
      100% of the row track and then adds the border on top, making this column ~2px taller
      than the controls column it's meant to match exactly. */
   box-sizing: border-box;
+  /* Both engines hand their WebGL/canvas map straight into this element (it becomes
+     maplibre's `.maplibregl-map`/leaflet's `.leaflet-container` itself, not a child), and
+     Chromium does not clip a WebGL canvas's compositor surface to an ancestor's
+     `border-radius` + `overflow: hidden` — the canvas paints past the rounded corners once
+     tiles load. `clip-path` clips the compositor surface itself, so it works where
+     overflow:hidden doesn't visually — but clip-path alone doesn't constrain LAYOUT: during
+     a flyTo's zoom-out arc (or a marker projected far off-canvas mid-animation), content
+     can still lay out past this box's edges and grow the page's own scrollable area, adding
+     a document-level scrollbar even though nothing overflowing is actually visible. Keep
+     both: overflow:hidden contains the layout/scroll, clip-path contains the paint. */
+  overflow: hidden;
+  clip-path: inset(0 round var(--fk-radius-lg));
+}
+
+/* A result panel follows (see .fk-map-result): flatten the card's bottom edge so the two
+   read as one continuous card instead of two stacked rounded boxes. */
+.fk-map-canvas--attached {
+  border-bottom: none;
+  border-radius: var(--fk-radius-lg) var(--fk-radius-lg) 0 0;
+  clip-path: inset(0 round var(--fk-radius-lg) var(--fk-radius-lg) 0 0);
+}
+
+/* Belt-and-suspenders for the same bug: some engines (confirmed in real-world Firefox,
+   not just the automated check above) only respect a rounded corner set on the canvas
+   element's own box, not one inherited via an ancestor's clip-path/overflow. Radius must
+   be repeated here (not `inherit`) because `.fk-map-canvas--full` zeroes its own radius
+   and canvas is a sibling context, not a descendant that would pick that override up. */
+.fk-map-canvas canvas {
+  border-radius: var(--fk-radius-lg);
+}
+
+.fk-map-canvas--attached canvas {
+  border-radius: var(--fk-radius-lg) var(--fk-radius-lg) 0 0;
+}
+
+.fk-map-canvas--full canvas {
+  border-radius: 0;
+}
+
+/* The selected-place panel that grows out of the map card's bottom edge once a point is
+   picked (stacked/columns layouts only — fullContainer keeps the compact overlay row,
+   .fk-map-bottom-actions .fk-loc-row, since there's no card edge to extend there). */
+.fk-map-result {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fk-space-md);
+  padding: var(--fk-space-md) var(--fk-space-lg);
+  border: 1px solid var(--fk-border);
+  border-top: none;
+  border-radius: 0 0 var(--fk-radius-lg) var(--fk-radius-lg);
+  background: var(--fk-canvas);
+  box-sizing: border-box;
+}
+
+.fk-map-result-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.fk-map-result-clear {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 2px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--fk-text2);
+  cursor: pointer;
+}
+
+.fk-map-result-clear:hover {
+  background: var(--fk-surface);
+  color: var(--fk-text);
 }
 
 @container fk-step (min-width: 640px) {
@@ -1226,13 +1314,22 @@
     grid-row: 1;
   }
 
-  .fk-step-location--columns > .fk-map-canvas {
+  .fk-step-location--columns > .fk-map-card {
     grid-column: 2;
     grid-row: 1;
     height: 100%;
     min-height: 340px;
     align-self: stretch;
     margin-bottom: 0;
+  }
+
+  /* Lets the canvas give up height to a result panel below it instead of both fighting
+     over the card's fixed 340px+ floor — the card (not the canvas) is what must match
+     the controls column's height here. */
+  .fk-step-location--columns > .fk-map-card > .fk-map-canvas {
+    flex: 1;
+    height: auto;
+    min-height: 0;
   }
 }
 
@@ -1241,11 +1338,24 @@
   margin-bottom: var(--fk-space-sm);
 }
 
+/* Reverse-geocode loading state, shown inside .fk-map-result itself in place of the
+   address/coords line while it resolves. */
+.fk-map-result-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fk-text2);
+  font-size: 14px;
+}
+
 .fk-map-search-loading {
   position: absolute;
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   color: var(--fk-text2);
 }
@@ -1301,7 +1411,8 @@
   margin-bottom: var(--fk-space-sm);
 }
 
-.fk-loc-row .fk-loc-ic {
+.fk-loc-row .fk-loc-ic,
+.fk-map-result .fk-loc-ic {
   width: 38px;
   height: 38px;
   border-radius: var(--fk-radius-sm);
@@ -1314,12 +1425,14 @@
   flex: none;
 }
 
-.fk-loc-row .fk-loc-title {
+.fk-loc-row .fk-loc-title,
+.fk-map-result .fk-loc-title {
   font-size: 15px;
   font-weight: 600;
 }
 
-.fk-loc-row .fk-loc-detail {
+.fk-loc-row .fk-loc-detail,
+.fk-map-result .fk-loc-detail {
   font-size: 13px;
   color: var(--fk-text2);
 }
@@ -1349,6 +1462,7 @@
   border-radius: 0;
   border: none;
   margin: 0;
+  clip-path: none;
 }
 
 .fk-map-overlay-top {
@@ -1560,6 +1674,13 @@
   border-width: 2px;
 }
 
+/* For a spinner sitting on the accent-colored (blue) button fill, where the default
+   accent-on-border ring would be nearly invisible against its own background. */
+.fk-spinner--invert {
+  border-color: rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+}
+
 .fk-spinner-label {
   font-size: 13px;
 }
@@ -1645,8 +1766,12 @@
 }
 
 .fk-gps-guide-ic {
-  font-size: 28px;
   margin-bottom: 8px;
+}
+
+.fk-gps-guide-ic svg {
+  width: 28px;
+  height: 28px;
 }
 
 .fk-gps-guide-title {
@@ -1741,6 +1866,12 @@
   font-size: 14px;
   color: var(--fk-text2);
   margin-bottom: var(--fk-space-md);
+}
+
+.fk-remote-status-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .fk-remote-error {
@@ -2611,7 +2742,7 @@
   background: var(--fk-canvas);
   color: var(--fk-text);
   border-radius: var(--fk-radius-lg) var(--fk-radius-lg) 0 0;
-  padding: var(--fk-space-lg) var(--fk-space-xl) calc(var(--fk-space-xl) + env(safe-area-inset-bottom));
+  padding: var(--fk-space-lg) var(--fk-space-lg) calc(var(--fk-space-lg) + env(safe-area-inset-bottom));
   max-height: 85vh;
   overflow-y: auto;
   animation: fk-cart-sheet-up 0.22s ease-out;
@@ -2649,7 +2780,7 @@
 .fk-cart-sheet-title {
   font-size: 18px;
   font-weight: 700;
-  margin: 0 0 var(--fk-space-md);
+  margin: 0 0 var(--fk-space-xl);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2680,7 +2811,7 @@
     max-width: 440px;
     width: 100%;
     border-radius: var(--fk-radius-lg);
-    padding: var(--fk-space-xl);
+    padding: var(--fk-space-lg);
     animation: fk-cart-sheet-in 0.18s ease-out;
   }
 
@@ -2756,21 +2887,46 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--fk-space-sm);
+  gap: var(--fk-space-lg);
 }
 
+/* Grid, not flex: thumb/price get fixed-width columns (not content-sized flex
+   items) so price lines up across rows regardless of how wide any one row's price
+   text is — a flex row with `.fk-cart-summary-main`'s `flex: 1` absorbing the
+   leftover space let a longer/shorter price shove things sideways per row.
+   Two explicit rows, not one: the thumb spans both (`grid-row: 1 / span 2`,
+   vertically centered) while name/unit sit on row 1 and the quantity pill sits on
+   row 2 directly under them — "content above the counter", both left-aligned in
+   the same column, rather than a single cramped line. `grid-column`/`grid-row` are
+   pinned explicitly on every cell (not left to auto-placement) both because a
+   `"fee"` line renders without a qty pill (auto-placement would misplace price
+   without a pin) and because auto-placement's sparse packing cursor would otherwise
+   refuse to backfill row 1 once a later cell claims row 2. */
 .fk-cart-summary-line {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 30px 1fr 64px;
+  gap: var(--fk-space-md) var(--fk-space-lg);
   font-size: 13px;
+}
+
+/* Hairline rule between products, not just whitespace: the quantity pill (row 2 of
+   one item) and the thumb of the next item are both small, similarly-weighted
+   shapes sitting close together once every line wraps to two rows — a plain gap
+   alone read as items blending into each other. The rule marks the boundary
+   explicitly; the padding after it (on top of the list's own `gap`) keeps that
+   boundary from crowding the next item's content. */
+.fk-cart-summary-line:not(:first-child) {
+  border-top: 1px solid var(--fk-border);
+  padding-top: var(--fk-space-md);
 }
 
 /* Per-line thumb: the real `item.image` (`StepImage` size="cart-thumb") when the
    catalog/product item carries one, else `LineIcon`'s generic package placeholder
    (every `"fee"` line, and any item with no `image` set). */
 .fk-cart-summary-thumb {
-  flex: none;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: start;
   width: 30px;
   height: 30px;
   border-radius: var(--fk-radius-sm);
@@ -2806,8 +2962,10 @@
 /* Name on top, per-unit price underneath (`"item"` lines only — a `"fee"` line's
    amount already IS its unit price, a second line would just repeat it). */
 .fk-cart-summary-main {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
@@ -2824,7 +2982,10 @@
 }
 
 .fk-cart-summary-price {
-  flex: none;
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
@@ -2836,24 +2997,32 @@
    the line (`aria-label` swaps to `removeLabel` at qty 1) — a dedicated 🗑 button
    read as one control too many on an already-compact row. */
 .fk-cart-summary-qty-pill {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: start;
   display: flex;
-  flex: none;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   border-radius: 999px;
-  padding: 2px 6px;
+  padding: 4px 8px;
   background: var(--fk-soft);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
+/* 28px visible circle stays compact inside the pill; `::after` pads the actual hit
+   area out to ~44px (Apple HIG / Material's touch-target floor) without inflating
+   the pill itself — the row this sits on is dedicated to it now (see
+   `.fk-cart-summary-line`'s two-row grid), so the extra invisible margin has room
+   above and below without colliding with the name line or the next cart row. */
 .fk-cart-summary-qty-btn {
+  position: relative;
   font: inherit;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1;
-  width: 16px;
-  height: 16px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2862,6 +3031,12 @@
   border: var(--fk-border-width) solid var(--fk-border);
   border-radius: 999px;
   cursor: pointer;
+}
+
+.fk-cart-summary-qty-btn::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
 }
 
 .fk-cart-summary-qty-btn:focus-visible {
@@ -2879,7 +3054,7 @@
 }
 
 .fk-cart-summary-qty-value {
-  min-width: 10px;
+  min-width: 14px;
   text-align: center;
 }
 
@@ -2890,8 +3065,8 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--fk-space-md);
-  margin-top: var(--fk-space-xs);
-  padding-top: var(--fk-space-sm);
+  margin-top: var(--fk-space-md);
+  padding-top: var(--fk-space-lg);
   border-top: 1px solid var(--fk-border);
   font-size: 12px;
   color: var(--fk-text2);
@@ -3291,7 +3466,12 @@
 }
 
 .fk-barcode-result-icon {
-  font-size: 28px;
+  color: var(--fk-success);
+}
+
+.fk-barcode-result-icon svg {
+  width: 28px;
+  height: 28px;
 }
 
 .fk-barcode-result-code {
@@ -3545,8 +3725,9 @@
   text-align: center;
 }
 
-.fk-file-preview-icon {
-  font-size: 40px;
+.fk-file-preview-icon svg {
+  width: 40px;
+  height: 40px;
 }
 
 .fk-file-preview-name {
@@ -3992,6 +4173,10 @@
 
 .fk-email-share-btn {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   border: none;
   border-radius: var(--fk-radius-md);
   background: var(--fk-accent);

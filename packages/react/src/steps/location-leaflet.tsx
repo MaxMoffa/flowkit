@@ -78,6 +78,12 @@ const leafletEngine: MapEngine = async ({ container, step, selectionMode, curren
 
   return {
     setMarker,
+    removeMarker: () => {
+      if (marker) {
+        map.removeLayer(marker)
+        marker = null
+      }
+    },
     flyTo: (lat, lng) => map.flyTo([lat, lng], SELECTED_ZOOM),
     destroy: () => {
       resizeObserver.disconnect()

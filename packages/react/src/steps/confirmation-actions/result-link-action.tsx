@@ -49,7 +49,14 @@ export function ResultLinkAction({ config, answers }: ResultLinkActionProps) {
           onClick={() => void createLink()}
           disabled={loading}
         >
-          {loading ? "Genero il link…" : config.buttonLabel}
+          {loading ? (
+            <>
+              <span className="fk-spinner fk-spinner-sm" aria-hidden="true" />
+              Genero il link…
+            </>
+          ) : (
+            config.buttonLabel
+          )}
         </button>
       ) : (
         <div className="fk-email-share-row">

@@ -3,6 +3,9 @@ import { resolveContentText } from "@flowkit-io/core"
 import type { AnyLocationStep } from "./types"
 import type { LocationStepState } from "./use-location-step"
 import { FlowMarkdown } from "../../../markdown"
+import { CloseIcon } from "../close-icon"
+import { GpsIcon } from "../gps-icon"
+import { LocationPinIcon } from "../location-pin-icon"
 import { StepTitle } from "../step-title"
 
 interface LocationStepLayoutProps {
@@ -31,6 +34,7 @@ export function LocationStepLayout({ step, state, flow }: LocationStepLayoutProp
     selectResult,
     requestGpsLocation,
     dismissGpsGuide,
+    clearSelection,
   } = state
 
   const hasEnoughContent = step.showSearch !== false || step.enableGps !== false
@@ -45,7 +49,12 @@ export function LocationStepLayout({ step, state, flow }: LocationStepLayoutProp
         value={query}
         onChange={(e) => void runSearch(e.target.value)}
       />
-      {searching && <span className="fk-map-search-loading">Cerco…</span>}
+      {searching && (
+        <span className="fk-map-search-loading">
+          <span className="fk-spinner fk-spinner-sm" aria-hidden="true" />
+          Cerco…
+        </span>
+      )}
       {results.length > 0 && (
         <ul className="fk-map-search-results">
           {results.map((r, i) => (
@@ -70,14 +79,16 @@ export function LocationStepLayout({ step, state, flow }: LocationStepLayoutProp
       disabled={gpsLoading}
       aria-label={step.fullContainer ? gpsLabel : undefined}
     >
-      <span aria-hidden="true">📍</span>
+      {gpsLoading ? <span className="fk-spinner fk-spinner-sm" aria-hidden="true" /> : <GpsIcon />}
       <span className="fk-gps-btn-label">{gpsLabel}</span>
     </button>
   )
 
-  const resultRow = (current.address || (current.lat !== undefined && current.lng !== undefined)) && (
+  const hasSelection = Boolean(current.address || (current.lat !== undefined && current.lng !== undefined))
+
+  const resultRow = hasSelection && (
     <div className="fk-loc-row">
-      <div className="fk-loc-ic">📍</div>
+      <div className="fk-loc-ic"><LocationPinIcon /></div>
       <div>
         <div className="fk-loc-title">
           {current.address ?? `${current.lat?.toFixed(5)}, ${current.lng?.toFixed(5)}`}
@@ -89,10 +100,42 @@ export function LocationStepLayout({ step, state, flow }: LocationStepLayoutProp
     </div>
   )
 
+  /* Stacked layout only: the selected place grows out of the map card itself instead of
+     sitting between the GPS button and the map — the card's bottom edge extends into
+     this panel, with a clear (×) button since there's now room for one. */
+  const mapResultPanel = hasSelection && (
+    <div className="fk-map-result">
+      <div className="fk-loc-ic"><LocationPinIcon /></div>
+      {reverseLoading ? (
+        <div className="fk-map-result-text fk-map-result-loading">
+          <span className="fk-spinner fk-spinner-sm" aria-hidden="true" />
+          Cerco indirizzo…
+        </div>
+      ) : (
+        <div className="fk-map-result-text">
+          <div className="fk-loc-title">
+            {current.address ?? `${current.lat?.toFixed(5)}, ${current.lng?.toFixed(5)}`}
+          </div>
+          {step.detectedSubLabel && (
+            <div className="fk-loc-detail"><FlowMarkdown text={step.detectedSubLabel} variant="inline" /></div>
+          )}
+        </div>
+      )}
+      <button
+        type="button"
+        className="fk-map-result-clear"
+        onClick={clearSelection}
+        aria-label="Annulla la selezione"
+      >
+        <CloseIcon />
+      </button>
+    </div>
+  )
+
   const gpsGuideOverlay = showGpsGuide && (
     <div className="fk-gps-guide-overlay" role="dialog" aria-modal="true">
       <div className="fk-gps-guide">
-        <div className="fk-gps-guide-ic">📍</div>
+        <div className="fk-gps-guide-ic"><LocationPinIcon /></div>
         <div className="fk-gps-guide-title">
           <FlowMarkdown text={step.gpsGuideTitle ?? "Permesso di posizione bloccato"} variant="inline" />
         </div>
@@ -129,7 +172,12 @@ export function LocationStepLayout({ step, state, flow }: LocationStepLayoutProp
             {resultRow}
           </div>
           {gpsError && <p className="fk-gps-error">{gpsError}</p>}
-          {reverseLoading && <span className="fk-map-search-loading">Cerco indirizzo…</span>}
+          {reverseLoading && (
+            <span className="fk-map-search-loading">
+              <span className="fk-spinner fk-spinner-sm" aria-hidden="true" />
+              Cerco indirizzo…
+            </span>
+          )}
         </div>
 
         {gpsGuideOverlay}
@@ -147,12 +195,17 @@ export function LocationStepLayout({ step, state, flow }: LocationStepLayoutProp
 
         {gpsButton}
         {gpsError && <p className="fk-gps-error">{gpsError}</p>}
-
-        {resultRow}
-        {reverseLoading && <span className="fk-map-search-loading">Cerco indirizzo…</span>}
       </div>
 
-      {step.showMap !== false && <div ref={containerRef} className="fk-map-canvas" />}
+      {step.showMap !== false && (
+        <div className="fk-map-card">
+          <div
+            ref={containerRef}
+            className={`fk-map-canvas${mapResultPanel ? " fk-map-canvas--attached" : ""}`}
+          />
+          {mapResultPanel}
+        </div>
+      )}
 
       {gpsGuideOverlay}
     </div>

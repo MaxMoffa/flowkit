@@ -28,6 +28,17 @@ const maplibreEngine: MapEngine = async ({ container, step, selectionMode, curre
   })
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
 
+  // The container's size isn't final yet on first paint (layout still settling), so
+  // maplibre's own projection matrix can go stale relative to the container's true size.
+  // A manual map click still "looks" aligned then, because unproject()/project() both run
+  // through that same stale matrix and round-trip back to the clicked pixel — but a GPS
+  // fix is an absolute real-world lat/lng with no such round trip, so setMarker() places it
+  // using the stale matrix while the background (rendered at the container's real size)
+  // doesn't match, and the two visibly drift apart. Same fix as the leaflet engine's
+  // ResizeObserver below, just via maplibre's own resize() instead of invalidateSize().
+  const resizeObserver = new ResizeObserver(() => map.resize())
+  resizeObserver.observe(container)
+
   let marker: maplibregl.Marker | null = null
 
   function setMarker(lat: number, lng: number) {
@@ -84,8 +95,15 @@ const maplibreEngine: MapEngine = async ({ container, step, selectionMode, curre
 
   return {
     setMarker,
+    removeMarker: () => {
+      marker?.remove()
+      marker = null
+    },
     flyTo: (lat, lng) => map.flyTo({ center: [lng, lat], zoom: SELECTED_ZOOM }),
-    destroy: () => map.remove(),
+    destroy: () => {
+      resizeObserver.disconnect()
+      map.remove()
+    },
   }
 }
 

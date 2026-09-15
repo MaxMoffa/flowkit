@@ -25,7 +25,12 @@ export function RemoteOptionsStatus({ remote }: { remote: UseRemoteOptionsResult
   if (!remote.isRemote) return null
 
   if (remote.status === "loading") {
-    return <p className="fk-remote-status">Caricamento in corso…</p>
+    return (
+      <p className="fk-remote-status fk-remote-status-loading">
+        <span className="fk-spinner fk-spinner-sm" aria-hidden="true" />
+        Caricamento in corso…
+      </p>
+    )
   }
 
   if (remote.status === "error") {
@@ -56,7 +61,14 @@ export function RemoteLoadMoreButton({ remote }: { remote: UseRemoteOptionsResul
       onClick={remote.loadMore}
       disabled={remote.loadingMore}
     >
-      {remote.loadingMore ? "Caricamento…" : "Carica altro"}
+      {remote.loadingMore ? (
+        <>
+          <span className="fk-spinner fk-spinner-sm" aria-hidden="true" />
+          Caricamento…
+        </>
+      ) : (
+        "Carica altro"
+      )}
     </button>
   )
 }

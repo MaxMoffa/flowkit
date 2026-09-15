@@ -17,6 +17,9 @@ export type AnyLocationStep = LocationStepConfig | LocationLeafletStepConfig
 export interface MapEngineHandle {
   /** Creates the draggable marker on first call, moves it afterwards. */
   setMarker: (lat: number, lng: number) => void
+  /** Removes the draggable marker created by `setMarker`, if any. A no-op for
+   *  selection modes that don't use it (preset-points, region). */
+  removeMarker: () => void
   flyTo: (lat: number, lng: number) => void
   destroy: () => void
 }

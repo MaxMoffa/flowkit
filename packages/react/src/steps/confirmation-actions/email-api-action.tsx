@@ -43,7 +43,14 @@ export function EmailApiAction({ config, answers }: EmailApiActionProps) {
           onClick={() => void send()}
           disabled={status === "loading"}
         >
-          {status === "loading" ? "Invio…" : config.buttonLabel}
+          {status === "loading" ? (
+            <>
+              <span className="fk-spinner fk-spinner-sm fk-spinner--invert" aria-hidden="true" />
+              Invio…
+            </>
+          ) : (
+            config.buttonLabel
+          )}
         </button>
       </div>
       {status === "sent" && <p className="fk-email-share-sent">Email inviata ✓</p>}

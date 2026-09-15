@@ -33,6 +33,7 @@ export interface LocationStepState {
   selectResult: (result: GeocodingResult) => void
   requestGpsLocation: () => Promise<void>
   dismissGpsGuide: () => void
+  clearSelection: () => void
 }
 
 /**
@@ -124,8 +125,14 @@ export function useLocationStep(
   }, [current.lat, current.lng])
 
   function moveTo(lat: number, lng: number) {
-    engineRef.current?.flyTo(lat, lng)
+    // Marker first, camera move second: creating the marker while the camera is at rest
+    // gives the map engine a clean initial projection to place it at. Doing it the other
+    // way — during an in-flight flyTo — can leave the marker's very first position stuck
+    // relative to a mid-transition camera transform, visibly drifting from the basemap
+    // beneath it (map clicks never hit this because they call setMarker with the camera
+    // already at rest, never mid-animation).
     engineRef.current?.setMarker(lat, lng)
+    engineRef.current?.flyTo(lat, lng)
   }
 
   async function runSearch(q: string) {
@@ -193,6 +200,13 @@ export function useLocationStep(
     )
   }
 
+  function clearSelection() {
+    engineRef.current?.removeMarker()
+    setQuery("")
+    setResults([])
+    onChange({})
+  }
+
   return {
     current,
     query,
@@ -207,6 +221,7 @@ export function useLocationStep(
     selectResult,
     requestGpsLocation,
     dismissGpsGuide: () => setShowGpsGuide(false),
+    clearSelection,
   }
 }
 
