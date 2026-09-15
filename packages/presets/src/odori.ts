@@ -24,8 +24,6 @@ export const odoriFlow: Flow = parseFlow({
       subtitle: "Abbiamo rilevato la tua posizione. Trascina il segnaposto per correggerla.",
       image: { kind: "emoji", value: "📍" },
       showMap: true,
-      detectedLabel: "Via Roma, 24",
-      detectedSubLabel: "Battipaglia (SA) · ±15 m",
       manualEntryLabel: "Inserisci un indirizzo manualmente",
     },
     {
