@@ -256,6 +256,7 @@
   flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 
@@ -263,12 +264,16 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--fk-surface);
-  transition: background 200ms ease;
+  background: var(--fk-text2);
+  opacity: 0.3;
+  transition:
+    background 200ms ease,
+    opacity 200ms ease;
 }
 
 .fk-progress-dot--active {
   background: var(--fk-accent);
+  opacity: 1;
 }
 
 .fk-progress-dot-pulse {
