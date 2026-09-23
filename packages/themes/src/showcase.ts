@@ -8,8 +8,13 @@ import type { ThemeTokens } from "./warm-paper"
  * invisible if not configured. Selectable in the playground to check them
  * visually and via Playwright.
  */
+/** `images.background` is rendered with `background-size: cover; background-repeat:
+ *  no-repeat` (see style.css) — built for a full-bleed photo, not a tileable pattern.
+ *  A single 80×80 dot stretched under that contract fills the whole flow as one huge
+ *  circle instead of a subtle texture, so the dot grid has to be pre-tiled inside the
+ *  SVG itself (a `<pattern>` filling an 800×800 canvas) before it ever reaches CSS. */
 const showcaseBackground =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='2' fill='%23e6e5e3'/%3E%3C/svg%3E"
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cdefs%3E%3Cpattern id='dots' width='80' height='80' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='40' cy='40' r='2' fill='%23e6e5e3'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='800' height='800' fill='url(%23dots)'/%3E%3C/svg%3E"
 
 export const showcaseLight: ThemeTokens = {
   ...warmPaperLight,
