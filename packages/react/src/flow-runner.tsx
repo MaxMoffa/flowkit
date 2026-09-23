@@ -133,6 +133,16 @@ export interface FlowRunnerProps {
    *  languages by swapping only the content dictionary per request, instead of
    *  duplicating the whole flow. Unset = `flow.content`. */
   content?: Record<string, string>
+  /** Maps a rejected `onSubmit` (or a failed 3DS retry) to the message shown to the
+   *  user — on the review footer, or in the generic error screen when `flow.errorScreen`
+   *  is set. Gets the resolved `flow` too, so a real payment failure can still resolve
+   *  to `resolveText(flow, "paymentFailed")` (both exported from `@flowkit-io/core`)
+   *  deliberately, rather than by unlabeled-error default. Return `undefined` to fall
+   *  back to `error.message` (if any) and then to the generic `errorGenericMessage`
+   *  text. Without this, every submit failure without its own `.message` (a network
+   *  error, a server 500, anything not actually about payment) used to read as a
+   *  payment failure. */
+  onSubmitError?: (error: unknown, flow: Flow) => string | undefined
 }
 
 /** Imperative handle exposed via `ref`: a `currentStep` that's always in sync with the
@@ -180,6 +190,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     haptics = true,
     locale,
     content,
+    onSubmitError,
   },
   ref,
 ) {
@@ -237,6 +248,18 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
       })
     },
     [flow],
+  )
+  /** Turns a rejected `onSubmit`/3DS-retry into the message shown to the user: the
+   *  consumer's own `onSubmitError` wins when it returns something, then the error's
+   *  own `.message` (already flow-appropriate for errors raised inside FlowKit itself,
+   *  e.g. the 3DS challenge failures below), and only then the generic fallback text —
+   *  never assumes an unlabeled failure was about payment. */
+  const resolveSubmitError = useCallback(
+    (err: unknown): string =>
+      onSubmitError?.(err, flow) ??
+      (err instanceof Error && err.message ? err.message : undefined) ??
+      resolveText(flow, "errorGenericMessage"),
+    [flow, onSubmitError],
   )
   useImperativeHandle(
     ref,
@@ -620,7 +643,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
         // A rejected onSubmit (typically a failed deferred payment charge) must
         // not advance the flow: keep the user on the review step and show why.
         haptic("blocked", haptics)
-        const message = err instanceof Error && err.message ? err.message : resolveText(flow, "paymentFailed")
+        const message = resolveSubmitError(err)
         if (flow.errorScreen !== undefined) {
           // Opt-in: a full recovery screen (retry / change payment method / …)
           // instead of the one-line footer message.
@@ -640,7 +663,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
     }
     pendingDirectionRef.current = "next"
     setState((s) => nextState(flow, s))
-  }, [flow, state, isFinalReviewSubmit, submitFlow, activeReturnTo, haptics, raiseError])
+  }, [flow, state, isFinalReviewSubmit, submitFlow, activeReturnTo, haptics, raiseError, resolveSubmitError])
 
   const handlePrev = useCallback(() => {
     if (flow.disableBack) return
@@ -681,8 +704,7 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
                 setState((s) => nextState(flow, s))
               } catch (err) {
                 haptic("blocked", haptics)
-                const message =
-                  err instanceof Error && err.message ? err.message : resolveText(flow, "paymentFailed")
+                const message = resolveSubmitError(err)
                 raiseError({ message, onRetry: retry })
               }
             })()
@@ -706,7 +728,17 @@ export const FlowRunner = forwardRef<FlowRunnerHandle, FlowRunnerProps>(function
           break
       }
     },
-    [errorScreen, flow, haptics, raiseError, handleNext, handleNavigateToStep, handlePrev, handleRestart],
+    [
+      errorScreen,
+      flow,
+      haptics,
+      raiseError,
+      handleNext,
+      handleNavigateToStep,
+      handlePrev,
+      handleRestart,
+      resolveSubmitError,
+    ],
   )
 
   /** Enter in a single-line text-like input (text/email/number/date/…) attempts to
