@@ -1,5 +1,23 @@
 # @flowkit-io/react
 
+## 1.11.0 — 2026-09-24
+
+### Fixed
+
+- **Dots progress variant now centers horizontally** instead of hugging the left edge
+  of its flex row, and its inactive dots use a dim visible color (`text2` at 30%
+  opacity) instead of the near-invisible `surface` token.
+- **Submit error message no longer defaults to a payment-specific message** for every
+  `onSubmit` rejection without its own `.message` — falls back to the generic
+  `errorGenericMessage` text instead.
+
+### Added
+
+- **`onSubmitError` prop on `FlowRunner`**: `(error, flow) => string | undefined`, run
+  before the built-in fallback chain (`error.message`, then `errorGenericMessage`), so
+  a consumer can tell a real payment failure apart from any other submit error and
+  supply its own copy for either.
+
 ## 1.10.0 — 2026-09-15
 
 ### Added

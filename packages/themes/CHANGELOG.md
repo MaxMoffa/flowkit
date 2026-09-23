@@ -1,5 +1,15 @@
 # @flowkit-io/themes
 
+## 1.1.1 — 2026-09-24
+
+### Fixed
+
+- **`showcase` theme's page background no longer renders as one giant circle.** Its dot
+  texture is now pre-tiled inside the SVG itself (a `<pattern>` over an 800×800 canvas)
+  instead of a single 80×80 dot, which `background-size: cover; background-repeat:
+  no-repeat` (built for full-bleed photos) was stretching to fill the whole flow.
+  Affected both `showcaseLight` and `showcaseDark`.
+
 ## 1.1.0 — 2026-09-03
 
 ### Changed
