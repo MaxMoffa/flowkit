@@ -57,7 +57,8 @@ import "@flowkit-io/react/steps/confirmation"
 Three built-in progress indicators are registered:
 - **bar** – Horizontal progress bar
 - **dots** – Dot indicators (one per step)
-- **steps** – Step list with titles and completion status
+- **steps** – Numbered circles, one per step, connected by a line
+- **segments** – Segmented bar, one pill per step; only the active one shows its number
 
 The progress variant is controlled by the theme's `layout.progressVariant` token (default: `bar`). Override in a custom theme or per-step via `themeOverride`.
 

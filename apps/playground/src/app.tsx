@@ -35,7 +35,7 @@ const debugEstimatedCountry = debugParams.get("estimatedCountry") ?? undefined
  *  applies uniformly to all of them, see `applyCustomization` below. `"default"`
  *  always means "leave the preset's own value alone". */
 interface Customization {
-  progressVariant: "default" | "bar" | "dots" | "steps" | "hidden"
+  progressVariant: "default" | "bar" | "dots" | "steps" | "segments" | "hidden"
   progressPosition: "default" | "header" | "footer"
   haptics: boolean
   disableBack: "default" | "on" | "off"
@@ -268,7 +268,8 @@ export function App() {
                   <option value="default">Del tema (default)</option>
                   <option value="bar">Barra</option>
                   <option value="dots">Puntini</option>
-                  <option value="steps">Numerato</option>
+                  <option value="steps">Numerato (cerchi)</option>
+                  <option value="segments">Barra segmentata</option>
                   <option value="hidden">Nascosto</option>
                 </select>
               </label>

@@ -299,10 +299,13 @@
   }
 }
 
-/* Numbered stepper (progressVariant: "steps"). Establishes its own containment context
-   so the per-step titles react to the width the stepper itself gets — header vs footer,
-   desktop vs an embedder's narrow frame on a wide screen — rather than to the browser
-   viewport, same reasoning as .fk-scroll's fk-step container. */
+/* Numbered stepper (progressVariant: "steps"). Circles + connecting line only — no
+   per-step or current-step title text (that used to double the header's height; the
+   current step's name is still exposed to assistive tech via aria-valuetext, see
+   steps-progress.tsx). Establishes its own containment context so the narrow-container
+   query below reacts to the width the stepper itself gets — header vs footer, desktop
+   vs an embedder's narrow frame on a wide screen — rather than the browser viewport,
+   same reasoning as .fk-scroll's fk-step container. */
 .fk-progress-stepper {
   flex: 1;
   min-width: 0;
@@ -312,7 +315,7 @@
 
 .fk-progress-steps {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -321,15 +324,9 @@
 
 .fk-progress-step {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   flex: 1;
   min-width: 0;
-}
-
-.fk-progress-step-track {
-  display: flex;
-  align-items: center;
-  width: 100%;
 }
 
 .fk-progress-step-circle,
@@ -394,14 +391,6 @@
   box-shadow: 0 0 0 3px var(--fk-accent-soft);
 }
 
-/* Many steps: smaller circles, since they carry the whole indicator on their own
-   (inline titles are not rendered at all above MAX_INLINE_LABEL_STEPS). */
-.fk-progress-stepper--dense .fk-progress-step-circle {
-  width: 20px;
-  height: 20px;
-  font-size: 10px;
-}
-
 .fk-progress-step-line {
   flex: 1;
   height: 2px;
@@ -416,71 +405,59 @@
   background: var(--fk-accent);
 }
 
-/* Inline per-step titles are opt-in by width: hidden by default (mobile-first), revealed
-   by the container query below once there is room for them to be readable. */
-.fk-progress-step-label {
-  display: none;
-  margin-top: var(--fk-space-xs);
-  min-width: 0;
-}
-
-.fk-progress-step-title {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--fk-text2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* The current step's title + description, on their own full-width line under the row:
-   the one place a description is shown, and the only place a long title has the room to
-   be read instead of being cut down to a couple of characters inside a 1/n column. */
-.fk-progress-current {
-  display: flex;
-  flex-direction: column;
-  margin-top: var(--fk-space-xs);
-  min-width: 0;
-}
-
-.fk-progress-current-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--fk-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fk-progress-current-subtitle {
-  font-size: 11px;
-  color: var(--fk-text2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Wide enough for per-step titles: show them, highlight the current one, and drop the
-   now-redundant title from the current row (its description stays). */
-@container fk-progress (min-width: 480px) {
-  .fk-progress-stepper:not(.fk-progress-stepper--dense) .fk-progress-step-label {
-    display: block;
-  }
-
-  .fk-progress-stepper:not(.fk-progress-stepper--dense) .fk-progress-current-title {
-    display: none;
-  }
-
-  .fk-progress-stepper:not(.fk-progress-stepper--dense) .fk-progress-step--active .fk-progress-step-title {
-    color: var(--fk-text);
-    font-weight: 600;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .fk-progress-step-circle,
   .fk-progress-step-line {
+    transition: none;
+  }
+}
+
+/* Segmented bar (progressVariant: "segments"): a shorter, different-metaphor alternative
+   to the numbered circle stepper above — steps become pill segments instead of circles
+   joined by a line, and only the active one carries its number (it grows a little to fit
+   it); no per-step titles, no current-step row, ever, at any step count — a thin segment
+   scales down fine, unlike a circle, so long paths need no "…" collapsing either. */
+.fk-progress-segments {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+}
+
+.fk-progress-segment {
+  flex: 1;
+  min-width: 2px;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--fk-border);
+  transition:
+    background 200ms ease,
+    height 200ms ease,
+    border-radius 200ms ease;
+}
+
+.fk-progress-segment--completed {
+  background: var(--fk-accent);
+}
+
+.fk-progress-segment--active {
+  flex: 1.4;
+  height: 20px;
+  border-radius: 8px;
+  background: var(--fk-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fk-progress-segment {
     transition: none;
   }
 }

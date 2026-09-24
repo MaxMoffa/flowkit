@@ -107,7 +107,7 @@ const myTheme: Theme = {
     layout: {
       headerPosition: "top",    // "top" (default) | "bottom"
       footerPosition: "bottom", // "top" | "bottom" (default)
-      progressVariant: "dots",  // "bar" (default) | "dots" | "steps" | "hidden" | custom key
+      progressVariant: "dots",  // "bar" (default) | "dots" | "steps" | "segments" | "hidden" | custom key
       progressPosition: "header", // "header" (default) | "footer"
     },
     animation: {
@@ -122,24 +122,22 @@ const myTheme: Theme = {
 All optional: a theme that doesn't set them behaves exactly like today. The background
 (image or SVG, even as a data-URI) applies behind the cards, which stay opaque.
 `progressVariant: "hidden"` only hides the bar, not the back button. `"steps"` renders a
-numbered stepper built from the steps of the *resolved* path (branches included), and
-adapts how it shows their `title`/`subtitle`:
+numbered stepper built from the steps of the *resolved* path (branches included) —
+circles only, no title/subtitle text anywhere (a screen reader still gets the current
+step's title via `aria-valuetext`, just nothing sighted, so the header's height never
+depends on how long a step's title happens to be). Completed steps are solid accent
+discs with a check, the current step is an accent outline with a soft halo, upcoming
+ones are plain. Paths longer than 7 steps **collapse**: first, last and the current step
+±1 stay as numbered circles, every other contiguous run becomes a single `…` marker, so
+the row never overflows on a phone.
 
-- the **current** step's `title` + `subtitle` always get their own full-width row under
-  the circles — that is the only place a `subtitle` is shown, since the description of a
-  step you are not on is noise;
-- **inline per-step titles** are rendered only for paths of up to 5 steps, and appear
-  only once the stepper's own box is at least 480px wide. That is a CSS *container*
-  query, not a viewport one: a flow embedded in a narrow frame on a wide screen keeps
-  the compact layout. When they appear, the current row drops its now-redundant title
-  and keeps just the description;
-- paths longer than 7 steps **collapse**: first, last and the current step ±1 stay as
-  numbered circles, every other contiguous run becomes a single `…` marker, so the row
-  never overflows on a phone.
+`"segments"` is a shorter, different-metaphor alternative: steps become pill segments in
+a bar instead of circles joined by a line, filled solid for the ones already done; only
+the active segment carries its number, growing slightly to fit it. No title text either,
+and — unlike `"steps"` — it never needs to collapse a long path: a thin segment scales
+down fine at any step count.
 
-Completed steps are solid accent discs with a check, the current step is an accent
-outline with a soft halo, upcoming ones are plain. A custom variant registers like step
-components:
+A custom variant registers like step components:
 
 ```ts
 import { registerProgressComponent } from "@flowkit-io/react"

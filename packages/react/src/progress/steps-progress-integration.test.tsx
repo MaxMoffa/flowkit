@@ -53,36 +53,28 @@ function makeLongFlow() {
 }
 
 describe("FlowRunner + steps progress variant", () => {
-  it("passes every resolved step's title/subtitle to the registered 'steps' component", () => {
+  it("renders one numbered circle per resolved step, active one highlighted", () => {
     const { container } = render(<FlowRunner flow={makeFlow()} theme={makeTheme("steps")} initialStep="a" />)
     const items = container.querySelectorAll(".fk-progress-step")
     expect(items).toHaveLength(3)
-    expect(items[0]!.querySelector(".fk-progress-step-title")?.textContent).toBe("Database")
     expect(items[0]!.className).toContain("fk-progress-step--active")
-    expect(items[1]!.querySelector(".fk-progress-step-title")?.textContent).toBe("Contenuto")
-    expect(items[2]!.querySelector(".fk-progress-step-title")?.textContent).toBe("Dettagli")
   })
 
-  it("shows the current step's title and description in the dedicated row", () => {
+  it("names the current step via aria-valuetext, without rendering any title text", () => {
     const { container } = render(<FlowRunner flow={makeFlow()} theme={makeTheme("steps")} initialStep="b" />)
-    expect(container.querySelector(".fk-progress-current-title")?.textContent).toBe("Contenuto")
-    expect(container.querySelector(".fk-progress-current-subtitle")?.textContent).toBe(
-      "Rivedi gli step generati",
-    )
+    expect(container.querySelector('[role="progressbar"]')!.getAttribute("aria-valuetext")).toBe("Contenuto")
+    expect(container.querySelectorAll(".fk-progress-step-title")).toHaveLength(0)
+    expect(container.querySelector(".fk-progress-current")).toBeNull()
   })
 
-  it("collapses a long path and drops the inline titles, keeping the current one", () => {
+  it("collapses a long path into ellipsis markers, no title text at any length", () => {
     const { container } = render(
       <FlowRunner flow={makeLongFlow()} theme={makeTheme("steps")} initialStep="s5" />,
-    )
-    expect(container.querySelector(".fk-progress-stepper")!.className).toContain(
-      "fk-progress-stepper--dense",
     )
     expect(container.querySelectorAll(".fk-progress-step-title")).toHaveLength(0)
     expect(container.querySelectorAll(".fk-progress-step-ellipsis").length).toBeGreaterThan(0)
     expect(container.querySelectorAll(".fk-progress-step").length).toBeLessThanOrEqual(7)
-    expect(container.querySelector(".fk-progress-current-title")?.textContent).toBe("Passo 5")
-    expect(container.querySelector(".fk-progress-current-subtitle")?.textContent).toBe("Descrizione 5")
+    expect(container.querySelector('[role="progressbar"]')!.getAttribute("aria-valuetext")).toBe("Passo 5")
   })
 
   it("advances the active circle as the user moves through steps", () => {
@@ -103,5 +95,26 @@ describe("FlowRunner + steps progress variant", () => {
     const { container } = render(<FlowRunner flow={makeFlow()} theme={makeTheme("dots")} initialStep="a" />)
     expect(container.querySelector(".fk-progress-dots")).not.toBeNull()
     expect(container.querySelector(".fk-progress-steps")).toBeNull()
+  })
+})
+
+describe("FlowRunner + segments progress variant", () => {
+  it("renders one segment per resolved step, active one carrying its 1-based number", () => {
+    const { container } = render(<FlowRunner flow={makeFlow()} theme={makeTheme("segments")} initialStep="b" />)
+    const segments = container.querySelectorAll(".fk-progress-segment")
+    expect(segments).toHaveLength(3)
+    expect(segments[0]!.className).toContain("fk-progress-segment--completed")
+    expect(segments[1]!.className).toContain("fk-progress-segment--active")
+    expect(segments[1]!.textContent).toBe("2")
+    expect(segments[2]!.className).not.toContain("completed")
+    expect(segments[2]!.className).not.toContain("active")
+  })
+
+  it("never collapses, however many steps", () => {
+    const { container } = render(
+      <FlowRunner flow={makeLongFlow()} theme={makeTheme("segments")} initialStep="s5" />,
+    )
+    expect(container.querySelectorAll(".fk-progress-segment")).toHaveLength(9)
+    expect(container.querySelectorAll(".fk-progress-step-ellipsis")).toHaveLength(0)
   })
 })

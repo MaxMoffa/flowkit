@@ -9,12 +9,6 @@ const INDETERMINATE_DOT_COUNT = 3
  *  "…" marker per contiguous run — first, last and the current step ±1 always stay. */
 export const MAX_VISIBLE_STEPS = 7
 
-/** Beyond this many steps the per-step inline titles are dropped from the DOM entirely:
- *  even on a wide container each one would render as a couple of truncated characters.
- *  The current step's title/description keeps its own full-width row below the circles,
- *  so nothing is actually lost. */
-export const MAX_INLINE_LABEL_STEPS = 5
-
 type StepState = "completed" | "active" | "upcoming"
 
 export interface ProgressStepLabel {
@@ -23,7 +17,7 @@ export interface ProgressStepLabel {
 }
 
 export type StepperItem =
-  | { kind: "step"; index: number; state: StepState; title?: string; subtitle?: string }
+  | { kind: "step"; index: number; state: StepState }
   /** A collapsed run of `count` consecutive steps, rendered as an "…" marker. */
   | { kind: "gap"; state: StepState; from: number; to: number; count: number }
 
@@ -41,16 +35,14 @@ function stepState(index: number, currentIndex: number): StepState {
  * collapse every other contiguous run into one "…". A run of a single step is kept
  * instead of collapsed: swapping one circle for one ellipsis saves no room and only
  * loses information. The result is never more than MAX_VISIBLE_STEPS items wide.
+ *
+ * Takes the step count via `steps.length` (rather than a bare number) so a caller
+ * already holding the resolved path's labels doesn't need to compute one — the labels
+ * themselves are otherwise unused here, `StepsProgress` renders circles only.
  */
 export function buildStepperItems(steps: ProgressStepLabel[], currentIndex: number): StepperItem[] {
   const n = steps.length
-  const asStep = (i: number): StepperItem => ({
-    kind: "step",
-    index: i,
-    state: stepState(i, currentIndex),
-    title: steps[i]?.title,
-    subtitle: steps[i]?.subtitle,
-  })
+  const asStep = (i: number): StepperItem => ({ kind: "step", index: i, state: stepState(i, currentIndex) })
 
   if (n <= MAX_VISIBLE_STEPS) return steps.map((_, i) => asStep(i))
 
@@ -84,17 +76,9 @@ export function buildStepperItems(steps: ProgressStepLabel[], currentIndex: numb
 
 /**
  * Numbered top stepper: one circle per step on the resolved path, connected by a line
- * that fills as the user progresses.
- *
- * Titles and descriptions adapt instead of being crammed in:
- * - the current step's title + description always get their own full-width row under the
- *   circles — that is the only place a description is ever shown, since a description of
- *   a step you are not on is noise;
- * - per-step inline titles are rendered only for short paths (<= MAX_INLINE_LABEL_STEPS)
- *   and CSS reveals them only once the stepper's own container is wide enough (a
- *   container query, not a viewport one: an embedder may render the flow in a narrow
- *   frame on a wide screen). When they are visible the current row drops its now
- *   redundant title and keeps just the description.
+ * that fills as the user progresses. Circles only — no per-step or current-step title
+ * text (v2.4x: that text row used to double the header's height on a phone; a screen
+ * reader still gets the current step's name via `aria-valuetext`, just nothing sighted).
  *
  * Falls back to the same pulsing-dots indeterminate state as DotsProgress while the path
  * (or its step list) isn't known yet.
@@ -111,19 +95,17 @@ export function StepsProgress({ currentIndex, total, steps }: ProgressComponentP
   }
 
   const items = buildStepperItems(steps, currentIndex)
-  /** Many-step paths: circles only, no inline titles (see MAX_INLINE_LABEL_STEPS). */
-  const dense = steps.length > MAX_INLINE_LABEL_STEPS
   const current = steps[currentIndex]
 
   return (
     <div
-      className={`fk-progress-stepper${dense ? " fk-progress-stepper--dense" : ""}`}
+      className="fk-progress-stepper"
       role="progressbar"
       aria-valuenow={currentIndex + 1}
       aria-valuemin={1}
       aria-valuemax={total}
       /* Children of a progressbar are presentational for assistive tech, so the visible
-         labels are never announced: name the current step here instead of leaving the
+         circles are never announced: name the current step here instead of leaving the
          bare number. No invented copy, so nothing to translate. */
       aria-valuetext={current?.title}
     >
@@ -141,12 +123,10 @@ export function StepsProgress({ currentIndex, total, steps }: ProgressComponentP
                 key={`gap-${item.from}`}
                 className={`fk-progress-step fk-progress-step--gap fk-progress-step--${item.state}`}
               >
-                <div className="fk-progress-step-track">
-                  <span className="fk-progress-step-ellipsis" aria-hidden="true">
-                    …
-                  </span>
-                  {line}
-                </div>
+                <span className="fk-progress-step-ellipsis" aria-hidden="true">
+                  …
+                </span>
+                {line}
               </li>
             )
           }
@@ -156,37 +136,14 @@ export function StepsProgress({ currentIndex, total, steps }: ProgressComponentP
               className={`fk-progress-step fk-progress-step--${item.state}`}
               aria-current={item.state === "active" ? "step" : undefined}
             >
-              <div className="fk-progress-step-track">
-                <span className="fk-progress-step-circle" aria-hidden="true">
-                  {item.state === "completed" ? <ProgressCheckIcon /> : item.index + 1}
-                </span>
-                {line}
-              </div>
-              {!dense && item.title && (
-                <div className="fk-progress-step-label">
-                  <span className="fk-progress-step-title" title={item.title}>
-                    {item.title}
-                  </span>
-                </div>
-              )}
+              <span className="fk-progress-step-circle" aria-hidden="true">
+                {item.state === "completed" ? <ProgressCheckIcon /> : item.index + 1}
+              </span>
+              {line}
             </li>
           )
         })}
       </ol>
-      {(current?.title || current?.subtitle) && (
-        <div className="fk-progress-current">
-          {current.title && (
-            <span className="fk-progress-current-title" title={current.title}>
-              {current.title}
-            </span>
-          )}
-          {current.subtitle && (
-            <span className="fk-progress-current-subtitle" title={current.subtitle}>
-              {current.subtitle}
-            </span>
-          )}
-        </div>
-      )}
     </div>
   )
 }
