@@ -74,6 +74,49 @@ body {
   opacity: 0.75;
 }
 
+.pg-layout {
+  width: 100%;
+  max-width: 1080px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.pg-preview {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.pg-panel {
+  flex: 1;
+  min-width: 280px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .pg-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .pg-panel {
+    width: 100%;
+    max-width: 480px;
+    order: 2;
+  }
+
+  .pg-preview {
+    order: 1;
+  }
+}
+
 .pg-controls {
   display: flex;
   flex-wrap: wrap;
@@ -116,6 +159,116 @@ body {
    the dark-mode .pg-btn rule above (align-self vs. background/color/border-color). */
 .pg-btn {
   align-self: flex-end;
+}
+
+.pg-btn-active {
+  background: #2783de;
+  color: white;
+  border-color: #2783de;
+}
+
+.pg-customize {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e6e5e3;
+  border-radius: 16px;
+  background: white;
+  box-sizing: border-box;
+}
+
+.pg-page[data-pg-mode="dark"] .pg-customize {
+  background: #1c1c22;
+  border-color: #3a3a44;
+}
+
+.pg-panel .pg-controls {
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pg-customize-hint {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.pg-customize-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.pg-customize fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pg-customize legend {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+  padding: 0 0 4px;
+}
+
+.pg-customize label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.pg-customize-check {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+/* stylelint-disable-next-line no-descending-specificity -- no property overlap with
+   the dark-mode .pg-controls select rule above (border-radius/font-family vs.
+   background/color/border-color). */
+.pg-customize select,
+.pg-customize input[type="text"],
+.pg-customize textarea {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  color: #2c2c2b;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.pg-page[data-pg-mode="dark"] .pg-customize select,
+.pg-page[data-pg-mode="dark"] .pg-customize input[type="text"],
+.pg-page[data-pg-mode="dark"] .pg-customize textarea {
+  background: #24242c;
+  color: #eee;
+  border-color: #3a3a44;
+}
+
+/* stylelint-disable-next-line no-descending-specificity -- no property overlap with
+   the dark-mode .pg-customize textarea rule above (resize/font-family vs.
+   background/color/border-color). */
+.pg-customize textarea {
+  resize: vertical;
+  font-family: monospace;
+}
+
+.pg-customize-error {
+  margin: 0;
+  font-size: 12px;
+  color: #e56458;
 }
 
 .pg-phone {
