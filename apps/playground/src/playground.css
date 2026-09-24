@@ -161,12 +161,6 @@ body {
   align-self: flex-end;
 }
 
-.pg-btn-active {
-  background: #2783de;
-  color: white;
-  border-color: #2783de;
-}
-
 .pg-customize {
   width: 100%;
   max-width: 720px;
@@ -394,12 +388,17 @@ body {
   font-size: 12px;
 }
 
-.pg-theme-strip {
+.pg-controls-theme {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  gap: 4px;
+}
+
+.pg-swatches {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  max-width: 480px;
+  gap: 8px;
 }
 
 .pg-swatch {

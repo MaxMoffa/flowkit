@@ -105,7 +105,6 @@ export function App() {
   const [overlayOpen, setOverlayOpen] = useState(false)
   const [overlayPresentation, setOverlayPresentation] = useState<FlowOverlayPresentation>("auto")
   const [overlayFixedHeight, setOverlayFixedHeight] = useState(true)
-  const [customizeOpen, setCustomizeOpen] = useState(false)
   const [customization, setCustomization] = useState<Customization>(defaultCustomization)
   const flowRunnerRef = useRef<FlowRunnerHandle>(null)
 
@@ -134,7 +133,7 @@ export function App() {
 
   const theme = themes[themeKey]!
 
-  const themeOptions = useMemo(() => Object.entries(themes), [])
+  const themeOptions = useMemo(() => Object.entries(themes).filter(([k]) => k !== "showcase"), [])
 
   const customizedTheme = useMemo(() => applyThemeCustomization(theme, customization), [theme, customization])
 
@@ -202,20 +201,27 @@ export function App() {
             ))}
           </select>
         </label>
-        <label>
-          Tema
-          <select
-            aria-label="Tema"
-            value={themeKey}
-            onChange={(e) => setThemeKey(e.target.value as keyof typeof themes)}
-          >
+        <div className="pg-controls-theme">
+          <span className="pg-controls-theme-label">Tema</span>
+          <div className="pg-swatches">
             {themeOptions.map(([k, t]) => (
-              <option key={k} value={k}>
+              <button
+                key={k}
+                type="button"
+                className={`pg-swatch ${k === themeKey ? "pg-swatch-active" : ""}`}
+                onClick={() => setThemeKey(k as keyof typeof themes)}
+                style={{
+                  background: mode === "dark" ? t.dark.canvas : t.light.canvas,
+                  borderColor: mode === "dark" ? t.dark.accent : t.light.accent,
+                }}
+                title={t.label}
+              >
+                <span style={{ background: mode === "dark" ? t.dark.accent : t.light.accent }} />
                 {t.label}
-              </option>
+              </button>
             ))}
-          </select>
-        </label>
+          </div>
+        </div>
         <button
           type="button"
           className="pg-btn"
@@ -235,18 +241,9 @@ export function App() {
         >
           ⛶ Anteprima fullscreen
         </a>
-        <button
-          type="button"
-          className={`pg-btn ${customizeOpen ? "pg-btn-active" : ""}`}
-          aria-expanded={customizeOpen}
-          onClick={() => setCustomizeOpen((o) => !o)}
-        >
-          ⚙️ Personalizza
-        </button>
       </div>
 
-      {customizeOpen && (
-        <div className="pg-customize">
+      <div className="pg-customize">
           <p className="pg-customize-hint">
             Vale per qualunque preset qui sopra: sovrascrive la config del flow selezionato,
             senza toccarne la sorgente.
@@ -399,7 +396,6 @@ export function App() {
             Ripristina personalizzazioni
           </button>
         </div>
-      )}
       </div>
 
       <div className="pg-preview">
@@ -502,25 +498,6 @@ export function App() {
             />
           )}
         </div>
-      </div>
-
-      <div className="pg-theme-strip">
-        {themeOptions.map(([k, t]) => (
-          <button
-            key={k}
-            type="button"
-            className={`pg-swatch ${k === themeKey ? "pg-swatch-active" : ""}`}
-            onClick={() => setThemeKey(k as keyof typeof themes)}
-            style={{
-              background: mode === "dark" ? t.dark.canvas : t.light.canvas,
-              borderColor: mode === "dark" ? t.dark.accent : t.light.accent,
-            }}
-            title={t.label}
-          >
-            <span style={{ background: mode === "dark" ? t.dark.accent : t.light.accent }} />
-            {t.label}
-          </button>
-        ))}
       </div>
 
       {lastSubmission && (
