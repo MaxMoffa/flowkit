@@ -1,5 +1,22 @@
 # @flowkit-io/react
 
+## 1.12.0 — 2026-09-24
+
+### Fixed
+
+- **Numbered stepper (`progressVariant: "steps"`) no longer renders any title text**:
+  dropped the dedicated current-step title/subtitle row and the width-gated per-step
+  inline titles, which used to roughly double the header's height. The current step's
+  name is still exposed to assistive tech via `aria-valuetext`, just nothing sighted.
+
+### Added
+
+- **`"segments"` progress variant**: steps as pill segments in a bar instead of numbered
+  circles joined by a line — filled solid once done, with only the active segment
+  carrying its number. No title text either, and unlike `"steps"` it never needs to
+  collapse a long path into a `…` marker: a thin segment scales down fine at any step
+  count.
+
 ## 1.11.0 — 2026-09-24
 
 ### Fixed

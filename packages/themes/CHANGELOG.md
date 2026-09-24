@@ -1,5 +1,14 @@
 # @flowkit-io/themes
 
+## 1.1.2 — 2026-09-24
+
+### Changed
+
+- **`ThemeLayoutTokens.progressVariant`** now lists `"segments"` as a named literal
+  (alongside `"bar"`/`"dots"`/`"steps"`/`"hidden"`), matching the progress variant of the
+  same name added to `@flowkit-io/react`. The type already accepted any string via its
+  catch-all, so this is editor-autocomplete only — no runtime change.
+
 ## 1.1.1 — 2026-09-24
 
 ### Fixed
