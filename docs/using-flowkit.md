@@ -57,6 +57,7 @@ if it meets a step nobody registered, so a forgotten import fails loudly.
 | `theme` | `Theme` | no (default `warmPaper`) | Theme to apply, see [Configuring a theme](./theming.md) |
 | `mode` | `"light" \| "dark"` | no (default `"light"`) | Theme variant to use |
 | `onSubmit` | `(answers) => void \| Promise<void>` | no | Called when the user confirms the `review` step (before moving to `confirmation`) |
+| `onSubmitError` | `(error: unknown, flow: Flow) => string \| undefined` | no | Maps a rejected `onSubmit` to the message shown to the user — see [Handling failures](#handling-failures-the-error-screen) |
 | `onChange` | `(answers) => void` | no | Called on every changed answer — useful for autosave/drafts. Receives the answers as they stand *after* the change, including the removal of any answer the change made unreachable (see `"branch-change"` below), so a persisted draft never resurrects a step the flow no longer goes through |
 | `onStepChange` | `(step: CurrentStepInfo) => void` | no | Called every time the visibly rendered step changes — see below |
 | `initialStep` | `string` | no | Id of the step to start on instead of the first step — see [Resuming a flow](#resuming-a-flow) |
@@ -106,7 +107,25 @@ A "branch" (`role: "logic"`) step is fully transparent: it never triggers `onSte
 
 ## Handling failures: the error screen
 
-By default, a rejected `onSubmit` (typically a declined deferred payment) keeps the user on the `review` step and shows the rejection message as a line under the footer. Set `flow.errorScreen` to get a full recovery screen instead:
+By default, a rejected `onSubmit` (typically a declined deferred payment) keeps the user on the `review` step and shows the rejection message as a line under the footer. That message is picked with a fallback chain: your own `onSubmitError(error, flow)` first (return `undefined` to skip it), then `error.message` if the rejection has one, then the generic `errorGenericMessage` text — so a plain network failure or a server 500 no longer reads as a payment failure, and you can tell them apart yourself:
+
+```tsx
+import { PaymentRequiresActionError, resolveText } from "@flowkit-io/core"
+
+// ...
+
+<FlowRunner
+  flow={shopFlow}
+  onSubmit={(answers) => adapter.submit(shopFlow.id, answers)}
+  onSubmitError={(error, flow) => {
+    if (error instanceof PaymentRequiresActionError) return undefined // let it resolve on its own
+    if (error instanceof TypeError) return "Connessione assente. Riprova." // fetch() network failure
+    return resolveText(flow, "paymentFailed") // your own copy, reusing the flow's i18n dictionary
+  }}
+/>
+```
+
+Set `flow.errorScreen` to get a full recovery screen instead of the footer line — `onSubmitError` still runs first either way, its return value becomes the screen's `message`:
 
 ```ts
 const flow = parseFlow({

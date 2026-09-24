@@ -74,6 +74,7 @@ export interface FlowRunnerProps {
   initialAnswers?: Record<string, any>    // Pre-fill answers
   onStepChange?: (step: CurrentStepInfo) => void  // Called when current step changes
   onSubmit?: (answers: Record<string, any>, report: Report) => void | Promise<void>  // Submission handler
+  onSubmitError?: (error: unknown, flow: Flow) => string | undefined  // Maps a rejected onSubmit to the shown message
   onChange?: (answers: Record<string, any>) => void  // Called when answers change
 }
 ```
