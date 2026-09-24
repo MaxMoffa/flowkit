@@ -112,7 +112,14 @@ body {
     order: 2;
   }
 
+  /* Without an explicit width here, this flex item (align-items: center above, not
+     stretch) hugs its content instead of the viewport-bounded space actually
+     available — .pg-phone's own `max-width: 100%` then has nothing narrower than its
+     own 390px to shrink against, and the page overflows horizontally below ~390px
+     (e2e/playground-responsive.spec.ts's 320px check). */
   .pg-preview {
+    width: 100%;
+    min-width: 0;
     order: 1;
   }
 }
@@ -130,6 +137,11 @@ body {
   flex-direction: column;
   font-size: 12px;
   gap: 4px;
+  /* Overrides the flex-item default (min-content, which for a <select> with long
+     option text — e.g. "Flow in overlay: drawer/dialog (demo)" — is basically its
+     widest option) so flex-wrap's shrink can actually narrow it below that on a small
+     phone instead of forcing the row, and the page, wider than the viewport. */
+  min-width: 0;
 }
 
 .pg-controls select,
@@ -145,6 +157,11 @@ body {
   display: inline-flex;
   align-items: center;
   line-height: 1.2;
+}
+
+.pg-controls select {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .pg-page[data-pg-mode="dark"] .pg-controls select,

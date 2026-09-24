@@ -58,14 +58,17 @@ test("per-step themeOverride: group step accent differs from the flow's theme ac
   expect(rootAccent).not.toBe("#E56458")
 })
 
-test("theme selector and swatch strip include all registered themes", async ({ page }) => {
+test("theme swatch picker includes every non-demo theme, and picking one applies it", async ({ page }) => {
   await page.goto("/")
-  const select = page.getByLabel("Tema", { exact: true })
   for (const theme of themes) {
-    await expect(select.locator(`option[value="${theme}"]`)).toHaveCount(1)
+    await expect(page.locator(`.pg-swatch[data-theme="${theme}"]`)).toHaveCount(1)
   }
+  // "showcase" is a demo/reference theme, deliberately left out of the picker — still
+  // reachable via the debug-only ?theme= URL param (see e2e/helpers/open-preset.ts).
+  await expect(page.locator('.pg-swatch[data-theme="showcase"]')).toHaveCount(0)
+
   for (const theme of ["sunset-clay", "rose-quartz"]) {
-    await select.selectOption(theme)
+    await page.locator(`.pg-swatch[data-theme="${theme}"]`).click()
     const accent = await page
       .locator(".pg-frame .fk-theme")
       .evaluate((el) => getComputedStyle(el).getPropertyValue("--fk-accent").trim())

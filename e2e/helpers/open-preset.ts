@@ -3,7 +3,8 @@ import { expect, type Page } from "@playwright/test"
 export interface OpenPresetOptions {
   /** Value of the playground's "Preset" select. Omit to keep its default (odori). */
   preset?: string
-  /** Value of the "Tema" select, applied before the flow starts. */
+  /** Theme key, applied before the flow starts (via the debug-only `?theme=` URL param —
+   *  the theme picker is swatch buttons, not a select). */
   theme?: string
   /**
    * How many "Continua" clicks to perform after the intro CTA, to land on the step
@@ -44,9 +45,12 @@ export async function openPreset(page: Page, options: OpenPresetOptions = {}): P
     await page.goto(`/fullscreen.html${query}`)
     await page.getByRole("button", { name: frame === "mobile" ? "Mobile 390px" : "Desktop (100%)" }).click()
   } else {
-    await page.goto("/")
+    // Theme has no <select> of its own (swatch buttons, see app.tsx) — go through the
+    // same debug-only `?theme=` URL param the playground reads at mount, which also
+    // reaches themes the swatch picker deliberately hides (e.g. "showcase").
+    const query = theme ? `?theme=${theme}` : ""
+    await page.goto(`/${query}`)
     if (preset) await page.getByLabel("Preset", { exact: true }).selectOption(preset)
-    if (theme) await page.getByLabel("Tema", { exact: true }).selectOption(theme)
   }
   if (!start) return
 

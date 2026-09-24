@@ -6,8 +6,8 @@ test.describe("playground light-mode contrast", () => {
   test("controls stay readable in light mode even when the OS prefers dark", async ({ page }) => {
     await page.goto("/")
 
-    const select = page.getByLabel("Tema", { exact: true })
-    const color = await select.evaluate((el) => getComputedStyle(el).color)
+    const themeLabel = page.locator(".pg-controls-theme-label")
+    const color = await themeLabel.evaluate((el) => getComputedStyle(el).color)
     const [r, g, b] = color.match(/\d+/g)!.map(Number)
     const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
     expect(luminance).toBeLessThan(0.5)

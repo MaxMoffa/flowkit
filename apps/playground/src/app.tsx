@@ -30,6 +30,10 @@ const debugInitialAnswers = (() => {
  *  this is read from the URL instead. Read by e2e/catalog-tax-estimate.spec.ts; also
  *  handy to poke at manually, e.g. `?preset=catalog-demo&estimatedCountry=FR`. */
 const debugEstimatedCountry = debugParams.get("estimatedCountry") ?? undefined
+/** Lets e2e/helpers/open-preset.ts pick a theme without clicking a swatch — the only
+ *  way to reach one the swatch picker deliberately hides (`showcase`, a demo/reference
+ *  theme, see themeOptions below). Falls back to the default theme for an unknown key. */
+const debugTheme = debugParams.get("theme") ?? undefined
 
 /** Every setting a visitor can override on top of whatever preset is selected —
  *  applies uniformly to all of them, see `applyCustomization` below. `"default"`
@@ -98,7 +102,9 @@ function applyThemeCustomization(theme: Theme, c: Customization): Theme {
 
 export function App() {
   const [presetKey, setPresetKey] = useState<string>("odori")
-  const [themeKey, setThemeKey] = useState<keyof typeof themes>("warm-paper")
+  const [themeKey, setThemeKey] = useState<keyof typeof themes>(
+    debugTheme && debugTheme in themes ? (debugTheme as keyof typeof themes) : "warm-paper",
+  )
   const [mode, setMode] = useState<ThemeMode>("light")
   const [runKey, setRunKey] = useState(0)
   const [lastSubmission, setLastSubmission] = useState<Answers | null>(null)
@@ -208,6 +214,7 @@ export function App() {
               <button
                 key={k}
                 type="button"
+                data-theme={k}
                 className={`pg-swatch ${k === themeKey ? "pg-swatch-active" : ""}`}
                 onClick={() => setThemeKey(k as keyof typeof themes)}
                 style={{
